@@ -1,3 +1,12 @@
+/*
+Copyright © 2015 by Maks Vasilev
+
+created 7.02.2015
+
+http://velo100.ru/garmin-fit-to-gpx
+
+*/
+
 import com.garmin.fit.Decode;
 import com.garmin.fit.Field;
 import com.garmin.fit.Mesg;
