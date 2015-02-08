@@ -7,12 +7,10 @@ http://velo100.ru/garmin-fit-to-gpx
 
 */
 
-import com.garmin.fit.Decode;
-import com.garmin.fit.Field;
-import com.garmin.fit.Mesg;
-import com.garmin.fit.MesgListener;
+import com.garmin.fit.*;
 
 import java.io.*;
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -33,15 +31,9 @@ public class fit2gpx {
         return Math.round(d*dd) / dd;
     }
 
-    public static int round(double d) {
-        return (int)Math.round(d);
-    }
-
-    static final ArrayList<String> activity = new ArrayList<String>();
-    static Date TimeStamp = new Date();
-
-    //static SimpleDateFormat DateFormatText = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    static SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+//    public static int round(double d) {
+//        return (int)Math.round(d);
+//    }
 
     static String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<gpx creator=\"fit2gpx\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" " +
@@ -57,6 +49,11 @@ public class fit2gpx {
     static String head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
     static String tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
+    static final ArrayList<String> activity = new ArrayList<String>();
+    static Date TimeStamp = new Date();
+
+    static SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
     static String InputFITfileName;
     static String OutputGPXfileName;
 
@@ -65,119 +62,157 @@ public class fit2gpx {
 
     public static void main(String[] args) throws IOException {
 
+        final Decode decode = new Decode();
+
         if(args.length != 1) {
             Help.usage();
         }
 
         InputFITfileName = String.valueOf(args[0]);
 
-        File InputFITfile = new File(InputFITfileName);
+        FileInputStream InputStream;
+        File InputFITfile;
 
+        try {
+            InputFITfile = new File(InputFITfileName);
+            InputStream = new FileInputStream(InputFITfile);
 
-        if (InputFITfile.exists() & InputFITfile.isFile()) {
+        } catch (IOException e) {
+            System.err.println("Ошибка: " + InputFITfileName + " не найден или не является файлом!");
+            return;
+        }
 
-
-            final Decode decode = new Decode();
-            decode.addListener(new MesgListener() {
-
-                @Override
-                public void onMesg(Mesg mesg) {
-
-                    String line = "";
-
-                    if(mesg.getFieldStringValue("timestamp") != null) {
-
-
-                        TimeStamp = new Date((Long.parseLong(mesg.getFieldStringValue("timestamp")) + 631065600) * 1000);
-
-                        if(FirstLine) {
-                            line = head.replace("{time}",DateFormatGPX.format(TimeStamp));
-                            line += head2.replace("{FTIFile}",InputFITfileName);
-                            FirstLine = false;
-                            activity.add(line);
-                            line = "";
-                        }
-
-                        final Number lat = semicircleToDegree(mesg.getField("position_lat"));
-                        final Number lon = semicircleToDegree(mesg.getField("position_long"));
-
-                        if (lat != null && lon != null) {
-
-                            EmptyTrack = false;
-
-                            line += "\n   <trkpt lat=\"" + lat.toString() + "\" lon=\"" + lon.toString() + "\">\n" +
-                                    "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
-
-                            if(mesg.getFieldStringValue("altitude") != null) {
-                                line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"),2) + "</ele>";
-                            }
-
-                            if(mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
-                                    || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null) {
-
-                                line += "\n    <extensions>\n     <gpxtpx:TrackPointExtension>";
-
-                                if(mesg.getFieldStringValue("temperature") != null) {
-                                    line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
-                                }
-                                if(mesg.getFieldStringValue("heart_rate") != null) {
-                                    line += "\n      <gpxtpx:hr>" + mesg.getFieldStringValue("heart_rate") + "</gpxtpx:hr>";
-                                }
-                                if(mesg.getFieldStringValue("cadence") != null) {
-                                    line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
-                                }
-                                if(mesg.getFieldStringValue("speed") != null) {
-                                    line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
-                                }
-
-                                line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
-                            }
-
-                     // неоприходованные поля
-                     // mesg.getFieldStringValue("distance")
-
-                            line += "\n   </trkpt>";
-
-                            activity.add(line);
-                        }
-                    }
-
-                }
-            });
-
-            decode.read(new BufferedInputStream(new FileInputStream(InputFITfile)));
-
-            activity.add(tail);
-
-            if(EmptyTrack) {
-                OutputGPXfileName = InputFITfileName + ".empty";
-            } else {
-                OutputGPXfileName = InputFITfileName + ".gpx";
+        try {
+            if (!Decode.checkIntegrity(InputStream)) {
+                throw new RuntimeException("файл " + InputFITfileName + " повреждён!");
             }
-
-            File OutputGPXfile = new File(OutputGPXfileName);
+        }  catch (RuntimeException e) {
+            System.err.print("Ошибка проверки файла: ");
+            System.err.println(e.getMessage());
 
             try {
-                if(!OutputGPXfile.exists()) {
-                    OutputGPXfile.createNewFile();
-                }
+                InputStream.close();
+            } catch (IOException e1) {
+                throw new RuntimeException(e1);
+            }
+            return;
+        }
 
-                PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile());
+        decode.addListener(new MesgListener() {
 
-                try {
-                     for(String str : activity) {
-                         OutWriter.write(str);
+            @Override
+            public void onMesg(Mesg mesg) {
+
+                String line = "";
+
+                if(mesg.getFieldStringValue("timestamp") != null) {
+
+
+                    TimeStamp = new Date((Long.parseLong(mesg.getFieldStringValue("timestamp")) + 631065600) * 1000);
+
+                    if(FirstLine) {
+                        line = head.replace("{time}",DateFormatGPX.format(TimeStamp));
+                        line += head2.replace("{FTIFile}",InputFITfileName);
+                        FirstLine = false;
+                        activity.add(line);
+                        line = "";
                     }
 
-                } finally {
-                    OutWriter.close();
+                    final Number lat = semicircleToDegree(mesg.getField("position_lat"));
+                    final Number lon = semicircleToDegree(mesg.getField("position_long"));
+
+                    if (lat != null && lon != null) {
+
+                        EmptyTrack = false;
+
+                        line += "\n   <trkpt lat=\"" + lat.toString() + "\" lon=\"" + lon.toString() + "\">\n" +
+                                "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
+
+                        if(mesg.getFieldStringValue("altitude") != null) {
+                            line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"),2) + "</ele>";
+                        }
+
+                        if(mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
+                                || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null) {
+
+                            line += "\n    <extensions>\n     <gpxtpx:TrackPointExtension>";
+
+                            if(mesg.getFieldStringValue("temperature") != null) {
+                                line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
+                            }
+                            if(mesg.getFieldStringValue("heart_rate") != null) {
+                                line += "\n      <gpxtpx:hr>" + mesg.getFieldStringValue("heart_rate") + "</gpxtpx:hr>";
+                            }
+                            if(mesg.getFieldStringValue("cadence") != null) {
+                                line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
+                            }
+                            if(mesg.getFieldStringValue("speed") != null) {
+                                line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
+                            }
+
+                            line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
+                        }
+
+                        // неоприходованные поля
+                        // mesg.getFieldStringValue("distance")
+
+                        line += "\n   </trkpt>";
+
+                        activity.add(line);
+                    }
                 }
-            } catch(IOException e) {
-                throw new RuntimeException(e);
+
+            }
+        });
+
+        try {
+           decode.read(new BufferedInputStream(new FileInputStream(InputFITfile)));
+        } catch (FitRuntimeException e) {
+            System.err.print("Ошибка обработки файла " + InputFITfile + ": ");
+            System.err.println(e.getMessage());
+
+            try {
+                InputStream.close();
+            } catch (IOException f) {
+                throw new RuntimeException(f);
             }
 
+            return;
+        }
+
+        try {
+            InputStream.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        activity.add(tail);
+
+        if(EmptyTrack) {
+            OutputGPXfileName = InputFITfileName + ".empty";
         } else {
-            System.out.println("Файл " + args[0] + " не найден!");
+            OutputGPXfileName = InputFITfileName + ".gpx";
+        }
+
+        File OutputGPXfile = new File(OutputGPXfileName);
+
+        try {
+            if(!OutputGPXfile.exists()) {
+                OutputGPXfile.createNewFile();
+            }
+
+            PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile());
+
+            try {
+                for(String str : activity) {
+                    OutWriter.write(str);
+                }
+
+            } finally {
+                OutWriter.close();
+            }
+        } catch(IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
