@@ -9,13 +9,16 @@ http://velo100.ru/garmin-fit-to-gpx
 
 import com.garmin.fit.*;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import java.awt.*;
 import java.io.*;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class fit2gpx {
+public class fit2gpx extends Component {
 
     static private Number semicircleToDegree(Field field) {
         if (field != null && "semicircles".equals(field.getUnits())) {
@@ -57,21 +60,48 @@ public class fit2gpx {
     static String InputFITfileName;
     static String OutputGPXfileName;
 
+    static FileInputStream InputStream;
+    static File InputFITfile;
+
     static boolean FirstLine = true;
     static boolean EmptyTrack = true;
+    static boolean UseDialog = false;
 
     public static void main(String[] args) throws IOException {
 
         final Decode decode = new Decode();
 
-        if(args.length != 1) {
-            Help.usage();
+
+        if(args.length == 1) {
+            InputFITfileName = String.valueOf(args[0]);
         }
 
-        InputFITfileName = String.valueOf(args[0]);
+        if(args.length == 0) {
 
-        FileInputStream InputStream;
-        File InputFITfile;
+            UseDialog = true;
+
+            JFileChooser chooser = new JFileChooser();
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(
+                    "файлы занятий Garmin FIT (.fit)", "FIT", "fit");
+            chooser.setFileFilter(filter);
+            int returnVal = chooser.showOpenDialog(chooser.getParent());
+            if(returnVal == JFileChooser.APPROVE_OPTION) {
+
+                InputFITfileName = chooser.getSelectedFile().getAbsoluteFile().getAbsolutePath();
+                // System.out.println("You chose to open this file: " + InputFITfileName);
+
+            } else {
+                System.exit(0);
+            }
+
+            if(InputFITfileName.equals("")) {
+                System.exit(0);
+            }
+        }
+
+        if(args.length > 1) {
+            Help.usage();
+        }
 
         try {
             InputFITfile = new File(InputFITfileName);
@@ -188,15 +218,21 @@ public class fit2gpx {
 
         activity.add(tail);
 
+        if(EmptyTrack && UseDialog) {
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), "Файл " + InputFITfileName + " не содержит трека,\nпустой файл не был сохранён.", "Трек отсутствует", JOptionPane.WARNING_MESSAGE);
+            System.exit(1);
+        }
+
         if(EmptyTrack) {
             OutputGPXfileName = InputFITfileName + ".empty";
         } else {
             OutputGPXfileName = InputFITfileName + ".gpx";
         }
 
-        File OutputGPXfile = new File(OutputGPXfileName);
-
         try {
+
+           File OutputGPXfile = new File(OutputGPXfileName);
+
             if(!OutputGPXfile.exists()) {
                 OutputGPXfile.createNewFile();
             }
@@ -204,8 +240,13 @@ public class fit2gpx {
             PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile());
 
             try {
-                for(String str : activity) {
+
+                for (String str : activity) {
                     OutWriter.write(str);
+                }
+
+                if(UseDialog) {
+                    JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), "Файл GPX с треком сохранён как:\n" + OutputGPXfileName, "Трек успешно обработан", JOptionPane.INFORMATION_MESSAGE );
                 }
 
             } finally {
