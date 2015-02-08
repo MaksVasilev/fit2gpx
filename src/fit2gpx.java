@@ -86,7 +86,6 @@ public class fit2gpx extends Component {
             if(returnVal == JFileChooser.APPROVE_OPTION) {
 
                 InputFITfileName = chooser.getSelectedFile().getAbsoluteFile().getAbsolutePath();
-                // System.out.println("You chose to open this file: " + InputFITfileName);
 
             } else {
                 System.exit(0);
@@ -139,8 +138,8 @@ public class fit2gpx extends Component {
                     TimeStamp = new Date((Long.parseLong(mesg.getFieldStringValue("timestamp")) + 631065600) * 1000);
 
                     if(FirstLine) {
-                        line = head.replace("{time}",DateFormatGPX.format(TimeStamp));
-                        line += head2.replace("{FTIFile}",InputFITfileName);
+                        line = head.replace("{time}", DateFormatGPX.format(TimeStamp));
+                        line += head2.replace("{FTIFile}", InputFITfile.getName());
                         FirstLine = false;
                         activity.add(line);
                         line = "";
@@ -157,7 +156,7 @@ public class fit2gpx extends Component {
                                 "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
 
                         if(mesg.getFieldStringValue("altitude") != null) {
-                            line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"),2) + "</ele>";
+                            line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"),3) + "</ele>";
                         }
 
                         if(mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
@@ -223,7 +222,7 @@ public class fit2gpx extends Component {
 
         if(EmptyTrack && UseDialog) {
             JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), "Файл " + InputFITfileName + " не содержит трека,\nпустой файл не был сохранён.", "Трек отсутствует", JOptionPane.WARNING_MESSAGE);
-            System.exit(1);
+            System.exit(2);
         }
 
         if(EmptyTrack) {
