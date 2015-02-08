@@ -39,16 +39,14 @@ public class fit2gpx extends Component {
 //    }
 
     static String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-            "<gpx creator=\"fit2gpx\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" " +
-            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 " +
-            "http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 " +
-            "http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 " +
-            "http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd http://www.garmin.com/xmlschemas/GpxExtensions/v3 " +
-            "http://www.garmin.com/xmlschemas/GpxExtensionsv3.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 " +
-            "http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd\" " +
+            "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx\" version=\"1.1\" " +
+            "xmlns=\"http://www.topografix.com/GPX/1/1\" " +
+            "xmlns:gpxtrx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\" " +
+            "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
             "xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v1\" " +
-            "xmlns:gpxx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\">\n" +
-            " <metadata>\n  <time>{time}</time>\n </metadata>\n";
+            "xmlns:gpxx=\"http://www.garmin.com/xmlschemas/WaypointExtension/v1\" " +
+            "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">" +
+            "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
     static String head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
     static String tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
@@ -165,7 +163,12 @@ public class fit2gpx extends Component {
                         if(mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
                                 || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null) {
 
-                            line += "\n    <extensions>\n     <gpxtpx:TrackPointExtension>";
+                            line += "\n    <extensions>";
+
+                            if(mesg.getFieldStringValue("speed") != null) {
+                                line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
+                            }
+                            line += "\n     <gpxtpx:TrackPointExtension>";
 
                             if(mesg.getFieldStringValue("temperature") != null) {
                                 line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
