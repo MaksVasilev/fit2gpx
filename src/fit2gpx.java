@@ -10,7 +10,9 @@ exit code:
 64 - help or invalid usage
 65 - file invalid
 66 - file not found
-200 - track is empty
+199 - data read filed
+200 - track is empty, but writed (default for console mode)
+201 - track is empty and not writed (default for dialog mode)
 204 - no file selected
 209 - debug break
 
@@ -29,26 +31,88 @@ import java.util.Date;
 
 public class fit2gpx extends Component {
 
+    static class ConverterResult {
+        private ArrayList<String> GoodFiles = new ArrayList<String>();
+        private ArrayList<String> EmptyFiles = new ArrayList<String>();
+        private ArrayList<String> BadFiles = new ArrayList<String>();
+
+        public int getGoodFilesCount() {return GoodFiles.size();}
+        public int getEmptyFilesCount() {return EmptyFiles.size();}
+        public int getBadFilesCount() {return BadFiles.size();}
+
+        public void add(int result, String file) {
+            if(result == 0) {GoodFiles.add(file);}
+            if(result == 200 || result == 201) {EmptyFiles.add(file);}
+            if(result == 65) {BadFiles.add(file + " - файл повреждён");}
+            if(result == 66) {BadFiles.add(file + " - файл не найден");}
+            if(result == 199) {BadFiles.add(file + " - ошибка чтения данных из файла");}
+        }
+
+        public String getSummaryByString() {
+
+            String result = "Успешно обработано файлов: " + GoodFiles.size();
+            if(GoodFiles.size() < 11) {
+                for(int g = 0; g < GoodFiles.size(); g++) {
+                    result += "\n    " + GoodFiles.get(g);
+                }
+            } else {
+                for(int g = 0; g < 11; g++) {
+                    result += "\n    " + GoodFiles.get(g);
+                }
+                result += "\n  … ещё файлов: " + String.valueOf(GoodFiles.size() - 10);
+            }
+
+            result += "\n\nФайлов без треков: " + EmptyFiles.size();
+            if(EmptyFiles.size() < 11) {
+                for(int g = 0; g < EmptyFiles.size(); g++) {
+                    result += "\n    " + EmptyFiles.get(g);
+                }
+            } else {
+                for(int g = 0; g < 11; g++) {
+                    result += "\n    " + EmptyFiles.get(g);
+                }
+                result += "\n  … ещё файлов: " + String.valueOf(EmptyFiles.size() - 10);
+            }
+
+            result += "\n\nФайлов с ошибками: " + BadFiles.size();
+            if(BadFiles.size() < 11) {
+                for(int g = 0; g < BadFiles.size(); g++) {
+                    result += "\n    " + BadFiles.get(g);
+                }
+            } else {
+                for(int g = 0; g < 11; g++) {
+                    result += "\n    " + BadFiles.get(g);
+                }
+                result += "\n  … ещё файлов: " + String.valueOf(BadFiles.size() - 10);
+            }
+
+            return result;
+        }
+
+    }
+
     public static void main(String[] args) throws IOException {
 
         File[] MultipleFilesList;
+        boolean DialogMode = false;
+        boolean StatisticEnable = false;
 
         Converter converter = new Converter();
-        //            converter.setInputFITfileName(String.valueOf(args[0]));;
-
+        ConverterResult converterResult = new ConverterResult();
 
         if (args.length == 1) {
              if (String.valueOf(args[0]).equals("--help") || String.valueOf(args[0]).equals("-h") ) {
                  Help.usage();
              } else {
                  converter.setInputFITfileName(String.valueOf(args[0]));
-                 converter.run();
+                 converterResult.add(converter.run(), converter.getInputFITfileName());
              }
         }
 
         if (args.length == 0) {
 
-            converter.setUseDialog(true);
+            DialogMode = true;
+            converter.setSaveIfEmpty(false);
 
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("FIT -> GPX: Выберите файл для преобразования в GPX");
@@ -64,18 +128,10 @@ public class fit2gpx extends Component {
 
                 MultipleFilesList = chooser.getSelectedFiles();
 
-                //if (MultipleFilesList.length == 1) {
-                //    converter.setInputFITfileName(MultipleFilesList[0].getAbsoluteFile().getAbsolutePath());
-
-                //} else {
-                    //String[] FileList = new String[MultipleFilesList.length];
-                    for (int f = 0; f < MultipleFilesList.length; f++) {
-                        //FileList[f] = MultipleFilesList[f].getAbsoluteFile().getAbsolutePath();
-                        converter.setInputFITfileName(MultipleFilesList[f].getAbsoluteFile().getAbsolutePath());
-                        converter.run();
-                    }
-                    //MultiFileBatch(FileList);
-                //}
+                for (int f = 0; f < MultipleFilesList.length; f++) {
+                    converter.setInputFITfileName(MultipleFilesList[f].getAbsoluteFile().getAbsolutePath());
+                    converterResult.add(converter.run(), converter.getInputFITfileName());
+                }
 
             } else {
                 System.exit(204);
@@ -86,8 +142,15 @@ public class fit2gpx extends Component {
         if (args.length > 1) {
             for(int f = 0; f < args.length; f++) {
                 converter.setInputFITfileName(args[f]);
-                converter.run();
+                converterResult.add(converter.run(), converter.getInputFITfileName());
             }
+        }
+
+        if(DialogMode) {
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), "Результат конвертирования", JOptionPane.WARNING_MESSAGE);
+        }
+        if(StatisticEnable) {
+            System.out.println(converterResult.getSummaryByString());
         }
 
     }
@@ -107,22 +170,6 @@ public class fit2gpx extends Component {
             double dd = Math.pow(10, p);
             return Math.round(d * dd) / dd;
         }
-
-/*        private void MultiFileBatch(String[] fileList) {
-
-            int MultipleFilesNonEmpty = 0;
-
-            System.out.println("Выбрано файлов: " + fileList.length);
-
-            for (int i = 0; i < fileList.length; i++) {
-                System.out.println(fileList[i]);
-                //String workerArgs[] = {MultipleFilesList[i].getAbsoluteFile().getAbsolutePath()};
-                final fit2gpx worker = new fit2gpx();
-                //worker
-            }
-            System.exit(209);
-        }
-*/
 
         private String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx\" version=\"1.1\" " +
@@ -149,20 +196,35 @@ public class fit2gpx extends Component {
 
         private boolean FirstLine = true;
         private boolean EmptyTrack = true;
-        private boolean UseDialog = false;
+        private boolean SaveIfEmpty = false;
 
+        public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
-        public void setUseDialog(boolean useDialog) {UseDialog = useDialog;}
+        public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
 
-        public void run() {
-            this.check();
-            this.read();
-            this.write();
+        public String getOutputGPXfileName() {return OutputGPXfileName;}
+        public String getInputFITfileName() {return InputFITfileName;}
 
-            return;
+        public int run() {  // Основной поэтапный цикл работы конвертера
+
+            int checkStatus = this.check();
+            if(checkStatus != 0) {return checkStatus;}
+
+            FirstLine = true;
+            EmptyTrack = true;
+
+            int readStatus = this.read();
+            if(readStatus !=0) {return readStatus;}
+
+            int writeStatus = this.write();
+            activity.clear();
+
+            if(writeStatus != 0) {return writeStatus;}
+
+            return 0;
         }
 
-        private void check() {
+        private int check() {   // этап проверки доступности файла
 
             try {
                 InputFITfile = new File(InputFITfileName);
@@ -170,8 +232,8 @@ public class fit2gpx extends Component {
 
             } catch (IOException e) {
                 System.err.println("Ошибка: " + InputFITfileName + " не найден или не является файлом!");
-                System.exit(66);
-                //return;
+                //System.exit(66);
+                return 66;
             }
 
             try {
@@ -187,12 +249,14 @@ public class fit2gpx extends Component {
                 } catch (IOException e1) {
                     throw new RuntimeException(e1);
                 }
-                System.exit(65);
-                //return;
+                //System.exit(65);
+                return 65;
             }
+
+            return 0;
         }
 
-        private void read() {
+        private int read() {    // попытка прочитать входной файл
 
             final Decode decode = new Decode();
             decode.addListener(new MesgListener() {
@@ -279,7 +343,7 @@ public class fit2gpx extends Component {
                     throw new RuntimeException(f);
                 }
 
-                return;
+                return 199;
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -291,12 +355,15 @@ public class fit2gpx extends Component {
             }
 
             activity.add(tail);
+
+            return 0;
         }
 
-        private void write() {
-            if (EmptyTrack && UseDialog) {
-                JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), "Файл " + InputFITfileName + " не содержит трека,\nпустой файл не был сохранён.", "Трек отсутствует", JOptionPane.WARNING_MESSAGE);
-                System.exit(200);
+        private int write() {   // попытка записать выходной файл
+
+            if (EmptyTrack && !SaveIfEmpty) {
+                return 201;
+                // System.exit(200);
             }
 
             if (EmptyTrack) {
@@ -321,20 +388,18 @@ public class fit2gpx extends Component {
                         OutWriter.write(str);
                     }
 
-                    if (UseDialog) {
-                        JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), "Файл GPX с треком сохранён как:\n" + OutputGPXfileName, "Трек успешно обработан", JOptionPane.INFORMATION_MESSAGE);
-                    }
-
                 } finally {
                     OutWriter.close();
-                    if (EmptyTrack) {
-                        System.exit(200);
-                    }
-                }
+                   }
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
                 //System.exit(73);
             }
+
+            if (EmptyTrack) {return 200;}
+
+            return 0;
         }
 
     }
