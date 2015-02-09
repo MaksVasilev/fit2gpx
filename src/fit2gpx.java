@@ -72,6 +72,9 @@ public class fit2gpx extends Component {
 
         if(args.length == 1) {
             InputFITfileName = String.valueOf(args[0]);
+            if(InputFITfileName.equals("--help") || InputFITfileName.equals("-h")) {
+                Help.usage();
+            }
         }
 
         if(args.length == 0) {
@@ -79,6 +82,10 @@ public class fit2gpx extends Component {
             UseDialog = true;
 
             JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("FIT -> GPX: Выберите файл для преобразования в GPX");
+            chooser.setApproveButtonText("Открыть");
+            chooser.setApproveButtonToolTipText("Открыть выбранный файл и преобразовать");
+
             FileNameExtensionFilter filter = new FileNameExtensionFilter(
                     "файлы занятий Garmin FIT (.fit)", "FIT", "fit");
             chooser.setFileFilter(filter);
