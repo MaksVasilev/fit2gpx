@@ -31,66 +31,6 @@ import java.util.Date;
 
 public class fit2gpx extends Component {
 
-    static class ConverterResult {
-        private ArrayList<String> GoodFiles = new ArrayList<String>();
-        private ArrayList<String> EmptyFiles = new ArrayList<String>();
-        private ArrayList<String> BadFiles = new ArrayList<String>();
-
-        public int getGoodFilesCount() {return GoodFiles.size();}
-        public int getEmptyFilesCount() {return EmptyFiles.size();}
-        public int getBadFilesCount() {return BadFiles.size();}
-
-        public void add(int result, String file) {
-            if(result == 0) {GoodFiles.add(file);}
-            if(result == 200 || result == 201) {EmptyFiles.add(file);}
-            if(result == 65) {BadFiles.add(file + " - файл повреждён");}
-            if(result == 66) {BadFiles.add(file + " - файл не найден");}
-            if(result == 199) {BadFiles.add(file + " - ошибка чтения данных из файла");}
-        }
-
-        public String getSummaryByString() {
-
-            String result = "Успешно обработано файлов: " + GoodFiles.size();
-            if(GoodFiles.size() < 11) {
-                for(int g = 0; g < GoodFiles.size(); g++) {
-                    result += "\n    " + GoodFiles.get(g);
-                }
-            } else {
-                for(int g = 0; g < 11; g++) {
-                    result += "\n    " + GoodFiles.get(g);
-                }
-                result += "\n  … ещё файлов: " + String.valueOf(GoodFiles.size() - 10);
-            }
-
-            result += "\n\nФайлов без треков: " + EmptyFiles.size();
-            if(EmptyFiles.size() < 11) {
-                for(int g = 0; g < EmptyFiles.size(); g++) {
-                    result += "\n    " + EmptyFiles.get(g);
-                }
-            } else {
-                for(int g = 0; g < 11; g++) {
-                    result += "\n    " + EmptyFiles.get(g);
-                }
-                result += "\n  … ещё файлов: " + String.valueOf(EmptyFiles.size() - 10);
-            }
-
-            result += "\n\nФайлов с ошибками: " + BadFiles.size();
-            if(BadFiles.size() < 11) {
-                for(int g = 0; g < BadFiles.size(); g++) {
-                    result += "\n    " + BadFiles.get(g);
-                }
-            } else {
-                for(int g = 0; g < 11; g++) {
-                    result += "\n    " + BadFiles.get(g);
-                }
-                result += "\n  … ещё файлов: " + String.valueOf(BadFiles.size() - 10);
-            }
-
-            return result;
-        }
-
-    }
-
     public static void main(String[] args) throws IOException {
 
         File[] MultipleFilesList;
@@ -147,7 +87,14 @@ public class fit2gpx extends Component {
         }
 
         if(DialogMode) {
-            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), "Результат конвертирования", JOptionPane.WARNING_MESSAGE);
+
+            int type = JOptionPane.INFORMATION_MESSAGE;
+                    
+            if(converterResult.getEmptyFilesCount() > 0) {type = JOptionPane.WARNING_MESSAGE;}
+            
+            if(converterResult.getBadFilesCount() > 0) {type = JOptionPane.ERROR_MESSAGE;}
+            
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), "Результат конвертирования", type);
         }
         if(StatisticEnable) {
             System.out.println(converterResult.getSummaryByString());
@@ -403,4 +350,65 @@ public class fit2gpx extends Component {
         }
 
     }
+
+    static class ConverterResult {
+        private ArrayList<String> GoodFiles = new ArrayList<String>();
+        private ArrayList<String> EmptyFiles = new ArrayList<String>();
+        private ArrayList<String> BadFiles = new ArrayList<String>();
+
+        public int getGoodFilesCount() {return GoodFiles.size();}
+        public int getEmptyFilesCount() {return EmptyFiles.size();}
+        public int getBadFilesCount() {return BadFiles.size();}
+
+        public void add(int result, String file) {
+            if(result == 0) {GoodFiles.add(file);}
+            if(result == 200 || result == 201) {EmptyFiles.add(file);}
+            if(result == 65) {BadFiles.add(file + " - файл повреждён");}
+            if(result == 66) {BadFiles.add(file + " - файл не найден");}
+            if(result == 199) {BadFiles.add(file + " - ошибка чтения данных из файла");}
+        }
+
+        public String getSummaryByString() {
+
+            String result = "Успешно обработано файлов: " + GoodFiles.size();
+            if(GoodFiles.size() < 11) {
+                for(int g = 0; g < GoodFiles.size(); g++) {
+                    result += "\n    " + GoodFiles.get(g);
+                }
+            } else {
+                for(int g = 0; g < 11; g++) {
+                    result += "\n    " + GoodFiles.get(g);
+                }
+                result += "\n  … ещё файлов: " + String.valueOf(GoodFiles.size() - 10);
+            }
+
+            result += "\n\nФайлов без треков: " + EmptyFiles.size();
+            if(EmptyFiles.size() < 11) {
+                for(int g = 0; g < EmptyFiles.size(); g++) {
+                    result += "\n    " + EmptyFiles.get(g);
+                }
+            } else {
+                for(int g = 0; g < 11; g++) {
+                    result += "\n    " + EmptyFiles.get(g);
+                }
+                result += "\n  … ещё файлов: " + String.valueOf(EmptyFiles.size() - 10);
+            }
+
+            result += "\n\nФайлов с ошибками: " + BadFiles.size();
+            if(BadFiles.size() < 11) {
+                for(int g = 0; g < BadFiles.size(); g++) {
+                    result += "\n    " + BadFiles.get(g);
+                }
+            } else {
+                for(int g = 0; g < 11; g++) {
+                    result += "\n    " + BadFiles.get(g);
+                }
+                result += "\n  … ещё файлов: " + String.valueOf(BadFiles.size() - 10);
+            }
+
+            return result;
+        }
+
+    }
+
 }
