@@ -2,8 +2,17 @@
 Copyright © 2015 by Maks Vasilev
 
 created 7.02.2015
-
 http://velo100.ru/garmin-fit-to-gpx
+
+exit code:
+
+0 - ok
+64 - help or invalid usage
+65 - file invalid
+66 - file not found
+200 - track is empty
+204 - no file selected
+209 - debug break
 
 */
 
@@ -20,7 +29,7 @@ import java.util.Date;
 
 public class fit2gpx extends Component {
 
-    static private Number semicircleToDegree(Field field) {
+    private static Number semicircleToDegree(Field field) {
         if (field != null && "semicircles".equals(field.getUnits())) {
             final long semicircle = field.getLongValue();
             return semicircle * (180.0 / Math.pow(2.0,31.0)); // degrees = semicircles * ( 180 / 2^31 )
@@ -29,9 +38,23 @@ public class fit2gpx extends Component {
         }
     }
 
-    public static double round(double d, int p) {
+    private static double round(double d, int p) {
         double dd=Math.pow(10, p);
         return Math.round(d*dd) / dd;
+    }
+
+    private static void MultiFileBatch(String[] fileList) {
+
+        int MultipleFilesNonEmpty = 0;
+
+        System.out.println("Выбрано файлов: " + fileList.length);
+
+        for(int i=0; i < fileList.length; i++) {
+            System.out.println(fileList[i]);
+            //String workerArgs[] = {MultipleFilesList[i].getAbsoluteFile().getAbsolutePath()};
+            //fit2gpx worker = new fit2gpx();
+        }
+        System.exit(209);
     }
 
 //    public static int round(double d) {
@@ -64,11 +87,11 @@ public class fit2gpx extends Component {
     static boolean FirstLine = true;
     static boolean EmptyTrack = true;
     static boolean UseDialog = false;
+    static File[] MultipleFilesList;
 
     public static void main(String[] args) throws IOException {
 
         final Decode decode = new Decode();
-
 
         if(args.length == 1) {
             InputFITfileName = String.valueOf(args[0]);
@@ -85,26 +108,39 @@ public class fit2gpx extends Component {
             chooser.setDialogTitle("FIT -> GPX: Выберите файл для преобразования в GPX");
             chooser.setApproveButtonText("Открыть");
             chooser.setApproveButtonToolTipText("Открыть выбранный файл и преобразовать");
+            chooser.setMultiSelectionEnabled(true);
 
-            FileNameExtensionFilter filter = new FileNameExtensionFilter(
-                    "файлы занятий Garmin FIT (.fit)", "FIT", "fit");
+            FileNameExtensionFilter filter = new FileNameExtensionFilter("файлы занятий Garmin FIT (.fit)", "FIT", "fit");
             chooser.setFileFilter(filter);
+
             int returnVal = chooser.showOpenDialog(chooser.getParent());
             if(returnVal == JFileChooser.APPROVE_OPTION) {
 
-                InputFITfileName = chooser.getSelectedFile().getAbsoluteFile().getAbsolutePath();
+                MultipleFilesList = chooser.getSelectedFiles();
+
+                if (MultipleFilesList.length == 1) {
+                    InputFITfileName = MultipleFilesList[0].getAbsoluteFile().getAbsolutePath();
+
+                } else {
+                    String[] FileList = new String[MultipleFilesList.length];
+                    for(int f=0; f < MultipleFilesList.length; f++) {
+                        FileList[f] = MultipleFilesList[f].getAbsoluteFile().getAbsolutePath();
+                    }
+                    MultiFileBatch(FileList);
+                }
 
             } else {
-                System.exit(0);
+                System.exit(204);
             }
 
             if(InputFITfileName.equals("")) {
-                System.exit(0);
+                System.exit(204);
             }
         }
 
         if(args.length > 1) {
-            Help.usage();
+            MultiFileBatch(args);
+            //Help.usage();
         }
 
         try {
@@ -113,7 +149,8 @@ public class fit2gpx extends Component {
 
         } catch (IOException e) {
             System.err.println("Ошибка: " + InputFITfileName + " не найден или не является файлом!");
-            return;
+            System.exit(66);
+            //return;
         }
 
         try {
@@ -129,7 +166,8 @@ public class fit2gpx extends Component {
             } catch (IOException e1) {
                 throw new RuntimeException(e1);
             }
-            return;
+            System.exit(65);
+            //return;
         }
 
         decode.addListener(new MesgListener() {
@@ -229,7 +267,7 @@ public class fit2gpx extends Component {
 
         if(EmptyTrack && UseDialog) {
             JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), "Файл " + InputFITfileName + " не содержит трека,\nпустой файл не был сохранён.", "Трек отсутствует", JOptionPane.WARNING_MESSAGE);
-            System.exit(2);
+            System.exit(200);
         }
 
         if(EmptyTrack) {
@@ -260,9 +298,13 @@ public class fit2gpx extends Component {
 
             } finally {
                 OutWriter.close();
+                if(EmptyTrack) {
+                    System.exit(200);
+                }
             }
         } catch(IOException e) {
             throw new RuntimeException(e);
+            //System.exit(73);
         }
 
     }
