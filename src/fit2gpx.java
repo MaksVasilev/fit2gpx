@@ -41,15 +41,21 @@ public class fit2gpx extends Component {
         ConverterResult converterResult = new ConverterResult();
 
         if (args.length == 1) {
-             if (String.valueOf(args[0]).equals("--help") || String.valueOf(args[0]).equals("-h") ) {
-                 Help.usage();
-             } else {
-                 converter.setInputFITfileName(String.valueOf(args[0]));
-                 converterResult.add(converter.run(), converter.getInputFITfileName());
-             }
+
+            if (String.valueOf(args[0]).equals("--help") || String.valueOf(args[0]).equals("-h")) {
+                Help.usage();
+            }
+            if (String.valueOf(args[0]).equals("--statistic") || String.valueOf(args[0]).equals("-s")) {
+                StatisticEnable = true;
+            }
+            
+            if(!StatisticEnable) {
+                converter.setInputFITfileName(String.valueOf(args[0]));
+                converterResult.add(converter.run(), converter.getInputFITfileName());
+            }
         }
 
-        if (args.length == 0) {
+        if (args.length == 0 || (args.length == 1 && StatisticEnable) ) {
 
             DialogMode = true;
             converter.setSaveIfEmpty(false);
@@ -68,8 +74,8 @@ public class fit2gpx extends Component {
 
                 MultipleFilesList = chooser.getSelectedFiles();
 
-                for (int f = 0; f < MultipleFilesList.length; f++) {
-                    converter.setInputFITfileName(MultipleFilesList[f].getAbsoluteFile().getAbsolutePath());
+                for (File file : MultipleFilesList) {
+                    converter.setInputFITfileName(file.getAbsoluteFile().getAbsolutePath());
                     converterResult.add(converter.run(), converter.getInputFITfileName());
                 }
 
@@ -80,26 +86,38 @@ public class fit2gpx extends Component {
           }
 
         if (args.length > 1) {
-            for(int f = 0; f < args.length; f++) {
-                converter.setInputFITfileName(args[f]);
-                converterResult.add(converter.run(), converter.getInputFITfileName());
+            
+             if(String.valueOf(args[0]).equals("--statistic") || String.valueOf(args[0]).equals("-s")) {
+                StatisticEnable = true;
+                
+                for(int a = 1; a < args.length; a++) {
+                    converter.setInputFITfileName(args[a]);
+                    converterResult.add(converter.run(), converter.getInputFITfileName());
+                }
+            } else {
+                for (String arg : args) {
+                    converter.setInputFITfileName(arg);
+                    converterResult.add(converter.run(), converter.getInputFITfileName());
+                }
             }
-        }
-
-        if(DialogMode) {
-
-            int type = JOptionPane.INFORMATION_MESSAGE;
-                    
-            if(converterResult.getEmptyFilesCount() > 0) {type = JOptionPane.WARNING_MESSAGE;}
             
-            if(converterResult.getBadFilesCount() > 0) {type = JOptionPane.ERROR_MESSAGE;}
-            
-            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), "Результат конвертирования", type);
-        }
+           }
+
         if(StatisticEnable) {
             System.out.println(converterResult.getSummaryByString());
         }
+        
+        if(DialogMode) {
 
+            int MessageType = JOptionPane.INFORMATION_MESSAGE;
+                    
+            if(converterResult.getEmptyFilesCount() > 0) {MessageType = JOptionPane.WARNING_MESSAGE;}
+            
+            if(converterResult.getBadFilesCount() > 0) {MessageType = JOptionPane.ERROR_MESSAGE;}
+            
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), "Результат конвертирования", MessageType);
+        }
+ 
     }
 
     static class Converter {
@@ -147,9 +165,9 @@ public class fit2gpx extends Component {
 
         public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
-        public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
+        //public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
 
-        public String getOutputGPXfileName() {return OutputGPXfileName;}
+        //public String getOutputGPXfileName() {return OutputGPXfileName;}
         public String getInputFITfileName() {return InputFITfileName;}
 
         public int run() {  // Основной поэтапный цикл работы конвертера
@@ -324,7 +342,7 @@ public class fit2gpx extends Component {
                 File OutputGPXfile = new File(OutputGPXfileName);
 
                 if (!OutputGPXfile.exists()) {
-                    OutputGPXfile.createNewFile();
+                    if(!OutputGPXfile.createNewFile()) {return 73;}
                 }
 
                 PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile());
@@ -356,7 +374,7 @@ public class fit2gpx extends Component {
         private ArrayList<String> EmptyFiles = new ArrayList<String>();
         private ArrayList<String> BadFiles = new ArrayList<String>();
 
-        public int getGoodFilesCount() {return GoodFiles.size();}
+        //public int getGoodFilesCount() {return GoodFiles.size();}
         public int getEmptyFilesCount() {return EmptyFiles.size();}
         public int getBadFilesCount() {return BadFiles.size();}
 
@@ -365,6 +383,7 @@ public class fit2gpx extends Component {
             if(result == 200 || result == 201) {EmptyFiles.add(file);}
             if(result == 65) {BadFiles.add(file + " - файл повреждён");}
             if(result == 66) {BadFiles.add(file + " - файл не найден");}
+            if(result == 73) {BadFiles.add(file + " - ошибка сохранения файла");}
             if(result == 199) {BadFiles.add(file + " - ошибка чтения данных из файла");}
         }
 
@@ -372,8 +391,8 @@ public class fit2gpx extends Component {
 
             String result = "Успешно обработано файлов: " + GoodFiles.size();
             if(GoodFiles.size() < 11) {
-                for(int g = 0; g < GoodFiles.size(); g++) {
-                    result += "\n    " + GoodFiles.get(g);
+                for (String GoodFile : GoodFiles) {
+                    result += "\n    " + GoodFile;
                 }
             } else {
                 for(int g = 0; g < 11; g++) {
@@ -384,8 +403,8 @@ public class fit2gpx extends Component {
 
             result += "\n\nФайлов без треков: " + EmptyFiles.size();
             if(EmptyFiles.size() < 11) {
-                for(int g = 0; g < EmptyFiles.size(); g++) {
-                    result += "\n    " + EmptyFiles.get(g);
+                for (String EmptyFile : EmptyFiles) {
+                    result += "\n    " + EmptyFile;
                 }
             } else {
                 for(int g = 0; g < 11; g++) {
@@ -396,8 +415,8 @@ public class fit2gpx extends Component {
 
             result += "\n\nФайлов с ошибками: " + BadFiles.size();
             if(BadFiles.size() < 11) {
-                for(int g = 0; g < BadFiles.size(); g++) {
-                    result += "\n    " + BadFiles.get(g);
+                for (String BadFile : BadFiles) {
+                    result += "\n    " + BadFile;
                 }
             } else {
                 for(int g = 0; g < 11; g++) {

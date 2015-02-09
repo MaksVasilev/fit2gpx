@@ -5,11 +5,16 @@
 © Maks Vasilev, 2015, http://velo100.ru/garmin-fit-to-gpx
 FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
 
+Информация по использованию:
+	java -jar fit2gpx.jar --help
+
 Консольный режим:
-	java -jar fit2gpx.jar <файл Garmin .FIT> [ <файл Garmin .FIT> ]
+	java -jar fit2gpx.jar [--statistic|-s] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]
 
 Графический диалоговый режим:
-	java -jar fit2gpx.jar
+	java -jar fit2gpx.jar [--statistic|-s]
+
+		--statistic | -s	вывод итоговой статистики в консоль
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без параметров запускается диалоговое окно
 выбора файла для конвертации. Если при запуске в качестве аргумента передать имя файла, то происходит конвертация

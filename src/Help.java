@@ -13,9 +13,11 @@ public class Help {
 
     public static void usage() {
         System.out.println(Version + "\n\n© Maks Vasilev, 2015, http://velo100.ru/garmin-fit-to-gpx\nFIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit\n");
-        System.out.println("Консольный режим:\n\tjava -jar fit2gpx.jar <файл Garmin .FIT> [ <файл Garmin .FIT> ]\n");
-        System.out.println("Графический диалоговый режим:\n\tjava -jar fit2gpx.jar\n");
-        System.out.println("Конвертер имеет два режима работы: консольный и графический. При запуске без параметров запускается диалоговое окно");
+        System.out.println("Информация по использованию:\n\tjava -jar fit2gpx.jar --help\n");
+        System.out.println("Консольный режим:\n\tjava -jar fit2gpx.jar [--statistic|-s] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]\n");
+        System.out.println("Графический диалоговый режим:\n\tjava -jar fit2gpx.jar [--statistic|-s]\n");
+        System.out.println("\t\t--statistic | -s\tвывод итоговой статистики в консоль");
+        System.out.println("\nКонвертер имеет два режима работы: консольный и графический. При запуске без параметров запускается диалоговое окно");
         System.out.println("выбора файла для конвертации. Если при запуске в качестве аргумента передать имя файла, то происходит конвертация");
         System.out.println("без запуска диалоговых окон. В случае успешной конвертации никакой информации в консоль не возвращается.");
         System.out.println("Консольный режим работы можно использовать в различных скриптах для автоматизации.");
