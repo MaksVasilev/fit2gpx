@@ -224,9 +224,19 @@ public class fit2gpx extends Component {
         private int read() {    // попытка прочитать входной файл
 
             final Decode decode = new Decode();
-            decode.addListener(new MesgListener() {
+            MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
 
+            //    decode.addListener(new MesgListener() {
+            FileIdMesgListener fileIdMesgListener = new FileIdMesgListener() {
                 @Override
+                public void onMesg(FileIdMesg mesg) {
+                    
+                }
+            };
+            
+            MesgListener mesgListener = new MesgListener() {
+
+            @Override
                 public void onMesg(Mesg mesg) {
 
                     String line = "";
@@ -294,10 +304,17 @@ public class fit2gpx extends Component {
                     }
 
                 }
-            });
+            };
+            
+            mesgBroadcaster.addListener(fileIdMesgListener);
+            mesgBroadcaster.addListener(mesgListener);
+            
+            //decode.addListener(mesgListener);
+            //decode.addListener(fileIdMesgListener);
 
             try {
-                decode.read(new BufferedInputStream(new FileInputStream(InputFITfile)));
+                mesgBroadcaster.run(new BufferedInputStream(new FileInputStream(InputFITfile)));
+                //decode.read(new BufferedInputStream(new FileInputStream(InputFITfile)));
             } catch (FitRuntimeException e) {
                 System.err.print("Ошибка обработки файла " + InputFITfile + ": ");
                 System.err.println(e.getMessage());
