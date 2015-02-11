@@ -265,4 +265,149 @@ public class FitTools {
         }
         return "неизвестный тип файла";
     }
+    
+    public static String genderById(Gender gender) {
+        switch (gender) {
+            case FEMALE:    return "женщина";
+            case MALE:      return "мужчина";
+            case INVALID:   return "оно не определилось";
+        }
+        return "оно не определилось";
+    }
+    
+    public static String batteryStatusById(short batteryStatus) {
+        switch (batteryStatus) {
+            case BatteryStatus.NEW:     return "новая";
+            case BatteryStatus.GOOD:    return "хорошая";
+            case BatteryStatus.OK:      return "нормальная";
+            case BatteryStatus.LOW:     return "низкий уровень";
+            case BatteryStatus.CRITICAL:    return "критический уровень!";
+        }
+        return "неизвестный статус";
+    }
+    
+    public static String unitsById(DisplayMeasure units) {
+        switch (units) {
+            case METRIC:    return "метрические";
+            case STATUTE:   return "устаревшие (дюймы, вершки)";
+            case INVALID:   return "неизвестный тип";
+        }
+        return "неизвестный тип";
+    }
+    
+    public static String coordinateUnitById(DisplayPosition units) {
+        switch (units) {
+
+            case DEGREE:                return "Градусы";
+            case DEGREE_MINUTE:         return "Градусы, Минуты";
+            case DEGREE_MINUTE_SECOND:  return "Градусы, Минуты, Секунды";
+            case AUSTRIAN_GRID:         return "Австралийская сетка";
+            case BRITISH_GRID:          return "Британская сетка";
+            case DUTCH_GRID:            return "Нидерландская сетка";
+            case HUNGARIAN_GRID:        return "Венгерская сетка";
+            case FINNISH_GRID:          return "Финская сетка";
+            case GERMAN_GRID:           return "Германская сетка";
+            case ICELANDIC_GRID:        return "Исландская сетка";
+            case INDONESIAN_EQUATORIAL: return "Индонезийская экваториальная сетка";
+            case INDONESIAN_IRIAN:      return "Индонезийская западная (Irian) сетка";
+            case INDONESIAN_SOUTHERN:   return "Индонезийская южная сетка";
+            case INDIA_ZONE_0:          return "Индийская сетка, зона 0";
+            case INDIA_ZONE_IA:         return "Индийская сетка, зона IA";
+            case INDIA_ZONE_IB:         return "Индийская сетка, зона IB";
+            case INDIA_ZONE_IIA:        return "Индийская сетка, зона IIA";
+            case INDIA_ZONE_IIB:        return "Индийская сетка, зона IIB";
+            case INDIA_ZONE_IIIA:       return "Индийская сетка, зона IIIA";
+            case INDIA_ZONE_IIIB:       return "Индийская сетка, зона IIIB";
+            case INDIA_ZONE_IVA:        return "Индийская сетка, зона IVA";
+            case INDIA_ZONE_IVB:        return "Индийская сетка, зона IVB";
+            case IRISH_TRANSVERSE:      return "Ирландская поперечная сетка";
+            case IRISH_GRID:            return "Ирландская сетка";
+            case LORAN:                 return "Лоран";
+            case MAIDENHEAD_GRID:       return "QTH-локатор";
+            case MGRS_GRID:             return "Военная сетка НАТО";
+            case NEW_ZEALAND_GRID:      return "Новозеландская сетка";
+            case NEW_ZEALAND_TRANSVERSE:return "Новозеландская поперечная сетка";
+            case QATAR_GRID:            return "Катарская сетка";
+            case MODIFIED_SWEDISH_GRID: return "Модифицированная Шведская сетка";
+            case SWEDISH_GRID:          return "Шведская сетка";
+            case SOUTH_AFRICAN_GRID:    return "Южноафриканская сетка";
+            case SWISS_GRID:            return "Швейцарская сетка";
+            case TAIWAN_GRID:           return "Тайваньская сетка";
+            case UNITED_STATES_GRID:    return "США сетка";
+            case UTM_UPS_GRID:          return "Полярная Стереографическая сетка";
+            case WEST_MALAYAN:          return "Малазийская западная сетка";
+            case BORNEO_RSO:            return "сетка Борнео RSO";
+            case ESTONIAN_GRID:         return "Эстонская сетка";
+            case LATVIAN_GRID:          return "Латышская сетка";
+            case SWEDISH_REF_99_GRID:   return "Шведская-REF-99 сетка";
+            case INVALID:               return "координатная сетка не определена";
+        }
+        return "координатная сетка не определена";
+    }
+    
+    public static String activityClassById(ActivityClass user) {
+        switch (user) {
+            case LEVEL:     return "LEVEL";     //?
+            case LEVEL_MAX: return "LEVEL_MAX"; //?
+            case ATHLETE:   return "Атлет";
+            case INVALID:   return "не определён";
+        }
+        return "не определён";
+    }
+    
+    public static String languageById(Language language) {
+        switch (language) {
+
+            case ENGLISH:   return "английский";
+            case FRENCH:    return "французкий";
+            case ITALIAN:   return "итальянский";
+            case GERMAN:    return "немецкий";
+            case SPANISH:   return "испанский";
+            case CROATIAN:  return "хорватский";
+            case CZECH:     return "чешский";
+            case DANISH:    return "датский";
+            case DUTCH:     return "нидерландский";
+            case FINNISH:   return "финский";
+            case GREEK:     return "греческий";
+            case HUNGARIAN: return "венгерский";
+            case NORWEGIAN: return "норвежский";
+            case POLISH:    return "польский";
+            case PORTUGUESE:return "португальский";
+            case SLOVAKIAN: return "словацкий";
+            case SLOVENIAN: return "словенский";
+            case SWEDISH:   return "шведский";
+            case RUSSIAN:   return "русский";
+            case TURKISH:   return "турецкий";
+            case LATVIAN:   return "латышский";
+            case UKRAINIAN: return "украинский";
+            case ARABIC:    return "арабский";
+            case FARSI:     return "фарси";
+            case BULGARIAN: return "болгарский";
+            case ROMANIAN:  return "румынский";
+            case CUSTOM:    return "произвольный";
+            case INVALID:   return "не определён";
+        }
+        return "не определён";
+    }
+    
+    public static String displayHeartById(DisplayHeart heart) {
+        switch (heart) {
+
+            case BPM:       return "установлены в уд/мин";
+            case MAX:       return "расчитаны от максимального пульса";
+            case RESERVE:   return "расчитаны от резерва ЧСС";
+            case INVALID:   return "не определены";
+        }
+        return "не определены";
+    }
+    
+    public static String displayPowerById(DisplayPower power) {
+        switch (power) {
+
+            case WATTS:         return "установлены в Ваттах";
+            case PERCENT_FTP:   return "в процентах от FTP";
+            case INVALID:       return "не определены";
+        }
+        return "не определены";
+    }
 }
