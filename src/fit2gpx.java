@@ -137,14 +137,14 @@ public class fit2gpx extends Component {
         }
 
         private String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx\" version=\"1.1\" " +
+                "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx from {creator}\" version=\"1.1\" " +
                 "xmlns=\"http://www.topografix.com/GPX/1/1\" " +
                 "xmlns:gpxtrx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\" " +
                 "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" " +
                 "xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v1\" " +
                 "xmlns:gpxx=\"http://www.garmin.com/xmlschemas/WaypointExtension/v1\" " +
-                "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">" +
-                "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
+                "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">";
+        private String head1 = "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
         private String head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
         private String tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
@@ -159,9 +159,11 @@ public class fit2gpx extends Component {
         private FileInputStream InputStream;
         private File InputFITfile;
 
-        private boolean FirstLine = true;
         private boolean EmptyTrack = true;
         private boolean SaveIfEmpty = false;
+        
+        private Date FileTimeStamp = new Date();
+        private String DeviceCreator = "";
 
         public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
@@ -175,7 +177,6 @@ public class fit2gpx extends Component {
             int checkStatus = this.check();
             if(checkStatus != 0) {return checkStatus;}
 
-            FirstLine = true;
             EmptyTrack = true;
 
             int readStatus = this.read();
@@ -231,6 +232,21 @@ public class fit2gpx extends Component {
                 @Override
                 public void onMesg(FileIdMesg mesg) {
                     
+                    String _Product = "";
+                    String _Manufacturer = "";
+
+                    if (mesg.getTimeCreated() != null) {
+                        FileTimeStamp = mesg.getTimeCreated().getDate();
+                    }
+
+                    if (mesg.getManufacturer() != null) {
+                        _Manufacturer = " (" + FitTools.manufacturerById(mesg.getManufacturer()) + ")";
+                    }
+                    
+                    if (mesg.getProduct() != null) {
+                        _Product = FitTools.productById(mesg.getProduct()) + _Manufacturer;
+                    }
+                    DeviceCreator = _Product;
                 }
             };
             
@@ -243,16 +259,7 @@ public class fit2gpx extends Component {
 
                     if (mesg.getFieldStringValue("timestamp") != null) {
 
-
-                        TimeStamp = new Date((Long.parseLong(mesg.getFieldStringValue("timestamp")) + 631065600) * 1000);
-
-                        if (FirstLine) {
-                            line = head.replace("{time}", DateFormatGPX.format(TimeStamp));
-                            line += head2.replace("{FTIFile}", InputFITfile.getName());
-                            FirstLine = false;
-                            activity.add(line);
-                            line = "";
-                        }
+                        TimeStamp = new Date( (mesg.getFieldLongValue("timestamp") * 1000 ) + DateTime.OFFSET);
 
                         final Number lat = semicircleToDegree(mesg.getField("position_lat"));
                         final Number lon = semicircleToDegree(mesg.getField("position_long"));
@@ -269,7 +276,8 @@ public class fit2gpx extends Component {
                             }
 
                             if (mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
-                                    || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null) {
+                                    || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null
+                                    || mesg.getFieldStringValue("distance") != null) {
 
                                 line += "\n    <extensions>";
 
@@ -290,12 +298,12 @@ public class fit2gpx extends Component {
                                 if (mesg.getFieldStringValue("speed") != null) {
                                     line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
                                 }
+                                if (mesg.getFieldStringValue("distance") != null) {
+                                    line += "\n      <gpxtpx:course>" + mesg.getFieldStringValue("distance") + "</gpxtpx:course>";
+                                }
 
                                 line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
                             }
-
-                            // неоприходованные поля
-                            // mesg.getFieldStringValue("distance")
 
                             line += "\n   </trkpt>";
 
@@ -335,7 +343,10 @@ public class fit2gpx extends Component {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-
+            
+            activity.add(0,head.replace("{creator}", DeviceCreator));
+            activity.add(1,head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
+            activity.add(2,head2.replace("{FTIFile}", InputFITfile.getName()));
             activity.add(tail);
 
             return 0;
