@@ -25,6 +25,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.*;
 import java.io.File;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,7 +41,7 @@ public class fit2gpx extends Component {
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
         
-        converter.setTimeOffset(0);
+        // converter.setNewFileTime("2015-02-09T12:10:01Z");
 
         if (args.length == 1) {
 
@@ -153,7 +154,8 @@ public class fit2gpx extends Component {
         private final ArrayList<String> activity = new ArrayList<String>();
         private Date TimeStamp = new Date();
 
-        private SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        private SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
+        private SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
 
         private String InputFITfileName;
         private String OutputGPXfileName;
@@ -166,19 +168,32 @@ public class fit2gpx extends Component {
         private boolean SaveIfEmpty = true;     // разрешить сохранение пустого трека без точек
 
         private Date FileTimeStamp = new Date();
+        private Date NewFileTime = new Date();  // Дата и время начала трека, если необходимо сдвинуть время
         private String DeviceCreator = "";
         
         private long timeOffset = 0l;   // смещение времени, для коррекции треков, в секундах
-
+        private boolean needOffset = false;
+        
         public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
         //public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
-
         //public String getOutputGPXfileName() {return OutputGPXfileName;}
         public String getInputFITfileName() {return InputFITfileName;}
         
-        public void setTimeOffset(long timeOffset) {
-            this.timeOffset = timeOffset;
+        public void setNewFileTime(String newtime) {
+            try {
+                NewFileTime = NewFileTimeFormat.parse(newtime);
+                needOffset = true;
+            } catch (ParseException e) {
+                System.err.println("Неверный формат времени для смещения");
+                needOffset = false;
+                
+                //e.printStackTrace();
+            }
+        }
+        
+        public void setNewOffset(long newOffset) {
+            timeOffset = newOffset;
         }
 
         public int run() {  // Основной поэтапный цикл работы конвертера
@@ -245,6 +260,11 @@ public class fit2gpx extends Component {
                     String _Manufacturer = "";
 
                     if (mesg.getTimeCreated() != null) {
+                        
+                        if(needOffset) {
+                            setNewOffset((NewFileTime.getTime() / 1000) - mesg.getTimeCreated().getTimestamp() - (DateTime.OFFSET / 1000));
+                        }
+
                         FileTimeStamp = new Date(mesg.getTimeCreated().getTimestamp() * 1000 + DateTime.OFFSET + (timeOffset * 1000));
                     }
 
