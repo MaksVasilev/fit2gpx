@@ -11,8 +11,8 @@ public class FitTools {
             case GarminProduct.AXB01:   return "AXB01";
             case GarminProduct.AXB02:   return "AXB02";
             case GarminProduct.AXH01:   return "AXH01 HRM chipset";
-            case GarminProduct.BCM:     return "велосипедный датчик каденса BCM ANT+";
-            case GarminProduct.BSM:     return "велосипедный датчик скорости BSM ANT+";
+            case GarminProduct.BCM:     return "датчик каденса (вело) BCM ANT+";
+            case GarminProduct.BSM:     return "датчик скорости (вело) BSM ANT+";
             case GarminProduct.CHIRP:   return "CHIRP";
             case GarminProduct.CONNECT: return "сайт Garmin Connect";
             case GarminProduct.DSI_ALF01:   return "DSI_ALF01";
@@ -73,8 +73,8 @@ public class FitTools {
             case GarminProduct.FR910XT_JAPAN:   return "Forerunner 910XT (Япония)";
             case GarminProduct.FR910XT_KOREA:   return "Forerunner 910XT (Корея)";
             case GarminProduct.FR920XT:     return "Forerunner 910XT";
-            case GarminProduct.HRM2SS:  return "нагрудный датчик пульса HRM-2";
-            case GarminProduct.HRM3SS:  return "нагрудный датчик пульса HRM-3";
+            case GarminProduct.HRM2SS:  return "нагрудный датчик пульса HRM2-SS";
+            case GarminProduct.HRM3SS:  return "нагрудный датчик пульса HRM3-SS";
             case GarminProduct.HRM_RUN: return "нагрудный датчик пульса для бега HRM-Run";
             case GarminProduct.HRM_RUN_SINGLE_BYTE_PRODUCT_ID: return "нагрудный датчик пульса HRM-Run ANT+";
             case GarminProduct.SDM4:    return "датчик бега SDM4";

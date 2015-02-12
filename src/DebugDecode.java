@@ -13,46 +13,53 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 
 public class DebugDecode {
-    private static class Listener implements FileIdMesgListener, UserProfileMesgListener, DeviceInfoMesgListener, MonitoringMesgListener {
+    
+  //  private static class Listener implements FileIdMesgListener, UserProfileMesgListener, DeviceInfoMesgListener, MonitoringMesgListener {
 
-        public void onMesg(FileIdMesg mesg) {
-            System.out.println("Информация о файле:");
+    private static class FileIdListener implements FileIdMesgListener {
 
-            if (mesg.getType() != null) {
-                System.out.print("   Тип файла: ");
-                System.out.println(FitTools.fileTypeById(mesg.getType()));
-            }
-            if (mesg.getGarminProduct() != null) {
-                System.out.print("   Устройство Garmin: ");
-                System.out.println(FitTools.productById(mesg.getGarminProduct()) + " [" + mesg.getGarminProduct() + "]");
+            @Override
+            public void onMesg(FileIdMesg mesg) {
+                System.out.println("Информация о файле:");
 
-            }
-            if (mesg.getTimeCreated() != null) {
-                System.out.print("   Время создания: ");
-                System.out.println(mesg.getTimeCreated());
-            }
+                if (mesg.getType() != null) {
+                    System.out.print("   Тип файла: ");
+                    System.out.println(FitTools.fileTypeById(mesg.getType()));
+                }
+                if (mesg.getGarminProduct() != null) {
+                    System.out.print("   Устройство Garmin: ");
+                    System.out.println(FitTools.productById(mesg.getGarminProduct()) + " [" + mesg.getGarminProduct() + "]");
 
-            if (mesg.getManufacturer() != null) {
-                System.out.print("   Производитель: ");
-                System.out.println(FitTools.manufacturerById(mesg.getManufacturer()) + " [" + mesg.getManufacturer() + "]");
-            }
+                }
+                if (mesg.getTimeCreated() != null) {
+                    System.out.print("   Время создания: ");
+                    System.out.println(mesg.getTimeCreated());
+                }
+                if (mesg.getManufacturer() != null) {
+                    System.out.print("   Производитель: ");
+                    System.out.println(FitTools.manufacturerById(mesg.getManufacturer()) + " [" + mesg.getManufacturer() + "]");
+                }
 
-            if (mesg.getProduct() != null) {
-                System.out.print("   Устройство: ");
-                System.out.println(FitTools.productById(mesg.getProduct()) + " [" + mesg.getProduct() + "]");
-            }
+                if (mesg.getProduct() != null) {
+                    System.out.print("   Устройство: ");
+                    System.out.println(FitTools.productById(mesg.getProduct()) + " [" + mesg.getProduct() + "]");
+                }
 
-            if (mesg.getSerialNumber() != null) {
-                System.out.print("   Серийный номер: ");
-                System.out.println(mesg.getSerialNumber());
-            }
+                if (mesg.getSerialNumber() != null) {
+                    System.out.print("   Серийный номер: ");
+                    System.out.println(mesg.getSerialNumber());
+                }
 
-            if (mesg.getNumber() != null) {
-                System.out.print("   Номер: ");
-                System.out.println(mesg.getNumber());
+                if (mesg.getNumber() != null) {
+                    System.out.print("   Номер: ");
+                    System.out.println(mesg.getNumber());
+                }
             }
         }
 
+    private static class UserProfileListener implements UserProfileMesgListener {
+
+        @Override
         public void onMesg(UserProfileMesg mesg) {
             System.out.println("Профиль пользователя:");
 
@@ -155,7 +162,11 @@ public class DebugDecode {
                 System.out.println(FitTools.unitsById(mesg.getWeightSetting()));
             }
         }
+    }
 
+    private static class DeviceInfoListener implements DeviceInfoMesgListener {
+
+        @Override
         public void onMesg(DeviceInfoMesg mesg) {
             System.out.println("Информация по устройству:");
 
@@ -237,7 +248,11 @@ public class DebugDecode {
             }
 
         }
+    }
 
+    private static class MonitoringListener implements MonitoringMesgListener {
+
+        @Override
         public void onMesg(MonitoringMesg mesg) {
             System.out.println("Monitoring:");
 
@@ -265,13 +280,154 @@ public class DebugDecode {
         }
     }
 
+    private static class EventListener implements EventMesgListener {
+        @Override
+        public void onMesg(EventMesg mesg) {
+            System.out.println("Event:");
+
+            if (mesg.getTimestamp() != null) {
+                System.out.print("   Timestamp: ");
+                System.out.println(mesg.getTimestamp());
+            }
+            if (mesg.getData() != null) {
+                System.out.print("   Data: ");
+                System.out.println(mesg.getData());
+            }
+            if (mesg.getData16() != null) {
+                System.out.print("   Data16: ");
+                System.out.println(mesg.getData16());
+            }
+            if (mesg.getEventType() != null) {
+                System.out.print("   EventType: ");
+                System.out.println(mesg.getEventType());
+            }
+            if (mesg.getEvent() != null) {
+                System.out.print("   Event: ");
+                System.out.println(mesg.getEvent());
+            }
+            if (mesg.getBatteryLevel() != null) {
+                System.out.print("   BatteryLevel: ");
+                System.out.println(mesg.getBatteryLevel());
+            }
+            if (mesg.getEventGroup() != null) {
+                System.out.print("   EventGroup: ");
+                System.out.println(mesg.getEventGroup());
+            }
+            if (mesg.getFrontGear() != null) {
+                System.out.print("   FrontGear: ");
+                System.out.println(mesg.getFrontGear());
+            }
+            if (mesg.getFrontGearNum() != null) {
+                System.out.print("   FrontGear: ");
+                System.out.println(mesg.getFrontGearNum());
+            }
+            if (mesg.getRearGear() != null) {
+                System.out.print("   RearGear: ");
+                System.out.println(mesg.getRearGear());
+            }
+            if (mesg.getRearGearNum() != null) {
+                System.out.print("   RearGearNum: ");
+                System.out.println(mesg.getRearGearNum());
+            }
+            if (mesg.getGearChangeData() != null) {
+                System.out.print("   GearChangeData: ");
+                System.out.println(mesg.getGearChangeData());
+            }
+            if (mesg.getRiderPosition() != null) {
+                System.out.print("   RiderPosition: ");
+                System.out.println(mesg.getRiderPosition());
+            }
+            if (mesg.getHrHighAlert() != null) {
+                System.out.print("   HrHighAlert: ");
+                System.out.println(mesg.getHrHighAlert());
+            }
+            if (mesg.getHrLowAlert() != null) {
+                System.out.print("   HrLowAlert: ");
+                System.out.println(mesg.getHrLowAlert());
+            }
+            if (mesg.getCadHighAlert() != null) {
+                System.out.print("   CadHighAlert: ");
+                System.out.println(mesg.getCadHighAlert());
+            }
+            if (mesg.getCadLowAlert() != null) {
+                System.out.print("   CadLowAlert: ");
+                System.out.println(mesg.getCadLowAlert());
+            }
+            if (mesg.getPowerHighAlert() != null) {
+                System.out.print("   PowerHighAlert: ");
+                System.out.println(mesg.getPowerHighAlert());
+            }
+            if (mesg.getPowerLowAlert() != null) {
+                System.out.print("   PowerLowAlert: ");
+                System.out.println(mesg.getPowerLowAlert());
+            }
+            if (mesg.getSpeedHighAlert() != null) {
+                System.out.print("   SpeedHighAlert: ");
+                System.out.println(mesg.getSpeedHighAlert());
+            }
+            if (mesg.getSpeedLowAlert() != null) {
+                System.out.print("   SpeedLowAlert: ");
+                System.out.println(mesg.getSpeedLowAlert());
+            }
+            if (mesg.getCalorieDurationAlert() != null) {
+                System.out.print("   CalorieDurationAlert: ");
+                System.out.println(mesg.getCalorieDurationAlert());
+            }
+            if (mesg.getDistanceDurationAlert() != null) {
+                System.out.print("   DistanceDurationAlert: ");
+                System.out.println(mesg.getDistanceDurationAlert());
+            }
+            if (mesg.getTimeDurationAlert() != null) {
+                System.out.print("   TimeDurationAlert: ");
+                System.out.println(mesg.getTimeDurationAlert());
+            }
+            if (mesg.getCoursePointIndex() != null) {
+                System.out.print("   CoursePointIndex: ");
+                System.out.println(mesg.getCoursePointIndex());
+            }
+            if (mesg.getFitnessEquipmentState() != null) {
+                System.out.print("   FitnessEquipmentState: ");
+                System.out.println(mesg.getFitnessEquipmentState());
+            }
+            if (mesg.getSportPoint() != null) {
+                System.out.print("   SportPoint: ");
+                System.out.println(mesg.getSportPoint());
+            }
+            if (mesg.getScore() != null) {
+                System.out.print("   Score: ");
+                System.out.println(mesg.getScore());
+            }
+            if (mesg.getOpponentScore() != null) {
+                System.out.print("   OpponentScore: ");
+                System.out.println(mesg.getOpponentScore());
+            }
+            if (mesg.getVirtualPartnerSpeed() != null) {
+                System.out.print("   VirtualPartnerSpeed: ");
+                System.out.println(mesg.getVirtualPartnerSpeed());
+            }
+            if (mesg.getTimerTrigger() != null) {
+                System.out.print("   TimerTrigger: ");
+                System.out.println(mesg.getTimerTrigger());
+            }
+
+
+
+        }
+    }
+
     public static void main(String[] args) {
         com.garmin.fit.Decode decode = new com.garmin.fit.Decode();
         //decode.skipHeader();        // Use on streams with no header and footer (stream contains FIT defn and data messages only)
         //decode.incompleteStream();  // This suppresses exceptions with unexpected eof (also incorrect crc)
         MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
-        Listener listener = new Listener();
-        FileInputStream in;
+
+        FileIdListener fileIdListener = new FileIdListener();
+        UserProfileListener userProfileListener = new UserProfileListener();
+        DeviceInfoListener deviceInfoListener = new DeviceInfoListener();
+        MonitoringListener monitoringListener = new MonitoringListener();
+        EventListener eventListener = new EventListener();
+
+         FileInputStream in;
 
         if (args.length != 1) {
             System.out.println("Usage: java -cp fit2gpx.jar DebugDecode <filename>");
@@ -305,10 +461,10 @@ public class DebugDecode {
             throw new RuntimeException("Error opening file " + args[0] + " [2]");
         }
 
-        mesgBroadcaster.addListener((FileIdMesgListener) listener);
-        mesgBroadcaster.addListener((UserProfileMesgListener) listener);
-        mesgBroadcaster.addListener((DeviceInfoMesgListener) listener);
-        //mesgBroadcaster.addListener((MonitoringMesgListener) listener);
+        mesgBroadcaster.addListener(fileIdListener);
+        mesgBroadcaster.addListener(userProfileListener);
+        mesgBroadcaster.addListener(deviceInfoListener);
+        mesgBroadcaster.addListener(eventListener);
 
         try {
             mesgBroadcaster.run(in);
