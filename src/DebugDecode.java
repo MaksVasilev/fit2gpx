@@ -282,7 +282,7 @@ public class DebugDecode {
     private static class EventListener implements EventMesgListener {
         @Override
         public void onMesg(EventMesg mesg) {
-            System.out.println("Event:");
+            System.out.println("Событие:");
 
             if (mesg.getTimestamp() != null) {
                 System.out.print("   Timestamp: ");
@@ -705,9 +705,9 @@ public class DebugDecode {
         }
 
         mesgBroadcaster.addListener(fileIdListener);
-       // mesgBroadcaster.addListener(userProfileListener);
-        //mesgBroadcaster.addListener(deviceInfoListener);
-        //mesgBroadcaster.addListener(eventListener);
+        mesgBroadcaster.addListener(userProfileListener);
+        mesgBroadcaster.addListener(deviceInfoListener);
+        mesgBroadcaster.addListener(eventListener);
         mesgBroadcaster.addListener(lapListener);
 
         try {
