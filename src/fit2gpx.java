@@ -39,6 +39,8 @@ public class fit2gpx extends Component {
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
+        
+        converter.setTimeOffset(0);
 
         if (args.length == 1) {
 
@@ -58,7 +60,7 @@ public class fit2gpx extends Component {
         if (args.length == 0 || (args.length == 1 && StatisticEnable) ) {
 
             DialogMode = true;
-            converter.setSaveIfEmpty(false);
+            converter.setSaveIfEmpty(true);
 
             JFileChooser chooser = new JFileChooser();
             chooser.setDialogTitle("FIT -> GPX: Выберите файл для преобразования в GPX");
@@ -159,11 +161,14 @@ public class fit2gpx extends Component {
         private FileInputStream InputStream;
         private File InputFITfile;
 
-        private boolean EmptyTrack = true;
-        private boolean SaveIfEmpty = false;
-        
+        private boolean EmptyTrack = true;      // признак того, что трек не содержит координат
+        private boolean EmptyLine = true;       // признак того, то отдельная точка не содержит координат
+        private boolean SaveIfEmpty = true;     // разрешить сохранение пустого трека без точек
+
         private Date FileTimeStamp = new Date();
         private String DeviceCreator = "";
+        
+        private long timeOffset = 0l;   // смещение времени, для коррекции треков, в секундах
 
         public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
@@ -171,6 +176,10 @@ public class fit2gpx extends Component {
 
         //public String getOutputGPXfileName() {return OutputGPXfileName;}
         public String getInputFITfileName() {return InputFITfileName;}
+        
+        public void setTimeOffset(long timeOffset) {
+            this.timeOffset = timeOffset;
+        }
 
         public int run() {  // Основной поэтапный цикл работы конвертера
 
@@ -236,7 +245,7 @@ public class fit2gpx extends Component {
                     String _Manufacturer = "";
 
                     if (mesg.getTimeCreated() != null) {
-                        FileTimeStamp = mesg.getTimeCreated().getDate();
+                        FileTimeStamp = new Date(mesg.getTimeCreated().getTimestamp() * 1000 + DateTime.OFFSET + (timeOffset * 1000));
                     }
 
                     if (mesg.getManufacturer() != null) {
@@ -249,17 +258,18 @@ public class fit2gpx extends Component {
                     DeviceCreator = _Product;
                 }
             };
-            
+
             MesgListener mesgListener = new MesgListener() {
 
-            @Override
+                @Override
                 public void onMesg(Mesg mesg) {
 
                     String line = "";
+                    EmptyLine = true;
 
                     if (mesg.getFieldStringValue("timestamp") != null) {
 
-                        TimeStamp = new Date( (mesg.getFieldLongValue("timestamp") * 1000 ) + DateTime.OFFSET);
+                        TimeStamp = new Date( (mesg.getFieldLongValue("timestamp") * 1000 ) + DateTime.OFFSET + (timeOffset * 1000));
 
                         final Number lat = semicircleToDegree(mesg.getField("position_lat"));
                         final Number lon = semicircleToDegree(mesg.getField("position_long"));
@@ -267,51 +277,64 @@ public class fit2gpx extends Component {
                         if (lat != null && lon != null) {
 
                             EmptyTrack = false;
+                            EmptyLine = false;
 
                             line += "\n   <trkpt lat=\"" + lat.toString() + "\" lon=\"" + lon.toString() + "\">\n" +
                                     "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
 
-                            if (mesg.getFieldStringValue("altitude") != null) {
-                                line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"), 3) + "</ele>";
+                        } else {
+                            line += "\n   <trkpt lat=\"\" lon=\"\">\n" +
+                                    "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
+                            EmptyLine = true;
+                        }
+
+
+                        if (mesg.getFieldStringValue("altitude") != null) {
+                            line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"), 3) + "</ele>";
+                            EmptyLine = false;
+                        }
+
+                        if (mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
+                                || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null
+                                || mesg.getFieldStringValue("distance") != null) {
+
+                            EmptyLine = false;
+
+                            line += "\n    <extensions>";
+
+                            if (mesg.getFieldStringValue("speed") != null) {
+                                line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
+                            }
+                            line += "\n     <gpxtpx:TrackPointExtension>";
+
+                            if (mesg.getFieldStringValue("temperature") != null) {
+                                line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
+                            }
+                            if (mesg.getFieldStringValue("heart_rate") != null) {
+                                line += "\n      <gpxtpx:hr>" + mesg.getFieldStringValue("heart_rate") + "</gpxtpx:hr>";
+                            }
+                            if (mesg.getFieldStringValue("cadence") != null) {
+                                line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
+                            }
+                            if (mesg.getFieldStringValue("speed") != null) {
+                                line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
+                            }
+                            if (mesg.getFieldStringValue("distance") != null) {
+                                line += "\n      <gpxtpx:course>" + mesg.getFieldStringValue("distance") + "</gpxtpx:course>";
                             }
 
-                            if (mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
-                                    || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null
-                                    || mesg.getFieldStringValue("distance") != null) {
+                            line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
+                        }
 
-                                line += "\n    <extensions>";
+                        line += "\n   </trkpt>";
 
-                                if (mesg.getFieldStringValue("speed") != null) {
-                                    line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
-                                }
-                                line += "\n     <gpxtpx:TrackPointExtension>";
-
-                                if (mesg.getFieldStringValue("temperature") != null) {
-                                    line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
-                                }
-                                if (mesg.getFieldStringValue("heart_rate") != null) {
-                                    line += "\n      <gpxtpx:hr>" + mesg.getFieldStringValue("heart_rate") + "</gpxtpx:hr>";
-                                }
-                                if (mesg.getFieldStringValue("cadence") != null) {
-                                    line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
-                                }
-                                if (mesg.getFieldStringValue("speed") != null) {
-                                    line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
-                                }
-                                if (mesg.getFieldStringValue("distance") != null) {
-                                    line += "\n      <gpxtpx:course>" + mesg.getFieldStringValue("distance") + "</gpxtpx:course>";
-                                }
-
-                                line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
-                            }
-
-                            line += "\n   </trkpt>";
-
+                        if(!EmptyLine) {
                             activity.add(line);
                         }
+
                     }
 
-                }
+            }
             };
             
             mesgBroadcaster.addListener(fileIdMesgListener);
