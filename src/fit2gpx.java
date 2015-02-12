@@ -251,7 +251,6 @@ public class fit2gpx extends Component {
             final Decode decode = new Decode();
             MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
 
-            //    decode.addListener(new MesgListener() {
             FileIdMesgListener fileIdMesgListener = new FileIdMesgListener() {
                 @Override
                 public void onMesg(FileIdMesg mesg) {
@@ -360,12 +359,8 @@ public class fit2gpx extends Component {
             mesgBroadcaster.addListener(fileIdMesgListener);
             mesgBroadcaster.addListener(mesgListener);
             
-            //decode.addListener(mesgListener);
-            //decode.addListener(fileIdMesgListener);
-
             try {
                 mesgBroadcaster.run(new BufferedInputStream(new FileInputStream(InputFITfile)));
-                //decode.read(new BufferedInputStream(new FileInputStream(InputFITfile)));
             } catch (FitRuntimeException e) {
                 System.err.print("Ошибка обработки файла " + InputFITfile + ": ");
                 System.err.println(e.getMessage());
@@ -502,3 +497,11 @@ public class fit2gpx extends Component {
     }
 
 }
+
+/*
+TODO: 1) учёт временной зоны
+TODO: 2) возможноть более широкой конфигурации
+
+
+
+ */
