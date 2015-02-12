@@ -10,52 +10,51 @@
 import com.garmin.fit.*;
 
 import java.io.FileInputStream;
-import java.io.InputStream;
 
 public class DebugDecode {
-    
-  //  private static class Listener implements FileIdMesgListener, UserProfileMesgListener, DeviceInfoMesgListener, MonitoringMesgListener {
+
+    //  private static class Listener implements FileIdMesgListener, UserProfileMesgListener, DeviceInfoMesgListener, MonitoringMesgListener {
 
     private static class FileIdListener implements FileIdMesgListener {
 
-            @Override
-            public void onMesg(FileIdMesg mesg) {
-                System.out.println("Информация о файле:");
+        @Override
+        public void onMesg(FileIdMesg mesg) {
+            System.out.println("Информация о файле:");
 
-                if (mesg.getType() != null) {
-                    System.out.print("   Тип файла: ");
-                    System.out.println(FitTools.fileTypeById(mesg.getType()));
-                }
-                if (mesg.getGarminProduct() != null) {
-                    System.out.print("   Устройство Garmin: ");
-                    System.out.println(FitTools.productById(mesg.getGarminProduct()) + " [" + mesg.getGarminProduct() + "]");
+            if (mesg.getType() != null) {
+                System.out.print("   Тип файла: ");
+                System.out.println(FitTools.fileTypeById(mesg.getType()));
+            }
+            if (mesg.getGarminProduct() != null) {
+                System.out.print("   Устройство Garmin: ");
+                System.out.println(FitTools.productById(mesg.getGarminProduct()) + " [" + mesg.getGarminProduct() + "]");
 
-                }
-                if (mesg.getTimeCreated() != null) {
-                    System.out.print("   Время создания: ");
-                    System.out.println(mesg.getTimeCreated());
-                }
-                if (mesg.getManufacturer() != null) {
-                    System.out.print("   Производитель: ");
-                    System.out.println(FitTools.manufacturerById(mesg.getManufacturer()) + " [" + mesg.getManufacturer() + "]");
-                }
+            }
+            if (mesg.getTimeCreated() != null) {
+                System.out.print("   Время создания: ");
+                System.out.println(mesg.getTimeCreated());
+            }
+            if (mesg.getManufacturer() != null) {
+                System.out.print("   Производитель: ");
+                System.out.println(FitTools.manufacturerById(mesg.getManufacturer()) + " [" + mesg.getManufacturer() + "]");
+            }
 
-                if (mesg.getProduct() != null) {
-                    System.out.print("   Устройство: ");
-                    System.out.println(FitTools.productById(mesg.getProduct()) + " [" + mesg.getProduct() + "]");
-                }
+            if (mesg.getProduct() != null) {
+                System.out.print("   Устройство: ");
+                System.out.println(FitTools.productById(mesg.getProduct()) + " [" + mesg.getProduct() + "]");
+            }
 
-                if (mesg.getSerialNumber() != null) {
-                    System.out.print("   Серийный номер: ");
-                    System.out.println(mesg.getSerialNumber());
-                }
+            if (mesg.getSerialNumber() != null) {
+                System.out.print("   Серийный номер: ");
+                System.out.println(mesg.getSerialNumber());
+            }
 
-                if (mesg.getNumber() != null) {
-                    System.out.print("   Номер: ");
-                    System.out.println(mesg.getNumber());
-                }
+            if (mesg.getNumber() != null) {
+                System.out.print("   Номер: ");
+                System.out.println(mesg.getNumber());
             }
         }
+    }
 
     private static class UserProfileListener implements UserProfileMesgListener {
 
@@ -415,6 +414,249 @@ public class DebugDecode {
         }
     }
 
+    private static class LapListener implements LapMesgListener {
+        @Override
+        public void onMesg(LapMesg mesg) {
+            System.out.println("Круг:");
+
+            if (mesg.getStartTime() != null) {
+                System.out.print("   StartTime: ");
+                System.out.println(mesg.getStartTime());
+            }
+              if (mesg.getTimestamp() != null) {
+                System.out.print("   Timestamp: ");
+                System.out.println(mesg.getTimestamp());
+            }
+            if (mesg.getEvent() != null) {
+                System.out.print("   Event: ");
+                System.out.println(mesg.getEvent());
+            }
+            if (mesg.getEventType() != null) {
+                System.out.print("   EventType: ");
+                System.out.println(mesg.getEventType());
+            }
+            if (mesg.getEventGroup() != null) {
+                System.out.print("   EventGroup: ");
+                System.out.println(mesg.getEventGroup());
+            }
+            if (mesg.getSport() != null) {
+                System.out.print("   Sport: ");
+                System.out.println(mesg.getSport());
+            }
+            if (mesg.getSubSport() != null) {
+                System.out.print("   SubSport: ");
+                System.out.println(mesg.getSubSport());
+            }
+            if (mesg.getAvgAltitude() != null) {
+                System.out.print("   AvgAltitude: ");
+                System.out.println(mesg.getAvgAltitude());
+            }
+             if (mesg.getMinAltitude() != null) {
+                System.out.print("   MinAltitude: ");
+                System.out.println(mesg.getMinAltitude());
+            }
+            if (mesg.getMaxAltitude() != null) {
+                System.out.print("   MaxAltitude: ");
+                System.out.println(mesg.getMaxAltitude());
+            }
+            if (mesg.getEnhancedAvgAltitude() != null) {
+                System.out.print("   EnhancedAvgAltitude: ");
+                System.out.println(mesg.getEnhancedAvgAltitude());
+            }
+            if (mesg.getEnhancedMinAltitude() != null) {
+                System.out.print("   EnhancedMinAltitude: ");
+                System.out.println(mesg.getEnhancedMinAltitude());
+            }
+            if (mesg.getEnhancedMaxAltitude() != null) {
+                System.out.print("   EnhancedMaxAltitude: ");
+                System.out.println(mesg.getEnhancedMaxAltitude());
+            }
+            if (mesg.getAvgHeartRate() != null) {
+                System.out.print("   AvgHeartRate: ");
+                System.out.println(mesg.getAvgHeartRate());
+            }
+            if (mesg.getMinHeartRate() != null) {
+                System.out.print("   MinHeartRate: ");
+                System.out.println(mesg.getMinHeartRate());
+            }
+            if (mesg.getMaxHeartRate() != null) {
+                System.out.print("   MaxHeartRate: ");
+                System.out.println(mesg.getMaxHeartRate());
+            }
+            if (mesg.getAvgCadence() != null) {
+                System.out.print("   AvgCadence: ");
+                System.out.println(mesg.getAvgCadence());
+            }
+            if (mesg.getMaxCadence() != null) {
+                System.out.print("   MaxCadence: ");
+                System.out.println(mesg.getMaxCadence());
+            }
+            if (mesg.getAvgFractionalCadence() != null) {
+                System.out.print("   AvgFractionalCadence: ");
+                System.out.println(mesg.getAvgFractionalCadence());
+            }
+            if (mesg.getMaxFractionalCadence() != null) {
+                System.out.print("   MaxFractionalCadence: ");
+                System.out.println(mesg.getMaxFractionalCadence());
+            }
+            if (mesg.getAvgRunningCadence() != null) {
+                System.out.print("   AvgRunningCadence: ");
+                System.out.println(mesg.getAvgRunningCadence());
+            }
+            if (mesg.getMaxRunningCadence() != null) {
+                System.out.print("   MaxRunningCadence: ");
+                System.out.println(mesg.getMaxRunningCadence());
+            }
+            if (mesg.getAvgSpeed() != null) {
+                System.out.print("   AvgSpeed (км/час): ");
+                System.out.println(mesg.getAvgSpeed()*3.6);
+            }
+            if (mesg.getMaxSpeed() != null) {
+                System.out.print("   MaxSpeed (км/час): ");
+                System.out.println(mesg.getMaxSpeed()*3.6);
+            }
+            if (mesg.getEnhancedAvgSpeed() != null) {
+                System.out.print("   EnhancedAvgSpeed (км/час): ");
+                System.out.println(mesg.getEnhancedAvgSpeed()*3.6);
+            }
+            if (mesg.getEnhancedMaxSpeed() != null) {
+                System.out.print("   EnhancedMaxSpeed (км/час): ");
+                System.out.println(mesg.getEnhancedMaxSpeed()*3.6);
+            }
+            if (mesg.getAvgTemperature() != null) {
+                System.out.print("   AvgTemperature: ");
+                System.out.println(mesg.getAvgTemperature());
+            }
+            if (mesg.getMaxTemperature() != null) {
+                System.out.print("   MaxTemperature: ");
+                System.out.println(mesg.getMaxTemperature());
+            }
+            if (mesg.getAvgGrade() != null) {
+                System.out.print("   AvgGrade (%): ");
+                System.out.println(mesg.getAvgGrade());
+            }
+            if (mesg.getAvgPosGrade() != null) {
+                System.out.print("   AvgPosGrade (%): ");
+                System.out.println(mesg.getAvgPosGrade());
+            }
+            if (mesg.getMaxPosGrade() != null) {
+                System.out.print("   MaxPosGrade (%): ");
+                System.out.println(mesg.getMaxPosGrade());
+            }
+            if (mesg.getAvgNegGrade() != null) {
+                System.out.print("   AvgNegGrade (%): ");
+                System.out.println(mesg.getAvgNegGrade());
+            }
+            if (mesg.getMaxNegGrade() != null) {
+                System.out.print("   MaxNegGrade (%): ");
+                System.out.println(mesg.getMaxNegGrade());
+            }
+            if (mesg.getAvgPosVerticalSpeed() != null) {
+                System.out.print("   AvgPosVerticalSpeed (м/с): ");
+                System.out.println(mesg.getAvgPosVerticalSpeed());
+            }
+            if (mesg.getMaxPosVerticalSpeed() != null) {
+                System.out.print("   MaxPosVerticalSpeed (м/с): ");
+                System.out.println(mesg.getMaxPosVerticalSpeed());
+            }
+            if (mesg.getAvgNegVerticalSpeed() != null) {
+                System.out.print("   AvgNegVerticalSpeed (м/с): ");
+                System.out.println(mesg.getAvgNegVerticalSpeed());
+            }
+            if (mesg.getMaxNegVerticalSpeed() != null) {
+                System.out.print("   MaxNegVerticalSpeed (м/с): ");
+                System.out.println(mesg.getMaxNegVerticalSpeed());
+            }
+            if (mesg.getTotalAscent() != null) {
+                System.out.print("   TotalAscent (м): ");
+                System.out.println(mesg.getTotalAscent());
+            }
+            if (mesg.getTotalDescent() != null) {
+                System.out.print("   TotalDescent (м): ");
+                System.out.println(mesg.getTotalDescent());
+            }
+            if (mesg.getTotalDistance() != null) {
+                System.out.print("   TotalDistance (км): ");
+                System.out.println(mesg.getTotalDistance()/1000.0);
+            }
+            if (mesg.getTotalMovingTime() != null) {
+                System.out.print("   TotalMovingTime (мин): ");
+                System.out.println(mesg.getTotalMovingTime()/60);
+            }
+            if (mesg.getTotalTimerTime() != null) {
+                System.out.print("   TotalTimerTime (мин): ");
+                System.out.println(mesg.getTotalTimerTime()/60);
+            }
+            if (mesg.getTotalElapsedTime() != null) {
+                System.out.print("   TotalElapsedTime (мин): ");
+                System.out.println(mesg.getTotalElapsedTime()/60);
+            }
+            if (mesg.getTotalElapsedTime() != null) {
+                System.out.print("   TotalElapsedTime (мин): ");
+                System.out.println(mesg.getTotalElapsedTime()/60);
+            }
+            if (mesg.getTotalCalories() != null) {
+                System.out.print("   TotalCalories (ккал): ");
+                System.out.println(mesg.getTotalCalories());
+            }
+            if (mesg.getTotalFatCalories() != null) {
+                System.out.print("   TotalFatCalories (ккал): ");
+                System.out.println(mesg.getTotalFatCalories());
+            }
+            if (mesg.getTotalCycles() != null) {
+                System.out.print("   TotalCycles: ");
+                System.out.println(mesg.getTotalCycles());
+            }
+            if (mesg.getTotalFractionalCycles() != null) {
+                System.out.print("   TotalFractionalCycles: ");
+                System.out.println(mesg.getTotalFractionalCycles());
+            }
+            if (mesg.getTotalStrides() != null) {
+                System.out.print("   TotalStrides: ");
+                System.out.println(mesg.getTotalStrides());
+            }
+            if (mesg.getTotalWork() != null) {
+                System.out.print("   TotalWork: ");
+                System.out.println(mesg.getTotalWork());
+            }
+            if (mesg.getTimeStanding() != null) {
+                System.out.print("   TimeStanding: ");
+                System.out.println(mesg.getTimeStanding());
+            }
+            if (mesg.getStandCount() != null) {
+                System.out.print("   StandCount: ");
+                System.out.println(mesg.getStandCount());
+            }
+            if (mesg.getAvgStanceTime() != null) {
+                System.out.print("   AvgStanceTime: ");
+                System.out.println(mesg.getAvgStanceTime());
+            }
+            if (mesg.getAvgStanceTimePercent() != null) {
+                System.out.print("   AvgStanceTimePercent: ");
+                System.out.println(mesg.getAvgStanceTimePercent());
+            }
+            if (mesg.getStartPositionLat() != null) {
+                System.out.print("   StartPositionLat: ");
+                System.out.println(mesg.getStartPositionLat());
+            }
+            if (mesg.getStartPositionLong() != null) {
+                System.out.print("   StartPositionLong: ");
+                System.out.println(mesg.getStartPositionLong());
+            }
+            if (mesg.getEndPositionLat() != null) {
+                System.out.print("   EndPositionLat: ");
+                System.out.println(mesg.getEndPositionLat());
+            }
+            if (mesg.getEndPositionLong() != null) {
+                System.out.print("   EndPositionLong: ");
+                System.out.println(mesg.getEndPositionLong());
+            }
+
+
+
+        }
+    }
+
     public static void main(String[] args) {
         com.garmin.fit.Decode decode = new com.garmin.fit.Decode();
         //decode.skipHeader();        // Use on streams with no header and footer (stream contains FIT defn and data messages only)
@@ -426,8 +668,9 @@ public class DebugDecode {
         DeviceInfoListener deviceInfoListener = new DeviceInfoListener();
         MonitoringListener monitoringListener = new MonitoringListener();
         EventListener eventListener = new EventListener();
+        LapListener lapListener = new LapListener();
 
-         FileInputStream in;
+        FileInputStream in;
 
         if (args.length != 1) {
             System.out.println("Usage: java -cp fit2gpx.jar DebugDecode <filename>");
@@ -441,7 +684,7 @@ public class DebugDecode {
         }
 
         try {
-            if (!com.garmin.fit.Decode.checkIntegrity((InputStream) in))
+            if (!com.garmin.fit.Decode.checkIntegrity(in))
                 throw new RuntimeException("FIT file integrity failed.");
         } catch (RuntimeException e) {
             System.err.print("Exception Checking File Integrity: ");
@@ -462,9 +705,10 @@ public class DebugDecode {
         }
 
         mesgBroadcaster.addListener(fileIdListener);
-        mesgBroadcaster.addListener(userProfileListener);
-        mesgBroadcaster.addListener(deviceInfoListener);
-        mesgBroadcaster.addListener(eventListener);
+       // mesgBroadcaster.addListener(userProfileListener);
+        //mesgBroadcaster.addListener(deviceInfoListener);
+        //mesgBroadcaster.addListener(eventListener);
+        mesgBroadcaster.addListener(lapListener);
 
         try {
             mesgBroadcaster.run(in);
