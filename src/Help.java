@@ -24,7 +24,7 @@ public class Help {
         System.out.println("\nКонвертер поддерживает режим пакетной обработки файлов, для этого в консольном режиме укажите имена всех файлов");
         System.out.println("в качестве аргументов программы. В диалоговом режиме просто выберите несколько файлов в диалоге выбора.");
         System.out.println("\nДамп всех заголовков файла (отладочный режим):");
-        System.out.println("\tjava -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>");
+        System.out.println("\tjava -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>\n");
 
         System.exit(64);
     }
