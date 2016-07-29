@@ -139,7 +139,7 @@ public class fit2gpx extends Component {
             return Math.round(d * dd) / dd;
         }
 
-        private String head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        private String out_gpx_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx from {creator}\" version=\"1.1\" " +
                 "xmlns=\"http://www.topografix.com/GPX/1/1\" " +
                 "xmlns:gpxtrx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\" " +
@@ -147,9 +147,14 @@ public class fit2gpx extends Component {
                 "xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v1\" " +
                 "xmlns:gpxx=\"http://www.garmin.com/xmlschemas/WaypointExtension/v1\" " +
                 "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">";
-        private String head1 = "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
-        private String head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
-        private String tail = "\n  </trkseg>\n </trk>\n</gpx>";
+        private String out_gpx_head1 = "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
+        private String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
+        private String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
+
+        private String out_csv_head = "";
+        private String out_csv_head1 = "";
+        private String out_csv_head2 = "";
+        private String out_csv_tail = "";
 
         private final ArrayList<String> activity = new ArrayList<String>();
         private Date TimeStamp = new Date();
@@ -171,8 +176,10 @@ public class fit2gpx extends Component {
         private Date NewFileTime = new Date();  // Дата и время начала трека, если необходимо сдвинуть время
         private String DeviceCreator = "";
         
-        private long timeOffset = 0l;   // смещение времени, для коррекции треков, в секундах
+        private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
         private boolean needOffset = false;
+
+        final Decode decode = new Decode();
         
         public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
@@ -227,7 +234,7 @@ public class fit2gpx extends Component {
             }
 
             try {
-                if (!Decode.checkIntegrity(InputStream)) {
+                if (!decode.checkFileIntegrity(InputStream)) {
                     throw new RuntimeException("файл " + InputFITfileName + " повреждён!");
                 }
             } catch (RuntimeException e) {
@@ -248,7 +255,7 @@ public class fit2gpx extends Component {
 
         private int read() {    // попытка прочитать входной файл
 
-            final Decode decode = new Decode();
+
             MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
 
             FileIdMesgListener fileIdMesgListener = new FileIdMesgListener() {
@@ -382,10 +389,10 @@ public class fit2gpx extends Component {
                 throw new RuntimeException(e);
             }
             
-            activity.add(0,head.replace("{creator}", DeviceCreator));
-            activity.add(1,head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
-            activity.add(2,head2.replace("{FTIFile}", InputFITfile.getName()));
-            activity.add(tail);
+            activity.add(0, out_gpx_head.replace("{creator}", DeviceCreator));
+            activity.add(1, out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
+            activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
+            activity.add(out_gpx_tail);
 
             return 0;
         }

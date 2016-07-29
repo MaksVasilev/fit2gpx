@@ -1343,7 +1343,7 @@ public class DebugDecode {
         }
 
         try {
-            if (!com.garmin.fit.Decode.checkIntegrity(in))
+            if (!decode.checkFileIntegrity(in))
                 throw new RuntimeException("FIT file integrity failed.");
         } catch (RuntimeException e) {
             System.err.print("Exception Checking File Integrity: ");
