@@ -133,7 +133,7 @@ public class fit2gpx extends Component {
  
     }
 
-    static class Converter {
+    private static class Converter {
 
         private Number semicircleToDegree(Field field) {
             if (field != null && "semicircles".equals(field.getUnits())) {
@@ -149,7 +149,7 @@ public class fit2gpx extends Component {
             return Math.round(d * dd) / dd;
         }
 
-        private String out_gpx_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+        private final String out_gpx_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx from {creator}\" version=\"1.1\" " +
                 "xmlns=\"http://www.topografix.com/GPX/1/1\" " +
                 "xmlns:gpxtrx=\"http://www.garmin.com/xmlschemas/GpxExtensions/v3\" " +
@@ -157,20 +157,20 @@ public class fit2gpx extends Component {
                 "xmlns:gpxtpx=\"http://www.garmin.com/xmlschemas/TrackPointExtension/v1\" " +
                 "xmlns:gpxx=\"http://www.garmin.com/xmlschemas/WaypointExtension/v1\" " +
                 "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">";
-        private String out_gpx_head1 = "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
-        private String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
-        private String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
+        private final String out_gpx_head1 = "\n <metadata>\n  <time>{time}</time>\n </metadata>\n";
+        private final String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
+        private final String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
-        private String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;" +
+        private final String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;" +
                 "power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end";
 
-        private final ArrayList<String> activity = new ArrayList<String>();
+        private final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
 
-        private SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
-        private SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
+        private final SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
+        private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
 
         private String InputFITfileName;
         private String OutputGPXfileName;
@@ -197,11 +197,11 @@ public class fit2gpx extends Component {
             OutputFormat = outputFormat;
         }
         
-        public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
-        public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
+        void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
+        void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
         //public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
         //public String getOutputGPXfileName() {return OutputGPXfileName;}
-        public String getInputFITfileName() {return InputFITfileName;}
+        String getInputFITfileName() {return InputFITfileName;}
         
         public void setNewFileTime(String newtime) {
             try {
@@ -215,11 +215,11 @@ public class fit2gpx extends Component {
             }
         }
         
-        public void setNewOffset(long newOffset) {
+        void setNewOffset(long newOffset) {
             timeOffset = newOffset;
         }
 
-        public int run() {  // Основной поэтапный цикл работы конвертера
+        int run() {  // Основной поэтапный цикл работы конвертера
 
             int checkStatus = this.check();
             if(checkStatus != 0) {return checkStatus;}
@@ -609,9 +609,7 @@ public class fit2gpx extends Component {
 
                 try {
 
-                    for (String str : activity) {
-                        OutWriter.write(str);
-                    }
+                    activity.forEach(OutWriter::write);
 
                 } finally {
                     OutWriter.close();
@@ -629,16 +627,16 @@ public class fit2gpx extends Component {
 
     }
 
-    static class ConverterResult {
-        private ArrayList<String> GoodFiles = new ArrayList<String>();
-        private ArrayList<String> EmptyFiles = new ArrayList<String>();
-        private ArrayList<String> BadFiles = new ArrayList<String>();
+    private static class ConverterResult {
+        private final ArrayList<String> GoodFiles = new ArrayList<>();
+        private final ArrayList<String> EmptyFiles = new ArrayList<>();
+        private final ArrayList<String> BadFiles = new ArrayList<>();
 
         //public int getGoodFilesCount() {return GoodFiles.size();}
-        public int getEmptyFilesCount() {return EmptyFiles.size();}
-        public int getBadFilesCount() {return BadFiles.size();}
+        int getEmptyFilesCount() {return EmptyFiles.size();}
+        int getBadFilesCount() {return BadFiles.size();}
 
-        public void add(int result, String file) {
+        void add(int result, String file) {
             if(result == 0) {GoodFiles.add(file);}
             if(result == 200 || result == 201) {EmptyFiles.add(file);}
             if(result == 65) {BadFiles.add(file + " - файл повреждён");}
@@ -647,7 +645,7 @@ public class fit2gpx extends Component {
             if(result == 199) {BadFiles.add(file + " - ошибка чтения данных из файла");}
         }
 
-        public String getSummaryByString() {
+        String getSummaryByString() {
 
             String result = "Успешно обработано файлов: " + GoodFiles.size();
             if(GoodFiles.size() < 11) {
