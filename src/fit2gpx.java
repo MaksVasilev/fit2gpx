@@ -161,9 +161,10 @@ public class fit2gpx extends Component {
         private String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
         private String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
-        private String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;cadence;fractional_cadence;distance;temperature;heart_rate;" +
-                "power;accumulated_power;left_right_balance;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
-                "left_pco;right_pco;left_power_phase;right_power_phase;left_power_phase_peak;right_power_phase_peak";
+        private String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;" +
+                "power;accumulated_power;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
+                "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
+                "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end";
 
         private final ArrayList<String> activity = new ArrayList<String>();
         private Date TimeStamp = new Date();
@@ -412,6 +413,11 @@ public class fit2gpx extends Component {
                                     EmptyLine = false;
                                 } else { line += ";";}
 
+                                if (mesg.getFieldStringValue("grade") != null) {
+                                    line += mesg.getFieldDoubleValue("grade") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
                                 if (mesg.getFieldStringValue("cadence") != null) {
                                     line += mesg.getFieldStringValue("cadence") + ";";
                                     EmptyLine = false;
@@ -432,6 +438,11 @@ public class fit2gpx extends Component {
                                     EmptyLine = false;
                                 } else { line += ";";}
 
+                                if (mesg.getFieldStringValue("calories") != null) {
+                                    line += mesg.getFieldStringValue("calories") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
                                 if (mesg.getFieldStringValue("heart_rate") != null) {
                                     line += mesg.getFieldStringValue("heart_rate") + ";";
                                     EmptyLine = false;
@@ -448,9 +459,11 @@ public class fit2gpx extends Component {
                                 } else { line += ";";}
 
                                 if (mesg.getFieldStringValue("left_right_balance") != null) {
+                                    // line += mesg.getFieldShortValue(30, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";"; //
                                     line += mesg.getFieldStringValue("left_right_balance") + ";";
+                                    line += (mesg.getFieldDoubleValue("left_right_balance")/3.6) - 50.0 + ";";
                                     EmptyLine = false;
-                                } else { line += ";";}
+                                } else { line += ";;";}
 
                                 if (mesg.getFieldStringValue("left_torque_effectiveness") != null) {
                                     line += mesg.getFieldDoubleValue("left_torque_effectiveness") + ";";
@@ -482,23 +495,27 @@ public class fit2gpx extends Component {
                                     EmptyLine = false;
                                 } else { line += ";";}
 
-                                if (mesg.getFieldStringValue("left_power_phase") != null) {
-                                    line += mesg.getFieldDoubleValue("left_power_phase") + ";";
+                                if (mesg.getNumFieldValues(69, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2 ) {  //  left_power_phase
+                                    line += mesg.getFieldFloatValue(69, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                    line += mesg.getFieldFloatValue(69, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                     EmptyLine = false;
                                 } else { line += ";";}
 
-                                if (mesg.getFieldStringValue("right_power_phase") != null) {
-                                    line += mesg.getFieldDoubleValue("right_power_phase") + ";";
+                                if (mesg.getNumFieldValues(71, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2 ) {  //  right_power_phase
+                                    line += mesg.getFieldFloatValue(71, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                    line += mesg.getFieldFloatValue(71, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                     EmptyLine = false;
                                 } else { line += ";";}
 
-                                if (mesg.getFieldStringValue("left_power_phase_peak") != null) {
-                                    line += mesg.getFieldDoubleValue("left_power_phase_peak") + ";";
+                                if (mesg.getNumFieldValues(70, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2 ) {  //  left_power_phase_peak
+                                    line += mesg.getFieldFloatValue(70, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                    line += mesg.getFieldFloatValue(70, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                     EmptyLine = false;
                                 } else { line += ";";}
 
-                                if (mesg.getFieldStringValue("right_power_phase_peak") != null) {
-                                    line += mesg.getFieldDoubleValue("right_power_phase_peak") + ";";
+                                if (mesg.getNumFieldValues(72, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2 ) {  //  right_power_phase_peak
+                                    line += mesg.getFieldFloatValue(72, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                    line += mesg.getFieldFloatValue(72, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                     EmptyLine = false;
                                 } else { line += ";";}
 
