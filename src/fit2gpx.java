@@ -37,6 +37,7 @@ public class fit2gpx extends Component {
         File[] MultipleFilesList;
         boolean DialogMode = false;
         boolean StatisticEnable = false;
+        boolean OutputCSV = false;
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
@@ -51,20 +52,29 @@ public class fit2gpx extends Component {
             if (String.valueOf(args[0]).equals("--statistic") || String.valueOf(args[0]).equals("-s")) {
                 StatisticEnable = true;
             }
-            
-            if(!StatisticEnable) {
+
+            if (String.valueOf(args[0]).equals("--csv") || String.valueOf(args[0]).equals("-c")) {
+                OutputCSV = true;
+            }
+
+            if(!StatisticEnable && !OutputCSV) {
                 converter.setInputFITfileName(String.valueOf(args[0]));
                 converterResult.add(converter.run(), converter.getInputFITfileName());
             }
         }
 
-        if (args.length == 0 || (args.length == 1 && StatisticEnable) ) {
+        if (args.length == 0 || (args.length == 1 && StatisticEnable) || (args.length == 1 && OutputCSV) ) {
 
             DialogMode = true;
             converter.setSaveIfEmpty(true);
 
+            if(OutputCSV) {
+                converter.setOutputFormat(0);
+//                System.exit(3);
+            }
+
             JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("FIT -> GPX: Выберите файл для преобразования в GPX");
+            chooser.setDialogTitle("FIT -> GPX/CSV: Выберите файл для преобразования в GPX/CSV");
             chooser.setApproveButtonText("Открыть");
             chooser.setApproveButtonToolTipText("Открыть выбранный файл и преобразовать");
             chooser.setMultiSelectionEnabled(true);
@@ -151,10 +161,9 @@ public class fit2gpx extends Component {
         private String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
         private String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
-        private String out_csv_head = "";
-        private String out_csv_head1 = "";
-        private String out_csv_head2 = "";
-        private String out_csv_tail = "";
+        private String out_csv_head = "time;lat;lon;ele;enhanced_ele;speed;enhanced_speed;cadence;fractional_cadence;distance;temp;hr;" +
+                "power;accum_power;left_right_balance;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
+                "left_pco;right_pco;left_power_phase;right_power_phase;left_power_phase_peak;right_power_phase_peak";
 
         private final ArrayList<String> activity = new ArrayList<String>();
         private Date TimeStamp = new Date();
@@ -179,7 +188,13 @@ public class fit2gpx extends Component {
         private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
         private boolean needOffset = false;
 
+        private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv
+
         final Decode decode = new Decode();
+
+        void setOutputFormat(int outputFormat) {
+            OutputFormat = outputFormat;
+        }
         
         public void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         public void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
@@ -295,69 +310,92 @@ public class fit2gpx extends Component {
 
                     if (mesg.getFieldStringValue("timestamp") != null) {
 
-                        TimeStamp = new Date( (mesg.getFieldLongValue("timestamp") * 1000 ) + DateTime.OFFSET + (timeOffset * 1000));
+                        TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
                         final Number lat = semicircleToDegree(mesg.getField("position_lat"));
                         final Number lon = semicircleToDegree(mesg.getField("position_long"));
 
-                        if (lat != null && lon != null) {
+                        switch (OutputFormat) {
 
-                            EmptyTrack = false;
-                            EmptyLine = false;
+                            case 1:
 
-                            line += "\n   <trkpt lat=\"" + lat.toString() + "\" lon=\"" + lon.toString() + "\">\n" +
-                                    "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
+                                if (lat != null && lon != null) {
 
-                        } else {
-                            line += "\n   <trkpt lat=\"\" lon=\"\">\n" +
-                                    "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
-                            EmptyLine = true;
+                                    EmptyTrack = false;
+                                    EmptyLine = false;
+
+                                    line += "\n   <trkpt lat=\"" + lat.toString() + "\" lon=\"" + lon.toString() + "\">\n" +
+                                            "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
+
+                                } else {
+                                    line += "\n   <trkpt lat=\"\" lon=\"\">\n" +
+                                            "    <time>" + DateFormatGPX.format(TimeStamp) + "</time>";
+                                    EmptyLine = true;
+                                }
+
+
+                                if (mesg.getFieldStringValue("altitude") != null) {
+                                    line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"), 3) + "</ele>";
+                                    EmptyLine = false;
+                                }
+
+                                if (mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
+                                        || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null
+                                        || mesg.getFieldStringValue("distance") != null) {
+
+                                    EmptyLine = false;
+
+                                    line += "\n    <extensions>";
+
+                                    if (mesg.getFieldStringValue("speed") != null) {
+                                        line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
+                                    }
+                                    line += "\n     <gpxtpx:TrackPointExtension>";
+
+                                    if (mesg.getFieldStringValue("temperature") != null) {
+                                        line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
+                                    }
+                                    if (mesg.getFieldStringValue("heart_rate") != null) {
+                                        line += "\n      <gpxtpx:hr>" + mesg.getFieldStringValue("heart_rate") + "</gpxtpx:hr>";
+                                    }
+                                    if (mesg.getFieldStringValue("cadence") != null) {
+                                        line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
+                                    }
+                                    if (mesg.getFieldStringValue("speed") != null) {
+                                        line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
+                                    }
+                                    if (mesg.getFieldStringValue("distance") != null) {
+                                        line += "\n      <gpxtpx:course>" + mesg.getFieldStringValue("distance") + "</gpxtpx:course>";
+                                    }
+
+                                    line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
+                                }
+
+                                line += "\n   </trkpt>";
+
+                                if (!EmptyLine) {
+                                    activity.add(line);
+                                }
+                                break;
+
+                            case 0:
+                                if (lat != null && lon != null) {
+
+                                    EmptyTrack = false;
+                                    EmptyLine = false;
+
+                                    line += "\n" + DateFormatGPX.format(TimeStamp) + ";" + lat.toString() + ";" + lon.toString() + ";";
+                                } else {
+                                    line += "\n" + DateFormatGPX.format(TimeStamp) + ";;;";
+
+                                    EmptyLine = true;
+                                }
+
+                                if (!EmptyLine) {
+                                    activity.add(line);
+                                }
+                                break;
                         }
-
-
-                        if (mesg.getFieldStringValue("altitude") != null) {
-                            line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"), 3) + "</ele>";
-                            EmptyLine = false;
-                        }
-
-                        if (mesg.getFieldStringValue("temperature") != null || mesg.getFieldStringValue("heart_rate") != null
-                                || mesg.getFieldStringValue("cadence") != null || mesg.getFieldStringValue("speed") != null
-                                || mesg.getFieldStringValue("distance") != null) {
-
-                            EmptyLine = false;
-
-                            line += "\n    <extensions>";
-
-                            if (mesg.getFieldStringValue("speed") != null) {
-                                line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
-                            }
-                            line += "\n     <gpxtpx:TrackPointExtension>";
-
-                            if (mesg.getFieldStringValue("temperature") != null) {
-                                line += "\n      <gpxtpx:atemp>" + mesg.getFieldStringValue("temperature") + "</gpxtpx:atemp>";
-                            }
-                            if (mesg.getFieldStringValue("heart_rate") != null) {
-                                line += "\n      <gpxtpx:hr>" + mesg.getFieldStringValue("heart_rate") + "</gpxtpx:hr>";
-                            }
-                            if (mesg.getFieldStringValue("cadence") != null) {
-                                line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
-                            }
-                            if (mesg.getFieldStringValue("speed") != null) {
-                                line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
-                            }
-                            if (mesg.getFieldStringValue("distance") != null) {
-                                line += "\n      <gpxtpx:course>" + mesg.getFieldStringValue("distance") + "</gpxtpx:course>";
-                            }
-
-                            line += "\n     </gpxtpx:TrackPointExtension>\n    </extensions>";
-                        }
-
-                        line += "\n   </trkpt>";
-
-                        if(!EmptyLine) {
-                            activity.add(line);
-                        }
-
                     }
 
             }
@@ -389,10 +427,20 @@ public class fit2gpx extends Component {
                 throw new RuntimeException(e);
             }
             
-            activity.add(0, out_gpx_head.replace("{creator}", DeviceCreator));
-            activity.add(1, out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
-            activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
-            activity.add(out_gpx_tail);
+            switch (OutputFormat) {
+                case 0:
+                    activity.add(0, out_csv_head);
+//                    activity.add(1, out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
+//                    activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
+//                    activity.add(out_gpx_tail);
+                    break;
+                case 1:
+                    activity.add(0, out_gpx_head.replace("{creator}", DeviceCreator));
+                    activity.add(1, out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
+                    activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
+                    activity.add(out_gpx_tail);
+                    break;
+            }
 
             return 0;
         }
@@ -407,7 +455,15 @@ public class fit2gpx extends Component {
             if (EmptyTrack) {
                 OutputGPXfileName = InputFITfileName + ".empty";
             } else {
-                OutputGPXfileName = InputFITfileName + ".gpx";
+
+                switch (OutputFormat) {
+                    case 0:
+                        OutputGPXfileName = InputFITfileName + ".csv";
+                        break;
+                    case 1:
+                        OutputGPXfileName = InputFITfileName + ".gpx";
+                        break;
+                }
             }
 
             try {
