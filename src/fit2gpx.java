@@ -161,8 +161,8 @@ public class fit2gpx extends Component {
         private String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
         private String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
-        private String out_csv_head = "time;lat;lon;ele;enhanced_ele;speed;enhanced_speed;cadence;fractional_cadence;distance;temp;hr;" +
-                "power;accum_power;left_right_balance;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
+        private String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;cadence;fractional_cadence;distance;temperature;heart_rate;" +
+                "power;accumulated_power;left_right_balance;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
                 "left_pco;right_pco;left_power_phase;right_power_phase;left_power_phase_peak;right_power_phase_peak";
 
         private final ArrayList<String> activity = new ArrayList<String>();
@@ -379,6 +379,7 @@ public class fit2gpx extends Component {
                                 break;
 
                             case 0:
+
                                 if (lat != null && lon != null) {
 
                                     EmptyTrack = false;
@@ -390,6 +391,117 @@ public class fit2gpx extends Component {
 
                                     EmptyLine = true;
                                 }
+
+                                if (mesg.getFieldStringValue("altitude") != null) {
+                                    line += mesg.getFieldDoubleValue("altitude") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("enhanced_altitude") != null) {
+                                    line += mesg.getFieldDoubleValue("enhanced_altitude") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("speed") != null) {
+                                    line += mesg.getFieldDoubleValue("speed") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("enhanced_speed") != null) {
+                                    line += mesg.getFieldDoubleValue("enhanced_speed") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("cadence") != null) {
+                                    line += mesg.getFieldStringValue("cadence") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("fractional_cadence") != null) {
+                                    line += mesg.getFieldDoubleValue("fractional_cadence") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("distance") != null) {
+                                    line += mesg.getFieldDoubleValue("distance") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("temperature") != null) {
+                                    line += mesg.getFieldStringValue("temperature") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("heart_rate") != null) {
+                                    line += mesg.getFieldStringValue("heart_rate") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("power") != null) {
+                                    line += mesg.getFieldStringValue("power") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("accumulated_power") != null) {
+                                    line += mesg.getFieldStringValue("accumulated_power") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("left_right_balance") != null) {
+                                    line += mesg.getFieldStringValue("left_right_balance") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("left_torque_effectiveness") != null) {
+                                    line += mesg.getFieldDoubleValue("left_torque_effectiveness") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("right_torque_effectiveness") != null) {
+                                    line += mesg.getFieldDoubleValue("right_torque_effectiveness") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("left_pedal_smoothness") != null) {
+                                    line += mesg.getFieldDoubleValue("left_pedal_smoothness") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("right_pedal_smoothness") != null) {
+                                    line += mesg.getFieldDoubleValue("right_pedal_smoothness") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("left_pco") != null) {
+                                    line += mesg.getFieldStringValue("left_pco") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("right_pco") != null) {
+                                    line += mesg.getFieldStringValue("right_pco") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("left_power_phase") != null) {
+                                    line += mesg.getFieldDoubleValue("left_power_phase") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("right_power_phase") != null) {
+                                    line += mesg.getFieldDoubleValue("right_power_phase") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("left_power_phase_peak") != null) {
+                                    line += mesg.getFieldDoubleValue("left_power_phase_peak") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
+                                if (mesg.getFieldStringValue("right_power_phase_peak") != null) {
+                                    line += mesg.getFieldDoubleValue("right_power_phase_peak") + ";";
+                                    EmptyLine = false;
+                                } else { line += ";";}
+
 
                                 if (!EmptyLine) {
                                     activity.add(line);
