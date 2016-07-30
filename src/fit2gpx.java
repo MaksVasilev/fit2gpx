@@ -162,7 +162,7 @@ public class fit2gpx extends Component {
         private String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
         private String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;" +
-                "power;accumulated_power;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
+                "power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end";
 
@@ -454,15 +454,17 @@ public class fit2gpx extends Component {
                                 } else { line += ";";}
 
                                 if (mesg.getFieldStringValue("accumulated_power") != null) {
-                                    line += mesg.getFieldStringValue("accumulated_power") + ";";
+                                    line += mesg.getFieldDoubleValue("accumulated_power") / 1000.0 + ";";
                                     EmptyLine = false;
                                 } else { line += ";";}
 
-                                if (mesg.getFieldStringValue("left_right_balance") != null) {
-                                    // line += mesg.getFieldShortValue(30, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";"; //
-                                    line += mesg.getFieldStringValue("left_right_balance") + ";";
-                                    line += (mesg.getFieldDoubleValue("left_right_balance")/3.6) - 50.0 + ";";
-                                    EmptyLine = false;
+                                if ( mesg.getFieldStringValue("left_right_balance") != null) {
+                                    if(mesg.getFieldDoubleValue("left_right_balance") >= 0.0 && mesg.getFieldDoubleValue("left_right_balance") <= 360.0 ) {
+                                        // line += mesg.getFieldShortValue(30, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";"; //
+                                        line += mesg.getFieldStringValue("left_right_balance") + ";";
+                                        line += (mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0 + ";";
+                                        EmptyLine = false;
+                                    }
                                 } else { line += ";;";}
 
                                 if (mesg.getFieldStringValue("left_torque_effectiveness") != null) {
