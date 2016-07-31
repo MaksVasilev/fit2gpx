@@ -7,11 +7,11 @@ http://velo100.ru/garmin-fit-to-gpx
 
 */
 
-public class Help {
+class Help {
 
-    public static final String Version = "\nКонвертер Garmin .FIT в .GPX/.CVS, Версия 0.0.2";
+    private static final String Version = "\nКонвертер Garmin .FIT в .GPX/.CVS, Версия 0.0.2";
 
-    public static void usage() {
+    static void usage() {
         System.out.println(Version + "\n\n© Maks Vasilev, 2015-2016, http://velo100.ru/garmin-fit-to-gpx\nFIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit\n");
         System.out.println("Информация по использованию:\n\tjava -jar fit2gpx.jar --help\n");
         System.out.println("Консольный режим:\n\tjava -jar fit2gpx.jar [--statistic|-s] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]\n");
@@ -30,9 +30,9 @@ public class Help {
         System.exit(64);
     }
 
-    public static void reader_usage() {
+    static void reader_usage() {
         System.out.println(Version + "\n\n© Maks Vasilev, 2016, http://velo100.ru/garmin-fit-to-gpx\nFIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit\n");
-        System.out.println("Информация по использованию:\n\tjava -jar FitReader.jar <файл Garmin .FIT>\n");
+        System.out.println("Информация по использованию:\n\tjava -jar FitReader.jar <файл Garmin .FIT> > <выходной файл>\n");
         System.exit(64);
     }
 
