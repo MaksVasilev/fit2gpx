@@ -29,4 +29,12 @@ public class Help {
 
         System.exit(64);
     }
+
+    public static void reader_usage() {
+        System.out.println(Version + "\n\n© Maks Vasilev, 2016, http://velo100.ru/garmin-fit-to-gpx\nFIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit\n");
+        System.out.println("Информация по использованию:\n\tjava -jar FitReader.jar <файл Garmin .FIT>\n");
+        System.exit(64);
+    }
+
 }
+
