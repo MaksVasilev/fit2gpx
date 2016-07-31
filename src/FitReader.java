@@ -13,6 +13,9 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class FitReader {
 
@@ -24,6 +27,7 @@ public class FitReader {
 
         if (args.length == 1) {
             parser.setFITFileName(args[0]);
+            parser.setTimestampToData(true);
             parser.read();
 
         } else {
@@ -33,15 +37,23 @@ public class FitReader {
     }
 
     private static class Parser{
+
         private String FITFileName;             // полное имя файла для чтения
         private FileInputStream InputStream;    // поток для тения файла
+        private boolean TimestampToData = false;
+
+        private Date TimeStamp = new Date();
+        private final SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd'_'HH:mm:ss");
 
         final Decode decode = new Decode();
 
         void setFITFileName(String fitFileName) {
             FITFileName = fitFileName;
             this.chechFITFile();
+        }
 
+        void setTimestampToData(boolean timestampToData) {
+            TimestampToData = timestampToData;
         }
 
         void chechFITFile() {
@@ -92,7 +104,12 @@ public class FitReader {
                        // System.out.println(mesg.getFields());
                         for (Field f: mesg.getFields() ) {
                             if (f.getNumValues() == 1) {
-                                System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getValue() + " " + f.getUnits());
+                                if(f.getNum() == 253 && TimestampToData) {
+                                    TimeStamp = new Date((f.getLongValue() * 1000) + DateTime.OFFSET);
+                                    System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getLongValue() + " (" + DateFormat.format(TimeStamp) + ")");
+                                } else {
+                                    System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getValue() + " " + f.getUnits());
+                                }
                             } else {
                                 String values="";
                      //           System.out.println(f.getType());
