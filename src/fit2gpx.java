@@ -181,6 +181,7 @@ public class fit2gpx extends Component {
         private final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
 
+        private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("dd.MM.yyyy' 'HH:mm:ss");  // формат вывода в csv
         private final SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
         private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
 
@@ -193,6 +194,8 @@ public class fit2gpx extends Component {
         private boolean EmptyTrack = true;      // признак того, что трек не содержит координат
         private boolean EmptyLine = true;       // признак того, то отдельная точка не содержит координат
         private boolean SaveIfEmpty = true;     // разрешить сохранение пустого трека без точек
+        private Long Local_Timestamp = 0l;      //
+        private Long mesgTimestamp;
 
         private Date FileTimeStamp = new Date();
         private Date NewFileTime = new Date();  // Дата и время начала трека, если необходимо сдвинуть время
@@ -598,17 +601,31 @@ public class fit2gpx extends Component {
                                 break;
 
                             case 2:
+
+                                //  [3] monitoring_info
+                                   //   [253] timestamp 840402000 (2016-08-18_00:00:00)
+	                               //   [0] local_timestamp 840412800 s
                                 //	[26] timestamp_16 33932 s
                                 //  [27] heart_rate 44 bpm
 
-                                if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null ) {
-                                    line += "\n" + mesg.getFieldStringValue("timestamp_16") + ";" + mesg.getFieldStringValue("heart_rate");
+                                if (mesg.getFieldStringValue("local_timestamp") != null) {
+                                    Local_Timestamp = mesg.getFieldLongValue("local_timestamp");
+                                    mesgTimestamp = Local_Timestamp - ( Local_Timestamp & 0xFFFF );
+                                }
+
+                                if (Local_Timestamp != 0l && mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null ) {
+
+                                    mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
+
+                                    TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+
+                                    line += DateFormatCSV.format(TimeStamp) + ";" + mesg.getFieldStringValue("heart_rate");
                                     EmptyLine = false;
                                     EmptyTrack = false;
-                                } else { line += ";;";}
+                                }
 
                                 if (!EmptyLine) {
-                                    activity.add(line);
+                                    activity.add(line + "\n");
                                 }
                                 break;
                         }
@@ -655,7 +672,7 @@ public class fit2gpx extends Component {
                     activity.add(out_gpx_tail);
                     break;
                 case 2:
-                    activity.add(0, out_hr_head);
+                    //activity.add(0, out_hr_head);
                     break;
             }
 
