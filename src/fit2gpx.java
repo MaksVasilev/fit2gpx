@@ -617,7 +617,7 @@ public class fit2gpx extends Component {
                                 }
 
                                 // if (Local_Timestamp != 0L && mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null ) {
-                                if (mesg.getFieldStringValue("heart_rate") != null ) {
+                                if (mesg.getFieldStringValue("heart_rate") != null && mesg.getFieldIntegerValue("heart_rate") > 20) {
 
                                     // mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
 
