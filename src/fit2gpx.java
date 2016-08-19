@@ -176,12 +176,12 @@ public class fit2gpx extends Component {
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end";
 
-        private final String out_hr_head = "time;hr";
+        private final String out_hr_head = "time;hr\n";
 
         private final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
 
-        private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("dd.MM.yyyy' 'HH:mm:ss");  // формат вывода в csv
+        private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss");  // формат вывода в csv
         private final SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
         private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
 
@@ -608,18 +608,23 @@ public class fit2gpx extends Component {
                                 //	[26] timestamp_16 33932 s
                                 //  [27] heart_rate 44 bpm
 
-                                if (mesg.getFieldStringValue("local_timestamp") != null) {
-                                    Local_Timestamp = mesg.getFieldLongValue("local_timestamp");
-                                    mesgTimestamp = Local_Timestamp - ( Local_Timestamp & 0xFFFF );
+                                if (mesg.getFieldStringValue("timestamp") != null) {
+                                    // Local_Timestamp = mesg.getFieldLongValue("local_timestamp");
+                                    mesgTimestamp = mesg.getFieldLongValue("timestamp");
+                                } else if(mesg.getFieldStringValue("timestamp_16") != null) {
+                                    //mesgTimestamp = Local_Timestamp - ( Local_Timestamp & 0xFFFF );
+                                    mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
                                 }
 
-                                if (Local_Timestamp != 0l && mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null ) {
+                                // if (Local_Timestamp != 0L && mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null ) {
+                                if (mesg.getFieldStringValue("heart_rate") != null ) {
 
-                                    mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
+                                    // mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
 
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
                                     line += DateFormatCSV.format(TimeStamp) + ";" + mesg.getFieldStringValue("heart_rate");
+                                    // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
                                     EmptyLine = false;
                                     EmptyTrack = false;
                                 }
@@ -661,9 +666,6 @@ public class fit2gpx extends Component {
             switch (OutputFormat) {
                 case 0:
                     activity.add(0, out_csv_head);
-//                    activity.add(1, out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
-//                    activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
-//                    activity.add(out_gpx_tail);
                     break;
                 case 1:
                     activity.add(0, out_gpx_head.replace("{creator}", DeviceCreator));
@@ -672,7 +674,7 @@ public class fit2gpx extends Component {
                     activity.add(out_gpx_tail);
                     break;
                 case 2:
-                    //activity.add(0, out_hr_head);
+                    //activity.add(0, out_hr_head); // пишем без заголовка для склеивания файлов
                     break;
             }
 
