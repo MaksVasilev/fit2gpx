@@ -1,6 +1,6 @@
 # fit2gpx
 
-Конвертер Garmin .FIT в .GPX/.CVS, Версия 0.0.2а
+Конвертер Garmin .FIT в .GPX/.CVS, Версия 0.0.3
 
 © Maks Vasilev, 2015-2016, http://velo100.ru/garmin-fit-to-gpx
 FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
@@ -14,8 +14,9 @@ FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
 Графический диалоговый режим:
 	java -jar fit2gpx.jar [--statistic|-s]
 
-		--statistic | -s	вывод итоговой статистики в консоль
-		--csv | -c	выходной файл будет в формате CSV
+		--statistic	| -s	вывод итоговой статистики в консоль
+		--csv		| -c	выходной файл будет в формате CSV
+		--monitor	| -m	разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без параметров запускается диалоговое окно
 выбора файла для конвертации. Если при запуске в качестве аргумента передать имя файла, то происходит конвертация
