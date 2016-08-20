@@ -100,7 +100,7 @@ public class fit2gpx extends Component {
                 for (File file : MultipleFilesList) {
                     converter.setInputFITfileName(file.getAbsoluteFile().getAbsolutePath());
                     converterResult.add(converter.run(), converter.getInputFITfileName());
-                }
+                 }
 
             } else {
                 System.exit(204);
@@ -176,9 +176,9 @@ public class fit2gpx extends Component {
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end";
 
-        private final String out_hr_head = "time;hr\n";
+        private final String out_hr_head = "time;hr";
 
-        private final ArrayList<String> activity = new ArrayList<>();
+        final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
 
         private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss");  // формат вывода в csv
@@ -206,7 +206,7 @@ public class fit2gpx extends Component {
 
         private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv
 
-        final Decode decode = new Decode();
+
 
         void setOutputFormat(int outputFormat) {
             OutputFormat = outputFormat;
@@ -254,6 +254,8 @@ public class fit2gpx extends Component {
 
         private int check() {   // этап проверки доступности файла
 
+            Decode decodeс = new Decode();
+
             try {
                 InputFITfile = new File(InputFITfileName);
                 InputStream = new FileInputStream(InputFITfile);
@@ -265,7 +267,7 @@ public class fit2gpx extends Component {
             }
 
             try {
-                if (!decode.checkFileIntegrity(InputStream)) {
+                if (!decodeс.checkFileIntegrity(InputStream)) {
                     throw new RuntimeException("файл " + InputFITfileName + " повреждён!");
                 }
             } catch (RuntimeException e) {
@@ -286,6 +288,7 @@ public class fit2gpx extends Component {
 
         private int read() {    // попытка прочитать входной файл
 
+            Decode decode = new Decode();
 
             MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
 
@@ -323,7 +326,6 @@ public class fit2gpx extends Component {
 
                     String line = "";
                     EmptyLine = true;
-
 
                         switch (OutputFormat) {
 
@@ -398,7 +400,7 @@ public class fit2gpx extends Component {
 
                             case 0:
 
-                                if (mesg.getFieldStringValue("timestamp") != null) {
+                                 if (mesg.getFieldStringValue("timestamp") != null) {
 
                                     TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
@@ -602,35 +604,26 @@ public class fit2gpx extends Component {
 
                             case 2:
 
-                                //  [3] monitoring_info
-                                   //   [253] timestamp 840402000 (2016-08-18_00:00:00)
-	                               //   [0] local_timestamp 840412800 s
-                                //	[26] timestamp_16 33932 s
-                                //  [27] heart_rate 44 bpm
-
                                 if (mesg.getFieldStringValue("timestamp") != null) {
-                                    // Local_Timestamp = mesg.getFieldLongValue("local_timestamp");
                                     mesgTimestamp = mesg.getFieldLongValue("timestamp");
                                 } else if(mesg.getFieldStringValue("timestamp_16") != null) {
-                                    //mesgTimestamp = Local_Timestamp - ( Local_Timestamp & 0xFFFF );
                                     mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
                                 }
 
-                                // if (Local_Timestamp != 0L && mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null ) {
-                                if (mesg.getFieldStringValue("heart_rate") != null && mesg.getFieldIntegerValue("heart_rate") > 20) {
-
-                                    // mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
+                                if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null && mesg.getFieldIntegerValue("heart_rate") > 20) {
 
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
                                     line += DateFormatCSV.format(TimeStamp) + ";" + mesg.getFieldStringValue("heart_rate");
+                                    line += "\n";
                                     // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
                                     EmptyLine = false;
                                     EmptyTrack = false;
+
                                 }
 
                                 if (!EmptyLine) {
-                                    activity.add(line + "\n");
+                                    activity.add(line);
                                 }
                                 break;
                         }
@@ -722,7 +715,7 @@ public class fit2gpx extends Component {
 
                 } finally {
                     OutWriter.close();
-                   }
+                }
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
