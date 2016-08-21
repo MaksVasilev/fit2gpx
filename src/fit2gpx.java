@@ -42,8 +42,8 @@ public class fit2gpx extends Component {
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
-        
-        // converter.setNewFileTime("2015-02-09T12:10:01Z");
+
+
 
         if (args.length == 1) {
 
@@ -60,6 +60,12 @@ public class fit2gpx extends Component {
 
             if (String.valueOf(args[0]).equals("--monitor") || String.valueOf(args[0]).equals("-m")) {
                 MonitoringFIT = true;
+            }
+
+            if (String.valueOf(args[0]).equals("--hr-only")) {
+                OutputCSV = true;
+                // FIXME
+                converter.setOnlyHRandTime(true);
             }
 
             if(!StatisticEnable && !OutputCSV && !MonitoringFIT) {
@@ -174,7 +180,7 @@ public class fit2gpx extends Component {
         private final String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;" +
                 "power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
-                "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end";
+                "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end\n";
 
         private final String out_hr_head = "time;hr";
 
@@ -205,15 +211,15 @@ public class fit2gpx extends Component {
         private boolean needOffset = false;
 
         private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv
-
-
+        private boolean OnlyHRandTime = false;
 
         void setOutputFormat(int outputFormat) {
             OutputFormat = outputFormat;
         }
-        
         void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
+        void setOnlyHRandTime(boolean onlyHRandTime) {OnlyHRandTime = onlyHRandTime;}
+
         //public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
         //public String getOutputGPXfileName() {return OutputGPXfileName;}
         String getInputFITfileName() {return InputFITfileName;}
@@ -404,90 +410,99 @@ public class fit2gpx extends Component {
 
                                     TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                                    final Number lat = semicircleToDegree(mesg.getField("position_lat"));
-                                    final Number lon = semicircleToDegree(mesg.getField("position_long"));
+                                     if(!OnlyHRandTime) {
 
-                                    if (lat != null && lon != null) {
+                                         final Number lat = semicircleToDegree(mesg.getField("position_lat"));
+                                         final Number lon = semicircleToDegree(mesg.getField("position_long"));
 
-                                        EmptyTrack = false;
-                                        EmptyLine = false;
+                                         if (lat != null && lon != null) {
 
-                                        line += "\n" + DateFormatGPX.format(TimeStamp) + ";" + lat.toString() + ";" + lon.toString() + ";";
-                                    } else {
-                                        line += "\n" + DateFormatGPX.format(TimeStamp) + ";;;";
+                                             EmptyTrack = false;
+                                             EmptyLine = false;
 
-                                        EmptyLine = true;
-                                    }
+                                             line += DateFormatGPX.format(TimeStamp) + ";" + lat.toString() + ";" + lon.toString() + ";";
+                                         } else {
+                                             line += DateFormatGPX.format(TimeStamp) + ";;;";
 
-                                    if (mesg.getFieldStringValue("altitude") != null) {
-                                        line += mesg.getFieldDoubleValue("altitude") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                             EmptyLine = true;
+                                         }
+                                     } else {
+                                         line += DateFormatCSV.format(TimeStamp) + ";";
+                                         EmptyTrack = false;
+                                     }
 
-                                    if (mesg.getFieldStringValue("enhanced_altitude") != null) {
-                                        line += mesg.getFieldDoubleValue("enhanced_altitude") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                     if(!OnlyHRandTime) {
 
-                                    if (mesg.getFieldStringValue("speed") != null) {
-                                        line += mesg.getFieldDoubleValue("speed") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("altitude") != null) {
+                                             line += mesg.getFieldDoubleValue("altitude") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("enhanced_speed") != null) {
-                                        line += mesg.getFieldDoubleValue("enhanced_speed") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("enhanced_altitude") != null) {
+                                             line += mesg.getFieldDoubleValue("enhanced_altitude") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("grade") != null) {
-                                        line += mesg.getFieldDoubleValue("grade") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("speed") != null) {
+                                             line += mesg.getFieldDoubleValue("speed") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("cadence") != null) {
-                                        line += mesg.getFieldStringValue("cadence") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("enhanced_speed") != null) {
+                                             line += mesg.getFieldDoubleValue("enhanced_speed") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("fractional_cadence") != null) {
-                                        line += mesg.getFieldDoubleValue("fractional_cadence") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("grade") != null) {
+                                             line += mesg.getFieldDoubleValue("grade") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("distance") != null) {
-                                        line += mesg.getFieldDoubleValue("distance") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("cadence") != null) {
+                                             line += mesg.getFieldStringValue("cadence") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("temperature") != null) {
-                                        line += mesg.getFieldStringValue("temperature") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("fractional_cadence") != null) {
+                                             line += mesg.getFieldDoubleValue("fractional_cadence") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("calories") != null) {
-                                        line += mesg.getFieldStringValue("calories") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("distance") != null) {
+                                             line += mesg.getFieldDoubleValue("distance") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+
+                                         if (mesg.getFieldStringValue("temperature") != null) {
+                                             line += mesg.getFieldStringValue("temperature") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+
+                                         if (mesg.getFieldStringValue("calories") != null) {
+                                             line += mesg.getFieldStringValue("calories") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+                                     }
 
                                     if (mesg.getFieldStringValue("heart_rate") != null) {
                                         line += mesg.getFieldStringValue("heart_rate") + ";";
@@ -496,107 +511,111 @@ public class fit2gpx extends Component {
                                         line += ";";
                                     }
 
-                                    if (mesg.getFieldStringValue("power") != null) {
-                                        line += mesg.getFieldStringValue("power") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                     if(!OnlyHRandTime) {
 
-                                    if (mesg.getFieldStringValue("accumulated_power") != null) {
-                                        line += mesg.getFieldDoubleValue("accumulated_power") / 1000.0 + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("power") != null) {
+                                             line += mesg.getFieldStringValue("power") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("left_right_balance") != null) {
-                                        if (mesg.getFieldDoubleValue("left_right_balance") >= 0.0 && mesg.getFieldDoubleValue("left_right_balance") <= 360.0) {
-                                            // line += mesg.getFieldShortValue(30, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";"; //
-                                            line += mesg.getFieldStringValue("left_right_balance") + ";";
-                                            line += (mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0 + ";";
-                                            EmptyLine = false;
-                                        }
-                                    } else {
-                                        line += ";;";
-                                    }
+                                         if (mesg.getFieldStringValue("accumulated_power") != null) {
+                                             line += mesg.getFieldDoubleValue("accumulated_power") / 1000.0 + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("left_torque_effectiveness") != null) {
-                                        line += mesg.getFieldDoubleValue("left_torque_effectiveness") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("left_right_balance") != null) {
+                                             if (mesg.getFieldDoubleValue("left_right_balance") >= 0.0 && mesg.getFieldDoubleValue("left_right_balance") <= 360.0) {
+                                                 // line += mesg.getFieldShortValue(30, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";"; //
+                                                 line += mesg.getFieldStringValue("left_right_balance") + ";";
+                                                 line += (mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0 + ";";
+                                                 EmptyLine = false;
+                                             }
+                                         } else {
+                                             line += ";;";
+                                         }
 
-                                    if (mesg.getFieldStringValue("right_torque_effectiveness") != null) {
-                                        line += mesg.getFieldDoubleValue("right_torque_effectiveness") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("left_torque_effectiveness") != null) {
+                                             line += mesg.getFieldDoubleValue("left_torque_effectiveness") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("left_pedal_smoothness") != null) {
-                                        line += mesg.getFieldDoubleValue("left_pedal_smoothness") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("right_torque_effectiveness") != null) {
+                                             line += mesg.getFieldDoubleValue("right_torque_effectiveness") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("right_pedal_smoothness") != null) {
-                                        line += mesg.getFieldDoubleValue("right_pedal_smoothness") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("left_pedal_smoothness") != null) {
+                                             line += mesg.getFieldDoubleValue("left_pedal_smoothness") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("left_pco") != null) {
-                                        line += mesg.getFieldStringValue("left_pco") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("right_pedal_smoothness") != null) {
+                                             line += mesg.getFieldDoubleValue("right_pedal_smoothness") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getFieldStringValue("right_pco") != null) {
-                                        line += mesg.getFieldStringValue("right_pco") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("left_pco") != null) {
+                                             line += mesg.getFieldStringValue("left_pco") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getNumFieldValues(69, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  left_power_phase
-                                        line += mesg.getFieldFloatValue(69, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        line += mesg.getFieldFloatValue(69, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getFieldStringValue("right_pco") != null) {
+                                             line += mesg.getFieldStringValue("right_pco") + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getNumFieldValues(71, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  right_power_phase
-                                        line += mesg.getFieldFloatValue(71, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        line += mesg.getFieldFloatValue(71, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getNumFieldValues(69, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  left_power_phase
+                                             line += mesg.getFieldFloatValue(69, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             line += mesg.getFieldFloatValue(69, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getNumFieldValues(70, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  left_power_phase_peak
-                                        line += mesg.getFieldFloatValue(70, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        line += mesg.getFieldFloatValue(70, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getNumFieldValues(71, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  right_power_phase
+                                             line += mesg.getFieldFloatValue(71, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             line += mesg.getFieldFloatValue(71, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
-                                    if (mesg.getNumFieldValues(72, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  right_power_phase_peak
-                                        line += mesg.getFieldFloatValue(72, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        line += mesg.getFieldFloatValue(72, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                         if (mesg.getNumFieldValues(70, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  left_power_phase_peak
+                                             line += mesg.getFieldFloatValue(70, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             line += mesg.getFieldFloatValue(70, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+
+                                         if (mesg.getNumFieldValues(72, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  right_power_phase_peak
+                                             line += mesg.getFieldFloatValue(72, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             line += mesg.getFieldFloatValue(72, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+                                     }
 
 
                                     if (!EmptyLine) {
+                                        line += "\n";
                                         activity.add(line);
                                     }
                                 }
@@ -658,7 +677,9 @@ public class fit2gpx extends Component {
             
             switch (OutputFormat) {
                 case 0:
-                    activity.add(0, out_csv_head);
+                    if(!OnlyHRandTime) {
+                        activity.add(0, out_csv_head);
+                    }
                     break;
                 case 1:
                     activity.add(0, out_gpx_head.replace("{creator}", DeviceCreator));
@@ -687,7 +708,11 @@ public class fit2gpx extends Component {
 
                 switch (OutputFormat) {
                     case 0:
-                        OutputGPXfileName = InputFITfileName + ".csv";
+                        if(!OnlyHRandTime) {
+                            OutputGPXfileName = InputFITfileName + ".csv";
+                        } else {
+                            OutputGPXfileName = InputFITfileName + ".cut.csv";
+                        }
                         break;
                     case 1:
                         OutputGPXfileName = InputFITfileName + ".gpx";
