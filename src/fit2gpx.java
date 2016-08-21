@@ -504,12 +504,15 @@ public class fit2gpx extends Component {
                                          }
                                      }
 
-                                    if (mesg.getFieldStringValue("heart_rate") != null) {
-                                        line += mesg.getFieldStringValue("heart_rate") + ";";
-                                        EmptyLine = false;
-                                    } else {
-                                        line += ";";
-                                    }
+                                     if (mesg.getFieldStringValue("heart_rate") != null) {
+                                         line += mesg.getFieldStringValue("heart_rate");
+                                         if(!OnlyHRandTime) {
+                                             line += ";";
+                                         }
+                                         EmptyLine = false;
+                                     } else {
+                                         line += ";";
+                                     }
 
                                      if(!OnlyHRandTime) {
 
