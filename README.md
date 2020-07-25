@@ -4,7 +4,7 @@ Converter Garmin .FIT to .GPX/.CVS, Version 0.0.4
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
-FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
+FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Usage:
 
@@ -44,7 +44,7 @@ The minimum Java version is 11.0
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
-FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
+FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Информация по использованию:
 
@@ -62,7 +62,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
                 --csv           | -c    выходной файл будет в формате CSV
                 --hr-only               выходной файл будет в формате CSV, содержимое: только ЧСС и время
                 --monitor       | -m    разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
-                --hrv           | -v    разбор файлов тренировки и запись интервалов R-R для анализа вариабельности, выходной файл будет в формате CSV
+                --hrv           | -v    разбор файлов тренировки и запись в CSV интервалов R-R для анализа вариабельности
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без параметров запускается диалоговое окно
 выбора файла для конвертации. Если при запуске в качестве аргумента передать имя файла, то происходит конвертация
