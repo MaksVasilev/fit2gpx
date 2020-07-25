@@ -39,6 +39,7 @@ public class fit2gpx extends Component {
         boolean StatisticEnable = false;
         boolean OutputCSV = false;
         boolean MonitoringFIT = false;
+        boolean HrvFIT = false;
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
@@ -50,6 +51,7 @@ public class fit2gpx extends Component {
             if (String.valueOf(args[0]).equals("--help") || String.valueOf(args[0]).equals("-h")) {
                 Help.usage();
             }
+
             if (String.valueOf(args[0]).equals("--statistic") || String.valueOf(args[0]).equals("-s")) {
                 StatisticEnable = true;
             }
@@ -62,19 +64,23 @@ public class fit2gpx extends Component {
                 MonitoringFIT = true;
             }
 
+            if (String.valueOf(args[0]).equals("--hrv") || String.valueOf(args[0]).equals("-v")) {
+                HrvFIT = true;
+            }
+
             if (String.valueOf(args[0]).equals("--hr-only")) {
                 OutputCSV = true;
                 // FIXME
                 converter.setOnlyHRandTime(true);
             }
 
-            if(!StatisticEnable && !OutputCSV && !MonitoringFIT) {
+            if(!StatisticEnable && !OutputCSV && !MonitoringFIT && !HrvFIT) {
                 converter.setInputFITfileName(String.valueOf(args[0]));
                 converterResult.add(converter.run(), converter.getInputFITfileName());
             }
         }
 
-        if (args.length == 0 || (args.length == 1 && StatisticEnable) || (args.length == 1 && OutputCSV) || (args.length == 1 && MonitoringFIT) ) {
+        if (args.length == 0 || (args.length == 1 && StatisticEnable) || (args.length == 1 && OutputCSV) || (args.length == 1 && MonitoringFIT)  || (args.length == 1 && HrvFIT) ) {
 
             DialogMode = true;
             converter.setSaveIfEmpty(true);
@@ -86,6 +92,11 @@ public class fit2gpx extends Component {
 
             if(MonitoringFIT) {
                 converter.setOutputFormat(2);   // формат вывода CSV, но будут анализироваться записи мониторинга
+//                System.exit(3);
+            }
+
+            if(HrvFIT) {
+                converter.setOutputFormat(3);   // формат вывода CSV, но будут анализироваться записи вариабельности ЧСС
 //                System.exit(3);
             }
 
@@ -182,7 +193,8 @@ public class fit2gpx extends Component {
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end\n";
 
-        private final String out_hr_head = "time;hr";
+        private final String out_hr_head = "time;hr\n";
+        private final String out_hrv_head = "Time,RR\n";
 
         final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
@@ -202,6 +214,7 @@ public class fit2gpx extends Component {
         private boolean SaveIfEmpty = true;     // разрешить сохранение пустого трека без точек
         private Long Local_Timestamp = 0l;      //
         private Long mesgTimestamp;
+        private double HrvTime = 0.0;
 
         private Date FileTimeStamp = new Date();
         private Date NewFileTime = new Date();  // Дата и время начала трека, если необходимо сдвинуть время
@@ -210,7 +223,7 @@ public class fit2gpx extends Component {
         private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
         private boolean needOffset = false;
 
-        private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv
+        private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv, 3 = hrv-csv
         private boolean OnlyHRandTime = false;
 
         void setOutputFormat(int outputFormat) {
@@ -332,6 +345,7 @@ public class fit2gpx extends Component {
 
                     String line = "";
                     EmptyLine = true;
+                    //HrvTime = 0.0;
 
                         switch (OutputFormat) {
 
@@ -648,6 +662,30 @@ public class fit2gpx extends Component {
                                     activity.add(line);
                                 }
                                 break;
+
+                            case 3:
+
+                                if (mesg.getLocalNum() == 15) {
+                                    int index = 0;
+                                    while (mesg.getFieldStringValue("time",index) != null) {
+                                        line += String.valueOf(round(HrvTime,3)) + "," + mesg.getFieldStringValue("time",index) + "\n";
+                                        //System.out.print("\t" + mesg.getFieldStringValue("time",index));
+                                        HrvTime += mesg.getFieldDoubleValue("time", index);
+
+                                        index++;
+                                    }
+
+                                    //line += "\n";
+                                    //System.out.print("\n");
+
+                                    EmptyLine = false;
+                                    EmptyTrack = false;
+                                }
+
+                                if (!EmptyLine) {
+                                    activity.add(line);
+                                }
+                                break;
                         }
                     }
             };
@@ -693,6 +731,9 @@ public class fit2gpx extends Component {
                 case 2:
                     //activity.add(0, out_hr_head); // пишем без заголовка для склеивания файлов
                     break;
+                case 3:
+                    activity.add(0, out_hrv_head); // заголовок IBI файла вариабельности ЧСС
+                    break;
             }
 
             return 0;
@@ -722,6 +763,9 @@ public class fit2gpx extends Component {
                         break;
                     case 2:
                         OutputGPXfileName = InputFITfileName + ".monitor.csv";
+                        break;
+                    case 3:
+                        OutputGPXfileName = InputFITfileName + ".hrv.csv";
                         break;
 
                 }
