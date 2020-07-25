@@ -36,3 +36,4 @@ FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
 
         java -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>
 
+Минимальная версия Java - 11.0
