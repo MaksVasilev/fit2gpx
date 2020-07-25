@@ -29,8 +29,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 public class fit2gpx extends Component {
+
+    static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
     public static void main(String[] args) throws IOException {
 
@@ -43,8 +47,6 @@ public class fit2gpx extends Component {
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
-
-
 
         if (args.length == 1) {
 
@@ -101,12 +103,13 @@ public class fit2gpx extends Component {
             }
 
             JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle("FIT -> GPX/CSV: Выберите файл для преобразования в GPX/CSV");
-            chooser.setApproveButtonText("Открыть");
-            chooser.setApproveButtonToolTipText("Открыть выбранный файл и преобразовать");
+            chooser.setDialogTitle(tr.getString("OpenTitle"));
+            chooser.setApproveButtonText(tr.getString("Open"));
+            //chooser.setLocale(Locale.getDefault());
+            chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
-            FileNameExtensionFilter filter = new FileNameExtensionFilter("файлы занятий Garmin FIT (.fit)", "FIT", "fit");
+            FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXT"), "FIT", "fit");
             chooser.setFileFilter(filter);
 
             int returnVal = chooser.showOpenDialog(chooser.getParent());
@@ -155,7 +158,7 @@ public class fit2gpx extends Component {
             
             if(converterResult.getBadFilesCount() > 0) {MessageType = JOptionPane.ERROR_MESSAGE;}
             
-            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), "Результат конвертирования", MessageType);
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), tr.getString("ConvResult"), MessageType);
         }
  
     }
@@ -242,7 +245,7 @@ public class fit2gpx extends Component {
                 NewFileTime = NewFileTimeFormat.parse(newtime);
                 needOffset = true;
             } catch (ParseException e) {
-                System.err.println("Неверный формат времени для смещения");
+                System.err.println(tr.getString("ErrorTimeToShift"));
                 needOffset = false;
                 
                 //e.printStackTrace();
@@ -280,17 +283,17 @@ public class fit2gpx extends Component {
                 InputStream = new FileInputStream(InputFITfile);
 
             } catch (IOException e) {
-                System.err.println("Ошибка: " + InputFITfileName + " не найден или не является файлом!");
+                System.err.println(tr.getString("Error_") + InputFITfileName + tr.getString("NotFoundOrNotFile"));
                 //System.exit(66);
                 return 66;
             }
 
             try {
                 if (!decodeс.checkFileIntegrity(InputStream)) {
-                    throw new RuntimeException("файл " + InputFITfileName + " повреждён!");
+                    throw new RuntimeException(tr.getString("file_") + InputFITfileName + tr.getString("_corrupt"));
                 }
             } catch (RuntimeException e) {
-                System.err.print("Ошибка проверки файла: ");
+                System.err.print(tr.getString("FileCheckError_"));
                 System.err.println(e.getMessage());
 
                 try {
@@ -696,7 +699,7 @@ public class fit2gpx extends Component {
             try {
                 mesgBroadcaster.run(new BufferedInputStream(new FileInputStream(InputFITfile)));
             } catch (FitRuntimeException e) {
-                System.err.print("Ошибка обработки файла " + InputFITfile + ": ");
+                System.err.print(tr.getString("ErrorParsingFile_") + InputFITfile + ": ");
                 System.err.println(e.getMessage());
 
                 try {
@@ -813,15 +816,15 @@ public class fit2gpx extends Component {
         void add(int result, String file) {
             if(result == 0) {GoodFiles.add(file);}
             if(result == 200 || result == 201) {EmptyFiles.add(file);}
-            if(result == 65) {BadFiles.add(file + " - файл повреждён");}
-            if(result == 66) {BadFiles.add(file + " - файл не найден");}
-            if(result == 73) {BadFiles.add(file + " - ошибка сохранения файла");}
-            if(result == 199) {BadFiles.add(file + " - ошибка чтения данных из файла");}
+            if(result == 65) {BadFiles.add(file + tr.getString("_file_corrupt"));}
+            if(result == 66) {BadFiles.add(file + tr.getString("_file_not_found"));}
+            if(result == 73) {BadFiles.add(file + tr.getString("_file_save_error"));}
+            if(result == 199) {BadFiles.add(file + tr.getString("_read_data_from_file_error"));}
         }
 
         String getSummaryByString() {
 
-            String result = "Успешно обработано файлов: " + GoodFiles.size();
+            String result = tr.getString("FilesParcedOk_") + GoodFiles.size();
             if(GoodFiles.size() < 11) {
                 for (String GoodFile : GoodFiles) {
                     result += "\n    " + GoodFile;
@@ -830,10 +833,10 @@ public class fit2gpx extends Component {
                 for(int g = 0; g < 11; g++) {
                     result += "\n    " + GoodFiles.get(g);
                 }
-                result += "\n  … ещё файлов: " + String.valueOf(GoodFiles.size() - 10);
+                result += "\n  " + tr.getString("_more_files_") + String.valueOf(GoodFiles.size() - 10);
             }
 
-            result += "\n\nФайлов без треков: " + EmptyFiles.size();
+            result += "\n\n" + tr.getString("FilesNoTrack_") + EmptyFiles.size();
             if(EmptyFiles.size() < 11) {
                 for (String EmptyFile : EmptyFiles) {
                     result += "\n    " + EmptyFile;
@@ -842,10 +845,10 @@ public class fit2gpx extends Component {
                 for(int g = 0; g < 11; g++) {
                     result += "\n    " + EmptyFiles.get(g);
                 }
-                result += "\n  … ещё файлов: " + String.valueOf(EmptyFiles.size() - 10);
+                result += "\n  " + tr.getString("_more_files_") + String.valueOf(EmptyFiles.size() - 10);
             }
 
-            result += "\n\nФайлов с ошибками: " + BadFiles.size();
+            result += "\n\n" + tr.getString("FilesWithError_") + BadFiles.size();
             if(BadFiles.size() < 11) {
                 for (String BadFile : BadFiles) {
                     result += "\n    " + BadFile;
@@ -854,7 +857,7 @@ public class fit2gpx extends Component {
                 for(int g = 0; g < 11; g++) {
                     result += "\n    " + BadFiles.get(g);
                 }
-                result += "\n  … ещё файлов: " + String.valueOf(BadFiles.size() - 10);
+                result += "\n  " + tr.getString("_more_files_") + String.valueOf(BadFiles.size() - 10);
             }
 
             return result;
