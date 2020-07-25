@@ -1,23 +1,28 @@
 # fit2gpx
 
-Конвертер Garmin .FIT в .GPX/.CVS, Версия 0.0.3а
+Конвертер Garmin .FIT в .GPX/.CVS, Версия 0.0.4
 
-© Maks Vasilev, 2015-2016, http://velo100.ru/garmin-fit-to-gpx
+© Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
+
 FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
 
 Информация по использованию:
-	java -jar fit2gpx.jar --help
+
+        java -jar fit2gpx.jar --help
 
 Консольный режим:
-	java -jar fit2gpx.jar [--statistic|-s] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]
+
+        java -jar fit2gpx.jar [--statistic|-s] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]
 
 Графический диалоговый режим:
-	java -jar fit2gpx.jar [--statistic|-s]
 
-		--statistic	| -s	вывод итоговой статистики в консоль
-		--csv		| -c	выходной файл будет в формате CSV
-		--hr-only		выходной файл будет в формате CSV, содержимое: только ЧСС и время
-		--monitor	| -m	разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
+        java -jar fit2gpx.jar [--statistic|-s]
+
+                --statistic     | -s    вывод итоговой статистики в консоль
+                --csv           | -c    выходной файл будет в формате CSV
+                --hr-only               выходной файл будет в формате CSV, содержимое: только ЧСС и время
+                --monitor       | -m    разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
+                --hrv           | -v    разбор файлов тренировки и запись интервалов R-R для анализа вариабельности, выходной файл будет в формате CSV
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без параметров запускается диалоговое окно
 выбора файла для конвертации. Если при запуске в качестве аргумента передать имя файла, то происходит конвертация
@@ -27,8 +32,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com/resources/fit
 Конвертер поддерживает режим пакетной обработки файлов, для этого в консольном режиме укажите имена всех файлов
 в качестве аргументов программы. В диалоговом режиме просто выберите несколько файлов в диалоге выбора.
 
-~~Дамп всех заголовков файла (отладочный режим):
-	java -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>~~
+Дамп всех заголовков файла (отладочный режим):
 
-Дамп всего содержимого файла (отладочный режим):
-	java -cp fit2gpx.jar FitReader <файл Garmin .FIT> > <выходной файл>
+        java -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>
+
