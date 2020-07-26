@@ -32,11 +32,21 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import static javax.swing.UIManager.setLookAndFeel;
+
 public class fit2gpx extends Component {
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
     public static void main(String[] args) throws IOException {
+
+        try {
+            setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+        } catch(Exception ignored){
+            try {
+                setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+            } catch(Exception ignored2){}
+        }
 
         File[] MultipleFilesList;
         boolean DialogMode = false;
@@ -73,7 +83,7 @@ public class fit2gpx extends Component {
 
             if (String.valueOf(args[0]).equals("--hr-only")) {
                 OutputCSV = true;
-                // FIXME: заголовок не меняется
+                // FIXME:
                 converter.setOnlyHRandTime(true);
             }
 
@@ -103,11 +113,21 @@ public class fit2gpx extends Component {
 //                System.exit(3);
             }
 
+            UIManager.put("FileChooser.cancelButtonText",tr.getString("Cancel"));
+            UIManager.put("FileChooser.cancelButtonToolTipText",tr.getString("CancelTip"));
+            UIManager.put("FileChooser.fileNameLabelText",tr.getString("FileName"));
+            UIManager.put("FileChooser.filesOfTypeLabelText",tr.getString("FileType"));
+            UIManager.put("FileChooser.lookInLabelText",tr.getString("Dir"));
+
             JFileChooser chooser = new JFileChooser();
+            chooser.setLocale(Locale.getDefault());
 
             chooser.setDialogTitle(tr.getString(OpenTitle[converter.OutputFormat]));
+            if(converter.OnlyHRandTime) {
+                chooser.setDialogTitle(tr.getString(OpenTitle[4]));
+            }
             chooser.setApproveButtonText(tr.getString("Open"));
-            chooser.setPreferredSize(new Dimension(1000,600));
+            chooser.setPreferredSize(new Dimension(1200,600));
 
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
