@@ -43,9 +43,9 @@ public class fit2gpx extends Component {
         try {
             setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch(Exception ignored){
-            try {
+         /*   try {
                 setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            } catch(Exception ignored2){}
+            } catch(Exception ignored2){} */
         }
 
         File[] MultipleFilesList;
