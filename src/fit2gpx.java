@@ -44,6 +44,7 @@ public class fit2gpx extends Component {
         boolean OutputCSV = false;
         boolean MonitoringFIT = false;
         boolean HrvFIT = false;
+        String[] OpenTitle = {"OpenTitleCSV", "OpenTitle", "OpenTitleM", "OpenTitleHRV", "OpenTitleHR"};
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
@@ -72,7 +73,7 @@ public class fit2gpx extends Component {
 
             if (String.valueOf(args[0]).equals("--hr-only")) {
                 OutputCSV = true;
-                // FIXME
+                // FIXME: заголовок не меняется
                 converter.setOnlyHRandTime(true);
             }
 
@@ -103,9 +104,11 @@ public class fit2gpx extends Component {
             }
 
             JFileChooser chooser = new JFileChooser();
-            chooser.setDialogTitle(tr.getString("OpenTitle"));
+
+            chooser.setDialogTitle(tr.getString(OpenTitle[converter.OutputFormat]));
             chooser.setApproveButtonText(tr.getString("Open"));
-            //chooser.setLocale(Locale.getDefault());
+            chooser.setPreferredSize(new Dimension(1000,600));
+
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
@@ -197,7 +200,7 @@ public class fit2gpx extends Component {
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end\n";
 
         private final String out_hr_head = "time;hr\n";
-        private final String out_hrv_head = "Time,RR\n";
+        private final String out_hrv_head = "Time,RR,HR\n";
 
         final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
@@ -671,7 +674,7 @@ public class fit2gpx extends Component {
                                 if (mesg.getLocalNum() == 15) {
                                     int index = 0;
                                     while (mesg.getFieldStringValue("time",index) != null) {
-                                        line += String.valueOf(round(HrvTime,3)) + "," + mesg.getFieldStringValue("time",index) + "\n";
+                                        line += String.valueOf(round(HrvTime,3)) + "," + mesg.getFieldStringValue("time",index) + "," + String.valueOf(round(60.0/mesg.getFieldDoubleValue("time", index),3)) + "\n";
                                         //System.out.print("\t" + mesg.getFieldStringValue("time",index));
                                         HrvTime += mesg.getFieldDoubleValue("time", index);
 
@@ -869,8 +872,8 @@ public class fit2gpx extends Component {
 
 /*
 TODO: 1) учёт временной зоны
-TODO: 2) возможноть более широкой конфигурации
-
+TODO: 2) возможность более широкой конфигурации
+TODO: 3) сделать нормальный обработчик аргументов
 
 
  */
