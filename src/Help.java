@@ -9,7 +9,7 @@ http://velo100.ru/garmin-fit-to-gpx
 
 class Help {
 
-    private static final String Version = "\n" + fit2gpx.tr.getString("Help_Version") ;
+    private static final String Version = "\n" + fit2gpx.tr.getString("Help_Version") + fit2gpx._version_;
 
     static void usage() {
         System.out.println(Version + "\n\n" + fit2gpx.tr.getString("Help_Author"));
@@ -29,6 +29,12 @@ class Help {
         System.out.println(Version + "\n\n" + fit2gpx.tr.getString("Help_Author"));
         System.out.println("Информация по использованию:\n\tjava -jar FitReader.jar <файл Garmin .FIT> > <выходной файл>\n");
         System.exit(64);
+    }
+
+    static void error_no_file() {
+        System.out.println(Version + "\n\n" + fit2gpx.tr.getString("Help_Author"));
+        System.out.println(fit2gpx.tr.getString("Help_line01"));
+        System.out.println(fit2gpx.tr.getString("Help_error01"));
     }
 
 }

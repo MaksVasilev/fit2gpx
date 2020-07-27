@@ -1,5 +1,5 @@
 /*
-Copyright © 2015 by Maks Vasilev
+Copyright © 2015-2020 by Maks Vasilev
 
 created 7.02.2015
 http://velo100.ru/garmin-fit-to-gpx
@@ -36,6 +36,8 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
+    static final String _version_ = "0.0.4";
+
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
     public static void main(String[] args) throws IOException {
@@ -49,69 +51,59 @@ public class fit2gpx extends Component {
         }
 
         File[] MultipleFilesList;
-        boolean DialogMode = false;
+        ArrayList<String> FileList = new ArrayList<String>();
+        boolean DialogMode = true;
         boolean StatisticEnable = false;
-        boolean OutputCSV = false;
-        boolean MonitoringFIT = false;
-        boolean HrvFIT = false;
+     //   boolean OutputCSV = false;
+     //   boolean MonitoringFIT = false;
+     //   boolean HrvFIT = false;
+     //   boolean SpO2FIT = false;
+     //   boolean SilentMode = false;
+        boolean xDebug = false;
+
         String[] OpenTitle = {"OpenTitleCSV", "OpenTitle", "OpenTitleM", "OpenTitleHRV", "OpenTitleHR"};
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
 
-        if (args.length == 1) {
-
-            if (String.valueOf(args[0]).equals("--help") || String.valueOf(args[0]).equals("-h")) {
-                Help.usage();
-            }
-
-            if (String.valueOf(args[0]).equals("--statistic") || String.valueOf(args[0]).equals("-s")) {
-                StatisticEnable = true;
-            }
-
-            if (String.valueOf(args[0]).equals("--csv") || String.valueOf(args[0]).equals("-c")) {
-                OutputCSV = true;
-            }
-
-            if (String.valueOf(args[0]).equals("--monitor") || String.valueOf(args[0]).equals("-m")) {
-                MonitoringFIT = true;
-            }
-
-            if (String.valueOf(args[0]).equals("--hrv") || String.valueOf(args[0]).equals("-v")) {
-                HrvFIT = true;
-            }
-
-            if (String.valueOf(args[0]).equals("--hr-only")) {
-                OutputCSV = true;
-                // FIXME:
-                converter.setOnlyHRandTime(true);
-            }
-
-            if(!StatisticEnable && !OutputCSV && !MonitoringFIT && !HrvFIT) {
-                converter.setInputFITfileName(String.valueOf(args[0]));
-                converterResult.add(converter.run(), converter.getInputFITfileName());
+        for (String arg:args) {
+            if(xDebug) { System.out.println("argument: " + arg); }
+            if ( arg.equals("--help") || arg.equals("-h")) { Help.usage(); }
+            if ( arg.equals("--statistic") || arg.equals("-s")) {  StatisticEnable = true; }
+            if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
+            if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
+//            if ( arg.equals("--oxy") || arg.equals("-o")) { /* TODO */ }
+            if ( arg.equals("--hr-only") ) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); }
+            if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
+            if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
+//            if ( arg.equals("--silent") || arg.equals("-q") ) { /* TODO */ }
+            if ( arg.equals("-x") ) { xDebug = true; }
+            if ( !arg.startsWith("-") ) {
+                FileList.add(arg);
+                DialogMode = false;
             }
         }
 
-        if (args.length == 0 || (args.length == 1 && StatisticEnable) || (args.length == 1 && OutputCSV) || (args.length == 1 && MonitoringFIT)  || (args.length == 1 && HrvFIT) ) {
-
-            DialogMode = true;
-            converter.setSaveIfEmpty(true);
-
-            if(OutputCSV) {
-                converter.setOutputFormat(0);   // формат вывода CSV
-//                System.exit(3);
+        if(!DialogMode) {
+            if (FileList.isEmpty()) {
+                Help.error_no_file();
+                System.exit(204);
             }
 
-            if(MonitoringFIT) {
-                converter.setOutputFormat(2);   // формат вывода CSV, но будут анализироваться записи мониторинга
-//                System.exit(3);
+            for (String f : FileList) {
+                if(xDebug) { System.out.println("file: " + f); }
+
+                converter.setInputFITfileName(f);
+                converterResult.add(converter.run(), converter.getInputFITfileName());
             }
 
-            if(HrvFIT) {
-                converter.setOutputFormat(3);   // формат вывода CSV, но будут анализироваться записи вариабельности ЧСС
-//                System.exit(3);
+            if(StatisticEnable) {
+                System.out.println(converterResult.getSummaryByString());
             }
+        }
+
+        if(DialogMode || FileList.isEmpty()) {
 
             UIManager.put("FileChooser.cancelButtonText",tr.getString("Cancel"));
             UIManager.put("FileChooser.cancelButtonToolTipText",tr.getString("CancelTip"));
@@ -143,47 +135,25 @@ public class fit2gpx extends Component {
                 for (File file : MultipleFilesList) {
                     converter.setInputFITfileName(file.getAbsoluteFile().getAbsolutePath());
                     converterResult.add(converter.run(), converter.getInputFITfileName());
-                 }
+                }
 
             } else {
                 System.exit(204);
             }
 
-          }
-
-        if (args.length > 1) {
-            
-             if(String.valueOf(args[0]).equals("--statistic") || String.valueOf(args[0]).equals("-s")) {
-                StatisticEnable = true;
-                
-                for(int a = 1; a < args.length; a++) {
-                    converter.setInputFITfileName(args[a]);
-                    converterResult.add(converter.run(), converter.getInputFITfileName());
-                }
-            } else {
-                for (String arg : args) {
-                    converter.setInputFITfileName(arg);
-                    converterResult.add(converter.run(), converter.getInputFITfileName());
-                }
+            if(StatisticEnable) {
+                System.out.println(converterResult.getSummaryByString());
             }
-            
-           }
-
-        if(StatisticEnable) {
-            System.out.println(converterResult.getSummaryByString());
-        }
-        
-        if(DialogMode) {
 
             int MessageType = JOptionPane.INFORMATION_MESSAGE;
-                    
+
             if(converterResult.getEmptyFilesCount() > 0) {MessageType = JOptionPane.WARNING_MESSAGE;}
-            
+
             if(converterResult.getBadFilesCount() > 0) {MessageType = JOptionPane.ERROR_MESSAGE;}
-            
+
             JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), tr.getString("ConvResult"), MessageType);
+
         }
- 
     }
 
     private static class Converter {
@@ -237,7 +207,7 @@ public class fit2gpx extends Component {
 
         private boolean EmptyTrack = true;      // признак того, что трек не содержит координат
         private boolean EmptyLine = true;       // признак того, то отдельная точка не содержит координат
-        private boolean SaveIfEmpty = true;     // разрешить сохранение пустого трека без точек
+        private boolean SaveIfEmpty = false;     // разрешить сохранение пустого трека без точек
         private Long Local_Timestamp = 0l;      //
         private Long mesgTimestamp;
         private double HrvTime = 0.0;
@@ -781,17 +751,17 @@ public class fit2gpx extends Component {
                         if(!OnlyHRandTime) {
                             OutputGPXfileName = InputFITfileName + ".csv";
                         } else {
-                            OutputGPXfileName = InputFITfileName + ".cut.csv";
+                            OutputGPXfileName = InputFITfileName + ".HR.csv";
                         }
                         break;
                     case 1:
                         OutputGPXfileName = InputFITfileName + ".gpx";
                         break;
                     case 2:
-                        OutputGPXfileName = InputFITfileName + ".monitor.csv";
+                        OutputGPXfileName = InputFITfileName + ".monitor-HR.csv";
                         break;
                     case 3:
-                        OutputGPXfileName = InputFITfileName + ".hrv.csv";
+                        OutputGPXfileName = InputFITfileName + ".HRV.csv";
                         break;
 
                 }
