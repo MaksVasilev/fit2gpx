@@ -661,7 +661,8 @@ public class fit2gpx extends Component {
 
                             case 3:
 
-                                if (mesg.getLocalNum() == 15) {
+                                if (mesg.getName().equals("hrv") ) {
+
                                     int index = 0;
                                     while (mesg.getFieldStringValue("time",index) != null) {
                                         line += String.valueOf(round(HrvTime,3)) + "," + mesg.getFieldStringValue("time",index) + "," + String.valueOf(round(60.0/mesg.getFieldDoubleValue("time", index),3)) + "\n";
@@ -670,9 +671,6 @@ public class fit2gpx extends Component {
 
                                         index++;
                                     }
-
-                                    //line += "\n";
-                                    //System.out.print("\n");
 
                                     EmptyLine = false;
                                     EmptyTrack = false;
