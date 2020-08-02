@@ -73,10 +73,11 @@ public class fit2gpx extends Component {
             if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
             if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
-//            if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
+            if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
             if ( arg.equals("--hr-only") ) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--full-dump")) { converter.setOutputFormat(99);  }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
                 FileList.add(arg);
@@ -698,7 +699,32 @@ public class fit2gpx extends Component {
                                     activity.add(line);
                                 }
                                 break;
-                       }
+
+                            case 99:  // Full Debug
+
+                                 line += "Message number: " + mesg.getNum() + "\tName: \"" + mesg.getName() + "\"\tFields: " + mesg.getNumFields() + "\n";
+
+                                    for(Field field:mesg.getFields()) {
+                                        line += "\tField num: " + field.getNum() + "\tName: \"" + field.getName() + "\"\tUnits: (" + field.getUnits() + ")\t";
+
+                                        int index = 0;
+                                        line += "[";
+                                        while (field.getStringValue(index) != null) {
+                                            if(index > 0) { line += "|"; }
+                                            line += field.getStringValue(index);
+                                            index++;
+                                        }
+                                        line += "]\n";
+                                    }
+                                EmptyLine = false;
+                                EmptyTrack = false;
+
+                                if (!EmptyLine) {
+                                    activity.add(line);
+                                }
+                                break;
+
+                        }
                     }
             };
             
@@ -784,6 +810,10 @@ public class fit2gpx extends Component {
                     case 3:
                         OutputGPXfileName = InputFITfileName + ".HRV.csv";
                         break;
+                    case 99:
+                        OutputGPXfileName = InputFITfileName + ".DEBUG.txt";
+                        break;
+
 
                 }
             }
@@ -884,7 +914,5 @@ public class fit2gpx extends Component {
 /*
 TODO: 1) учёт временной зоны
 TODO: 2) возможность более широкой конфигурации
-TODO: 3) сделать нормальный обработчик аргументов
-
 
  */
