@@ -347,7 +347,7 @@ public class fit2gpx extends Component {
 
                             case 1:
 
-                                if (mesg.getFieldStringValue("timestamp") != null) {
+                                if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
                                     TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
@@ -381,6 +381,10 @@ public class fit2gpx extends Component {
                                         EmptyLine = false;
 
                                         line += "\n    <extensions>";
+
+                                        if(mesg.getFieldIntegerValue("power") != null) {
+                                            line += "\n     <power>" + mesg.getFieldStringValue("power") + "</power>";
+                                        }
 
                                         if (mesg.getFieldStringValue("speed") != null) {
                                             line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
