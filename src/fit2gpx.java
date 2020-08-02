@@ -73,11 +73,10 @@ public class fit2gpx extends Component {
             if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
             if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
-//            if ( arg.equals("--oxy") || arg.equals("-o")) { /* TODO */ }
-            if ( arg.equals("--hr-only") ) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); }
+//            if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
+            if ( arg.equals("--hr-only") ) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
-//            if ( arg.equals("--silent") || arg.equals("-q") ) { /* TODO */ }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
                 FileList.add(arg);
@@ -184,8 +183,8 @@ public class fit2gpx extends Component {
         private final String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
         private final String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
-        private final String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;" +
-                "power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
+        private final String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;respiratory;" +
+                "performance_contition;power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
                 "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end\n";
 
@@ -416,7 +415,7 @@ public class fit2gpx extends Component {
 
                             case 0:
 
-                                 if (mesg.getFieldStringValue("timestamp") != null) {
+                                 if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
                                     TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
@@ -512,6 +511,7 @@ public class fit2gpx extends Component {
                                          } else {
                                              line += ";";
                                          }
+
                                      }
 
                                      if (mesg.getFieldStringValue("heart_rate") != null) {
@@ -525,6 +525,20 @@ public class fit2gpx extends Component {
                                      }
 
                                      if(!OnlyHRandTime) {
+
+                                         if(mesg.getFieldDoubleValue(108) != null) { // Respiratory
+                                             line += String.valueOf(mesg.getFieldDoubleValue(108)/100.0) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+
+                                         if(mesg.getFieldDoubleValue(90) != null) { // Performance Contition
+                                             line += String.valueOf(mesg.getFieldDoubleValue(90)) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
 
                                          if (mesg.getFieldStringValue("power") != null) {
                                              line += mesg.getFieldStringValue("power") + ";";
@@ -684,7 +698,7 @@ public class fit2gpx extends Component {
                                     activity.add(line);
                                 }
                                 break;
-                        }
+                       }
                     }
             };
             
@@ -745,7 +759,12 @@ public class fit2gpx extends Component {
             }
 
             if (EmptyTrack) {
-                OutputGPXfileName = InputFITfileName + ".empty";
+                if(OutputFormat == 0) {
+                    OutputGPXfileName = InputFITfileName + ".empty.csv";
+                } else {
+                    OutputGPXfileName = InputFITfileName + ".empty";
+                }
+
             } else {
 
                 switch (OutputFormat) {
