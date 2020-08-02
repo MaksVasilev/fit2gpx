@@ -634,32 +634,36 @@ public class fit2gpx extends Component {
                                 }
                                 break;
 
-                            case 2:
+                            case 2:  // monitor HR data
 
-                                if (mesg.getFieldStringValue("timestamp") != null) {
-                                    mesgTimestamp = mesg.getFieldLongValue("timestamp");
-                                } else if(mesg.getFieldStringValue("timestamp_16") != null) {
-                                    mesgTimestamp += ( mesg.getFieldLongValue("timestamp_16") - ( mesgTimestamp & 0xFFFF ) ) & 0xFFFF;
+                                if(mesg.getName().equals("monitoring")) {
+
+                                    if (mesg.getFieldStringValue("timestamp") != null) {
+                                        mesgTimestamp = mesg.getFieldLongValue("timestamp");
+                                    } else if (mesg.getFieldStringValue("timestamp_16") != null) {
+                                        mesgTimestamp += (mesg.getFieldLongValue("timestamp_16") - (mesgTimestamp & 0xFFFF)) & 0xFFFF;
+                                    }
+
+                                    if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null) {
+
+                                        TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+
+                                        line += DateFormatCSV.format(TimeStamp) + ";" + mesg.getFieldStringValue("heart_rate");
+                                        line += "\n";
+                                        // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
+                                        EmptyLine = false;
+                                        EmptyTrack = false;
+
+                                    }
+
+                                    if (!EmptyLine) {
+                                        activity.add(line);
+                                    }
                                 }
 
-                                if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null && mesg.getFieldIntegerValue("heart_rate") > 20) {
-
-                                    TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
-
-                                    line += DateFormatCSV.format(TimeStamp) + ";" + mesg.getFieldStringValue("heart_rate");
-                                    line += "\n";
-                                    // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
-                                    EmptyLine = false;
-                                    EmptyTrack = false;
-
-                                }
-
-                                if (!EmptyLine) {
-                                    activity.add(line);
-                                }
                                 break;
 
-                            case 3:
+                            case 3: // R-R data
 
                                 if (mesg.getName().equals("hrv") ) {
 
