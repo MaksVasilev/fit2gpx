@@ -36,7 +36,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.0.5";
+    static final String _version_ = "0.0.6";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -700,6 +700,33 @@ public class fit2gpx extends Component {
                                 }
                                 break;
 
+                            case 4:  // monitor SpO2 data
+
+                                if(mesg.getNum() == 269) { // 269 - Oxygenation SpO2
+
+                                    if (mesg.getField(253) != null) {
+                                        mesgTimestamp = mesg.getFieldLongValue(253);
+                                    }
+
+                                    if (mesg.getField(0) != null ) {
+
+                                        TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+
+                                        line += DateFormatCSV.format(TimeStamp) + ";" + mesg.getFieldStringValue(0);
+                                        line += "\n";
+                                        // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
+                                        EmptyLine = false;
+                                        EmptyTrack = false;
+
+                                    }
+
+                                    if (!EmptyLine) {
+                                        activity.add(line);
+                                    }
+                                }
+
+                                break;
+
                             case 99:  // Full Debug
 
                                  line += "Message number: " + mesg.getNum() + "\tName: \"" + mesg.getName() + "\"\tFields: " + mesg.getNumFields() + "\n";
@@ -809,6 +836,9 @@ public class fit2gpx extends Component {
                         break;
                     case 3:
                         OutputGPXfileName = InputFITfileName + ".HRV.csv";
+                        break;
+                    case 4:
+                        OutputGPXfileName = InputFITfileName + ".SpO2.csv";
                         break;
                     case 99:
                         OutputGPXfileName = InputFITfileName + ".DEBUG.txt";
