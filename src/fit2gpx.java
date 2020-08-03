@@ -61,7 +61,14 @@ public class fit2gpx extends Component {
      //   boolean SilentMode = false;
         boolean xDebug = false;
 
-        String[] OpenTitle = {"OpenTitleCSV", "OpenTitle", "OpenTitleM", "OpenTitleHRV", "OpenTitleHR"};
+        String[] OpenTitle = new String[100];
+        OpenTitle[0] = tr.getString("OpenTitleCSV");
+        OpenTitle[1] = tr.getString("OpenTitle");
+        OpenTitle[2] = tr.getString("OpenTitleM");
+        OpenTitle[3] = tr.getString("OpenTitleHRV");
+        OpenTitle[4] = tr.getString("OpenTitleOxy");
+        OpenTitle[90] = tr.getString("OpenTitleHR");
+        OpenTitle[99] = tr.getString("OpenTitleDebug");
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
@@ -74,7 +81,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
             if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
             if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
-            if ( arg.equals("--hr-only") ) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
             if ( arg.equals("--full-dump")) { converter.setOutputFormat(99);  }
@@ -114,9 +121,9 @@ public class fit2gpx extends Component {
             JFileChooser chooser = new JFileChooser();
             chooser.setLocale(Locale.getDefault());
 
-            chooser.setDialogTitle(tr.getString(OpenTitle[converter.OutputFormat]));
+            chooser.setDialogTitle((OpenTitle[converter.OutputFormat]));
             if(converter.OnlyHRandTime) {
-                chooser.setDialogTitle(tr.getString(OpenTitle[4]));
+                chooser.setDialogTitle(OpenTitle[90]);
             }
             chooser.setApproveButtonText(tr.getString("Open"));
             chooser.setPreferredSize(new Dimension(1200,600));
@@ -124,8 +131,14 @@ public class fit2gpx extends Component {
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
-            FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXT"), "FIT", "fit");
-            chooser.setFileFilter(filter);
+            if(converter.OutputFormat == 2 || converter.OutputFormat == 4) {
+                FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                chooser.setFileFilter(filter);
+            } else {
+                FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                chooser.setFileFilter(filter);
+            }
+
 
             int returnVal = chooser.showOpenDialog(chooser.getParent());
             if (returnVal == JFileChooser.APPROVE_OPTION) {
