@@ -80,7 +80,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
             if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
-            if ( arg.equals("--hrv-with-filter") || arg.equals("-f")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
+            if ( arg.equals("--hrv-filter") || arg.equals("-f")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
             if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
             if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }

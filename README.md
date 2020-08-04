@@ -22,9 +22,10 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
                 --statistic     | -s    вывод итоговой статистики в консоль
                 --csv           | -c    выходной файл будет в формате CSV
-                --hr-only               выходной файл будет в формате CSV, содержимое: только ЧСС и время
+                --hr-only       | -r    выходной файл будет в формате CSV, содержимое: только ЧСС и время
                 --monitor       | -m    разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
                 --hrv           | -v    разбор файлов тренировки и запись в CSV интервалов R-R для анализа вариабельности
+                --hrv-filter    | -f    тоже самое, что и --hrv, но используется пороговый фильтр для устранения всплесков
                 --oxy           | -o    разбор файлов мониторинга и запись в CSV значений оксигенации SpO2
                 --no-dialog     | -n    не отображать диалоговое окно выбора файлов
                 --save-empty    | -e    сохранять файлы без координат (пустые треки)
@@ -68,9 +69,10 @@ options:
 
                 --statistic     | -s    output of final statistics to the console
                 --csv           | -c    the output file will be in CSV format
-                --hr-only               the output file will be in CSV format, content: heart rate and time only
+                --hr-only       | -r    the output file will be in CSV format, content: heart rate and time only
                 --monitor       | -m    parsing heart rate monitoring files (not training), the output file will be in CSV format
                 --hrv           | -v    parsing training files and writing R-R intervals to CSV for variability analysis
+                --hrv-filter    | -f    same as --hrv, but threshold filter is used to eliminate spikes
                 --oxy           | -o    parsing monitoring files and writing SpO2 oxygenation values in CSV
                 --no-dialog     | -n    do not display the file selection dialog
                 --save-empty    | -e    save files without coordinates (empty tracks)
