@@ -200,7 +200,8 @@ public class fit2gpx extends Component {
         private final String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;respiratory;" +
                 "performance_contition;power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
                 "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
-                "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end\n";
+                "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end;" +
+                "field_num_61;field_num_66\n";
 
         private final String out_hr_head = "time;hr\n";
         private final String out_hrv_head = "Time,RR,HR\n";
@@ -382,8 +383,8 @@ public class fit2gpx extends Component {
                                     }
 
 
-                                    if (mesg.getFieldStringValue("altitude") != null) {
-                                        line += "\n    <ele>" + round(mesg.getFieldDoubleValue("altitude"), 3) + "</ele>";
+                                    if (mesg.getFieldStringValue("enhanced_altitude") != null) {
+                                        line += "\n    <ele>" + round(mesg.getFieldDoubleValue("enhanced_altitude"), 3) + "</ele>";
                                         EmptyLine = false;
                                     }
 
@@ -399,8 +400,8 @@ public class fit2gpx extends Component {
                                             line += "\n     <power>" + mesg.getFieldStringValue("power") + "</power>";
                                         }
 
-                                        if (mesg.getFieldStringValue("speed") != null) {
-                                            line += "\n     <nmea:speed>" + mesg.getFieldStringValue("speed") + "</nmea:speed>";
+                                        if (mesg.getFieldStringValue("enhanced_speed") != null) {
+                                            line += "\n     <nmea:speed>" + mesg.getFieldStringValue("enhanced_speed") + "</nmea:speed>";
                                         }
                                         line += "\n     <gpxtpx:TrackPointExtension>";
 
@@ -413,8 +414,8 @@ public class fit2gpx extends Component {
                                         if (mesg.getFieldStringValue("cadence") != null) {
                                             line += "\n      <gpxtpx:cad>" + mesg.getFieldStringValue("cadence") + "</gpxtpx:cad>";
                                         }
-                                        if (mesg.getFieldStringValue("speed") != null) {
-                                            line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("speed") + "</gpxtpx:speed>";
+                                        if (mesg.getFieldStringValue("enhanced_speed") != null) {
+                                            line += "\n      <gpxtpx:speed>" + mesg.getFieldStringValue("enhanced_speed") + "</gpxtpx:speed>";
                                         }
                                         if (mesg.getFieldStringValue("distance") != null) {
                                             line += "\n      <gpxtpx:course>" + mesg.getFieldStringValue("distance") + "</gpxtpx:course>";
@@ -630,7 +631,7 @@ public class fit2gpx extends Component {
                                              line += mesg.getFieldFloatValue(69, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                              EmptyLine = false;
                                          } else {
-                                             line += ";";
+                                             line += ";;";
                                          }
 
                                          if (mesg.getNumFieldValues(71, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  right_power_phase
@@ -638,7 +639,7 @@ public class fit2gpx extends Component {
                                              line += mesg.getFieldFloatValue(71, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                              EmptyLine = false;
                                          } else {
-                                             line += ";";
+                                             line += ";;";
                                          }
 
                                          if (mesg.getNumFieldValues(70, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  left_power_phase_peak
@@ -646,7 +647,7 @@ public class fit2gpx extends Component {
                                              line += mesg.getFieldFloatValue(70, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                              EmptyLine = false;
                                          } else {
-                                             line += ";";
+                                             line += ";;";
                                          }
 
                                          if (mesg.getNumFieldValues(72, Fit.SUBFIELD_INDEX_MAIN_FIELD) == 2) {  //  right_power_phase_peak
@@ -654,8 +655,23 @@ public class fit2gpx extends Component {
                                              line += mesg.getFieldFloatValue(72, 1, Fit.SUBFIELD_INDEX_MAIN_FIELD) + ";";
                                              EmptyLine = false;
                                          } else {
+                                             line += ";;";
+                                         }
+
+                                         if(mesg.getFieldStringValue(61) != null) { // 61 - ?
+                                             line += mesg.getFieldStringValue(61) + ";";
+                                             EmptyLine = false;
+                                         } else {
                                              line += ";";
                                          }
+
+                                         if(mesg.getFieldStringValue(66) != null) { // 66 - ?
+                                             line += mesg.getFieldStringValue(66) + ";";
+                                             EmptyLine = false;
+                                         } else {
+                                             line += ";";
+                                         }
+
                                      }
 
 
