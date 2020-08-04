@@ -80,6 +80,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
             if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
+            if ( arg.equals("--hrv-with-filter") || arg.equals("-f")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
             if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
             if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
@@ -236,10 +237,17 @@ public class fit2gpx extends Component {
         private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv, 3 = hrv-csv
         private boolean OnlyHRandTime = false;
 
+        private double lastGoodRR = 999.0;
+        private double currentRR;
+        private final double thresholdFilterHRV = 20.0;
+        private double deltaFilterHRV;
+        private boolean useFilterHRV = false;
+
         void setOutputFormat(int outputFormat) {
             OutputFormat = outputFormat;
         }
         void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
+        void setUseFilterHRV(boolean useFilter) {useFilterHRV = useFilter;}
         void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
         void setOnlyHRandTime(boolean onlyHRandTime) {OnlyHRandTime = onlyHRandTime;}
 
@@ -716,9 +724,25 @@ public class fit2gpx extends Component {
                                 if (mesg.getName().equals("hrv") ) {
 
                                     int index = 0;
+
                                     while (mesg.getFieldStringValue("time",index) != null) {
-                                        line += String.valueOf(round(HrvTime,3)) + "," + mesg.getFieldStringValue("time",index) + "," + String.valueOf(round(60.0/mesg.getFieldDoubleValue("time", index),3)) + "\n";
-                                        //System.out.print("\t" + mesg.getFieldStringValue("time",index));
+
+                                        if(useFilterHRV) {
+                                            currentRR = mesg.getFieldDoubleValue("time", index);
+
+                                            if(lastGoodRR == 999.0) {
+                                                lastGoodRR = currentRR;
+                                            }
+                                            deltaFilterHRV = Math.abs((1.0-(currentRR/lastGoodRR))*100.0);
+
+                                            if( deltaFilterHRV < thresholdFilterHRV) {
+                                                lastGoodRR = currentRR;
+                                                line += String.valueOf(round(HrvTime, 3)) + "," + lastGoodRR + "," + String.valueOf(round(60.0 / lastGoodRR, 3)) + "\n";
+                                            }
+                                        } else {
+                                            lastGoodRR = mesg.getFieldDoubleValue("time", index);
+                                            line += String.valueOf(round(HrvTime, 3)) + "," + lastGoodRR + "," + String.valueOf(round(60.0 / lastGoodRR, 3)) + "\n";
+                                        }
                                         HrvTime += mesg.getFieldDoubleValue("time", index);
 
                                         index++;
