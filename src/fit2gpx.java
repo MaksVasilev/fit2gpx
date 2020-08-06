@@ -60,6 +60,7 @@ public class fit2gpx extends Component {
      //   boolean SpO2FIT = false;
      //   boolean SilentMode = false;
         boolean xDebug = false;
+        String[] Filter = new String[3];
 
         String[] OpenTitle = new String[100];
         OpenTitle[0] = tr.getString("OpenTitleCSV");
@@ -90,6 +91,12 @@ public class fit2gpx extends Component {
             if ( !arg.startsWith("-") ) {
                 FileList.add(arg);
                 DialogMode = false;
+            }
+            if ( arg.startsWith("--filter=")) {
+                Filter = arg.split("=",2);
+                try {
+                    converter.setFilterHRV(Integer.parseInt(Filter[1]));
+                } catch (Exception ignored3) {}
             }
         }
 
@@ -239,7 +246,7 @@ public class fit2gpx extends Component {
 
         private double lastGoodRR = 999.0;
         private double currentRR;
-        private final double thresholdFilterHRV = 20.0;
+        private double thresholdFilterHRV = 35.0;
         private double deltaFilterHRV;
         private boolean useFilterHRV = false;
 
@@ -248,6 +255,12 @@ public class fit2gpx extends Component {
         }
         void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
         void setUseFilterHRV(boolean useFilter) {useFilterHRV = useFilter;}
+        void setFilterHRV(Integer FilterFactor) {
+            if(FilterFactor != null &&  FilterFactor > 0 && FilterFactor < 100) {
+                thresholdFilterHRV = (double)FilterFactor;
+            }
+        }
+
         void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
         void setOnlyHRandTime(boolean onlyHRandTime) {OnlyHRandTime = onlyHRandTime;}
 

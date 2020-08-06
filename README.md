@@ -26,6 +26,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
                 --monitor       | -m    разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
                 --hrv           | -v    разбор файлов тренировки и запись в CSV интервалов R-R для анализа вариабельности
                 --hrv-filter    | -f    тоже самое, что и --hrv, но используется пороговый фильтр для устранения всплесков
+                        --filter=n      где: n - уставка порогового фильтра (для -f) в % от 1 до 99 (по умолчанию 35)
                 --oxy           | -o    разбор файлов мониторинга и запись в CSV значений оксигенации SpO2
                 --no-dialog     | -n    не отображать диалоговое окно выбора файлов
                 --save-empty    | -e    сохранять файлы без координат (пустые треки)
@@ -72,7 +73,8 @@ options:
                 --hr-only       | -r    the output file will be in CSV format, content: heart rate and time only
                 --monitor       | -m    parsing heart rate monitoring files (not training), the output file will be in CSV format
                 --hrv           | -v    parsing training files and writing R-R intervals to CSV for variability analysis
-                --hrv-filter    | -f    same as --hrv, but threshold filter is used to eliminate spikes
+                --hrv-filter    | -f    same as --hr v, no threshold filter is used to eliminate spikes
+                        --filter=n      where: n - threshold filter value (for -f) in % from 1 to 99 (default 35)
                 --oxy           | -o    parsing monitoring files and writing SpO2 oxygenation values in CSV
                 --no-dialog     | -n    do not display the file selection dialog
                 --save-empty    | -e    save files without coordinates (empty tracks)
