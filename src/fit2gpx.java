@@ -469,9 +469,9 @@ public class fit2gpx extends Component {
                                              EmptyTrack = false;
                                              EmptyLine = false;
 
-                                             line += DateFormatGPX.format(TimeStamp) + ";" + lat.toString() + ";" + lon.toString() + ";";
+                                             line += DateFormatCSV.format(TimeStamp) + ";" + lat.toString() + ";" + lon.toString() + ";";
                                          } else {
-                                             line += DateFormatGPX.format(TimeStamp) + ";;;";
+                                             line += DateFormatCSV.format(TimeStamp) + ";;;";
 
                                              EmptyLine = true;
                                          }
