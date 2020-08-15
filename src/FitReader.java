@@ -8,12 +8,10 @@
 
 import com.garmin.fit.*;
 
-import javax.print.DocFlavor;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -91,46 +89,42 @@ public class FitReader {
         public void read() {
             MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
 
-            MesgListener mesgListener = new MesgListener() {
+            MesgListener mesgListener = mesg -> {
 
-                @Override
-                public void onMesg(Mesg mesg) {
+                System.out.println("[" + mesg.getLocalNum() + "] " + mesg.getName());
 
-                    System.out.println("[" + mesg.getLocalNum() + "] " + mesg.getName());
+             //   if(mesg.getLocalNum() == 128) {
+                    //System.out.println("12\n" + mesg.getNumFields());
 
-                 //   if(mesg.getLocalNum() == 128) {
-                        //System.out.println("12\n" + mesg.getNumFields());
-
-                       // System.out.println(mesg.getFields());
-                        for (Field f: mesg.getFields() ) {
-                            if (f.getNumValues() == 1) {
-                                if(f.getNum() == 253 && TimestampToData) {
-                                    TimeStamp = new Date((f.getLongValue() * 1000) + DateTime.OFFSET);
-                                    System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getLongValue() + " (" + DateFormat.format(TimeStamp) + ")");
-                                } else {
-                                    System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getValue() + " " + f.getUnits());
-                                }
+                   // System.out.println(mesg.getFields());
+                    for (Field f: mesg.getFields() ) {
+                        if (f.getNumValues() == 1) {
+                            if(f.getNum() == 253 && TimestampToData) {
+                                TimeStamp = new Date((f.getLongValue() * 1000) + DateTime.OFFSET);
+                                System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getLongValue() + " (" + DateFormat.format(TimeStamp) + ")");
                             } else {
-                                String values="";
-                     //           System.out.println(f.getType());
-                     //           System.out.println(f.getProfileType());
-                                for (int sf =0 ; sf < f.getNumValues(); sf++) {
-                                    if(f.getProfileType() == Profile.Type.STRING) {
-                                        values += f.getStringValue(sf).toString() + " ";
-                                    } else {
-                                        values += f.getDoubleValue(sf).toString() + " ";
-                                    }
-                                }
-                                System.out.println("\t\t" + f.getNumValues() + "x[" + f.getNum() + "] " + values + " " + f.getUnits());
+                                System.out.println("\t[" + f.getNum() + "] " + f.getName() + " " + f.getValue() + " " + f.getUnits());
                             }
-                        //    System.out.println(f.getValue());
-                        //    System.out.println(f.getUnits());
-
-
+                        } else {
+                            StringBuilder values= new StringBuilder();
+                 //           System.out.println(f.getType());
+                 //           System.out.println(f.getProfileType());
+                            for (int sf =0 ; sf < f.getNumValues(); sf++) {
+                                if(f.getProfileType() == Profile.Type.STRING) {
+                                    values.append(f.getStringValue(sf).toString()).append(" ");
+                                } else {
+                                    values.append(f.getDoubleValue(sf).toString()).append(" ");
+                                }
+                            }
+                            System.out.println("\t\t" + f.getNumValues() + "x[" + f.getNum() + "] " + values + " " + f.getUnits());
                         }
-                 //   }
+                    //    System.out.println(f.getValue());
+                    //    System.out.println(f.getUnits());
 
-                }
+
+                    }
+             //   }
+
             };
 
             mesgBroadcaster.addListener(mesgListener);

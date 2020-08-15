@@ -298,9 +298,7 @@ public class fit2gpx extends Component {
             int writeStatus = this.write();
             activity.clear();
 
-            if(writeStatus != 0) {return writeStatus;}
-
-            return 0;
+            return writeStatus;
         }
 
         private int check() {   // этап проверки доступности файла
@@ -928,14 +926,10 @@ public class fit2gpx extends Component {
                     if(!OutputGPXfile.createNewFile()) {return 73;}
                 }
 
-                PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile());
-
-                try {
+                try (PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile())) {
 
                     activity.forEach(OutWriter::write);
 
-                } finally {
-                    OutWriter.close();
                 }
 
             } catch (IOException e) {
