@@ -212,12 +212,13 @@ public class fit2gpx extends Component {
                 "field_num_61;field_num_66\n";
 
         private final String out_hr_head = "time;hr\n";
-        private final String out_hrv_head = "Time,RR,HR\n";
+        private final String out_hrv_head = "Timestamp,Time,RR,HR\n";
 
         final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
 
-        private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss");  // формат вывода в csv
+        private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss");  // формат вывода в csv
+        private final SimpleDateFormat DateFormatCSVms = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss.SSS");  // формат вывода в csv с милисекундами
         private final SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
         private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
 
@@ -260,7 +261,6 @@ public class fit2gpx extends Component {
                 thresholdFilterHRV = (double)FilterFactor;
             }
         }
-
         void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
         void setOnlyHRandTime(boolean onlyHRandTime) {OnlyHRandTime = onlyHRandTime;}
 
@@ -380,7 +380,7 @@ public class fit2gpx extends Component {
 
                         switch (OutputFormat) {
 
-                            case 1:
+                            case 1: // Standart Garmin point exchange format GPX
 
                                 if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -453,7 +453,7 @@ public class fit2gpx extends Component {
                                 }
                                 break;
 
-                            case 0:
+                            case 0: // Table output - CSV format
 
                                  if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -734,11 +734,21 @@ public class fit2gpx extends Component {
 
                             case 3: // R-R data
 
+                                if (mesg.getName().equals("event") ) {
+                                    if (mesg.getFieldStringValue("timestamp") != null && mesg.getFieldIntegerValue("event_type") == 0) {
+                                        mesgTimestamp = mesg.getFieldLongValue("timestamp"); // timestamp of "START" event
+                                    }
+                                }
+
                                 if (mesg.getName().equals("hrv") ) {
+                                    if(mesgTimestamp == null) { mesgTimestamp = 946684800L - (DateTime.OFFSET/1000); } // if device not started
 
                                     int index = 0;
 
                                     while (mesg.getFieldStringValue("time",index) != null) {
+
+                                        HrvTime += mesg.getFieldDoubleValue("time", index);
+                                        TimeStamp = new Date( (mesgTimestamp * 1000) + (long)(HrvTime * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
                                         if(useFilterHRV) {
                                             currentRR = mesg.getFieldDoubleValue("time", index);
@@ -750,14 +760,14 @@ public class fit2gpx extends Component {
 
                                             if( deltaFilterHRV < thresholdFilterHRV) {
                                                 lastGoodRR = currentRR;
+                                                line += DateFormatCSVms.format(TimeStamp) + ",";
                                                 line += String.valueOf(round(HrvTime, 3)) + "," + lastGoodRR + "," + String.valueOf(round(60.0 / lastGoodRR, 3)) + "\n";
                                             }
                                         } else {
                                             lastGoodRR = mesg.getFieldDoubleValue("time", index);
+                                            line += DateFormatCSVms.format(TimeStamp) + ",";
                                             line += String.valueOf(round(HrvTime, 3)) + "," + lastGoodRR + "," + String.valueOf(round(60.0 / lastGoodRR, 3)) + "\n";
                                         }
-                                        HrvTime += mesg.getFieldDoubleValue("time", index);
-
                                         index++;
                                     }
 
