@@ -566,14 +566,14 @@ public class fit2gpx extends Component {
                                      if(!OnlyHRandTime) {
 
                                          if(mesg.getFieldDoubleValue(108) != null) { // Respiratory
-                                             line.append(String.valueOf(mesg.getFieldDoubleValue(108) / 100.0)).append(";");
+                                             line.append(mesg.getFieldDoubleValue(108) / 100.0).append(";");
                                              EmptyLine = false;
                                          } else {
                                              line.append(";");
                                          }
 
                                          if(mesg.getFieldDoubleValue(90) != null) { // Performance Contition
-                                             line.append(String.valueOf(mesg.getFieldDoubleValue(90))).append(";");
+                                             line.append(mesg.getFieldDoubleValue(90)).append(";");
                                              EmptyLine = false;
                                          } else {
                                              line.append(";");
@@ -760,12 +760,12 @@ public class fit2gpx extends Component {
                                             if( deltaFilterHRV < thresholdFilterHRV) {
                                                 lastGoodRR = currentRR;
                                                 line.append(DateFormatCSVms.format(TimeStamp)).append(",");
-                                                line.append(String.valueOf(round(HrvTime, 3))).append(",").append(lastGoodRR).append(",").append(String.valueOf(round(60.0 / lastGoodRR, 3))).append("\n");
+                                                line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
                                             }
                                         } else {
                                             lastGoodRR = mesg.getFieldDoubleValue("time", index);
                                             line.append(DateFormatCSVms.format(TimeStamp)).append(",");
-                                            line.append(String.valueOf(round(HrvTime, 3))).append(",").append(lastGoodRR).append(",").append(String.valueOf(round(60.0 / lastGoodRR, 3))).append("\n");
+                                            line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
                                         }
                                         index++;
                                     }
@@ -986,7 +986,7 @@ public class fit2gpx extends Component {
                 for(int g = 0; g < 11; g++) {
                     result.append("\n    ").append(GoodFiles.get(g));
                 }
-                result.append("\n  ").append(tr.getString("_more_files_")).append(String.valueOf(GoodFiles.size() - 10));
+                result.append("\n  ").append(tr.getString("_more_files_")).append((GoodFiles.size() - 10));
             }
 
             result.append("\n\n").append(tr.getString("FilesNoTrack_")).append(EmptyFiles.size());
@@ -998,7 +998,7 @@ public class fit2gpx extends Component {
                 for(int g = 0; g < 11; g++) {
                     result.append("\n    ").append(EmptyFiles.get(g));
                 }
-                result.append("\n  ").append(tr.getString("_more_files_")).append(String.valueOf(EmptyFiles.size() - 10));
+                result.append("\n  ").append(tr.getString("_more_files_")).append((EmptyFiles.size() - 10));
             }
 
             result.append("\n\n").append(tr.getString("FilesWithError_")).append(BadFiles.size());
@@ -1010,7 +1010,7 @@ public class fit2gpx extends Component {
                 for(int g = 0; g < 11; g++) {
                     result.append("\n    ").append(BadFiles.get(g));
                 }
-                result.append("\n  ").append(tr.getString("_more_files_")).append(String.valueOf(BadFiles.size() - 10));
+                result.append("\n  ").append(tr.getString("_more_files_")).append((BadFiles.size() - 10));
             }
 
             return result.toString();
