@@ -16,7 +16,6 @@ exit code:
 201 - track is empty and not writed (default for dialog mode)
 204 - no file selected
 209 - debug break
-
 */
 
 import com.garmin.fit.*;
@@ -37,7 +36,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.0.9";
+    static final String _version_ = "0.1.0";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -224,7 +223,7 @@ public class fit2gpx extends Component {
         private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
 
         private String InputFITfileName;
-        private String OutputGPXfileName;
+        private String OutputFileName;
 
         private FileInputStream InputStream;
         private File InputFITfile;
@@ -883,9 +882,9 @@ public class fit2gpx extends Component {
 
             if (EmptyTrack) {
                 if(OutputFormat == 0) {
-                    OutputGPXfileName = InputFITfileName + ".empty.csv";
+                    OutputFileName = InputFITfileName + ".empty.csv";
                 } else {
-                    OutputGPXfileName = InputFITfileName + ".empty";
+                    OutputFileName = InputFITfileName + ".empty";
                 }
 
             } else {
@@ -893,25 +892,25 @@ public class fit2gpx extends Component {
                 switch (OutputFormat) {
                     case 0:
                         if(!OnlyHRandTime) {
-                            OutputGPXfileName = InputFITfileName + ".csv";
+                            OutputFileName = InputFITfileName + ".csv";
                         } else {
-                            OutputGPXfileName = InputFITfileName + ".HR.csv";
+                            OutputFileName = InputFITfileName + ".HR.csv";
                         }
                         break;
                     case 1:
-                        OutputGPXfileName = InputFITfileName + ".gpx";
+                        OutputFileName = InputFITfileName + ".gpx";
                         break;
                     case 2:
-                        OutputGPXfileName = InputFITfileName + ".monitor-HR.csv";
+                        OutputFileName = InputFITfileName + ".monitor-HR.csv";
                         break;
                     case 3:
-                        OutputGPXfileName = InputFITfileName + ".HRV.csv";
+                        OutputFileName = InputFITfileName + ".HRV.csv";
                         break;
                     case 4:
-                        OutputGPXfileName = InputFITfileName + ".SpO2.csv";
+                        OutputFileName = InputFITfileName + ".SpO2.csv";
                         break;
                     case 99:
-                        OutputGPXfileName = InputFITfileName + ".DEBUG.txt";
+                        OutputFileName = InputFITfileName + ".DUMP.txt";
                         break;
 
 
@@ -920,7 +919,7 @@ public class fit2gpx extends Component {
 
             try {
 
-                File OutputGPXfile = new File(OutputGPXfileName);
+                File OutputGPXfile = new File(OutputFileName);
 
                 if (!OutputGPXfile.exists()) {
                     if(!OutputGPXfile.createNewFile()) {return 73;}
