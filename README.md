@@ -1,6 +1,6 @@
 # fit2gpx
 
-Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV. Версия 0.0.6
+Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2. Версия 0.1.0
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -48,7 +48,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 # English
 
-Converter Garmin .FIT files to GPX, CVS, HR, HRV. Version 0.0.6
+Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2. Version 0.1.0
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
