@@ -36,7 +36,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.0";
+    static final String _version_ = "0.1.1";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -68,6 +68,7 @@ public class fit2gpx extends Component {
         OpenTitle[2] = tr.getString("OpenTitleM");
         OpenTitle[3] = tr.getString("OpenTitleHRV");
         OpenTitle[4] = tr.getString("OpenTitleOxy");
+        OpenTitle[5] = tr.getString("OpenTitleStress");
         OpenTitle[90] = tr.getString("OpenTitleHR");
         OpenTitle[99] = tr.getString("OpenTitleDebug");
 
@@ -83,6 +84,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
             if ( arg.equals("--hrv-filter") || arg.equals("-f")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
             if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
+            if ( arg.equals("--stress") || arg.equals("-i")) { converter.setOutputFormat(5);  }
             if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
@@ -139,7 +141,7 @@ public class fit2gpx extends Component {
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
-            if(converter.OutputFormat == 2 || converter.OutputFormat == 4) {
+            if(converter.OutputFormat == 2 || converter.OutputFormat == 4 || converter.OutputFormat == 5) {
                 FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
                 chooser.setFileFilter(filter);
             } else {
@@ -784,7 +786,34 @@ public class fit2gpx extends Component {
 
                                     line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue(0));
                                     line.append("\n");
-                                    // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
+
+                                    EmptyLine = false;
+                                    EmptyTrack = false;
+
+                                }
+
+                                if (!EmptyLine) {
+                                    activity.add(line.toString());
+                                }
+                            }
+
+                            break;
+
+                        case 5:  // monitor Garmin Stress Index (GSI) data
+
+                            if(mesg.getNum() == 227) { // 227 - Garmin Stress Index
+
+                                if (mesg.getField(1) != null) {
+                                    mesgTimestamp = mesg.getFieldLongValue(1);
+                                }
+
+                                if (mesg.getFieldIntegerValue(0) > 0 ) { // "-1" - no data; "-2" - active time
+
+                                    TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+
+                                    line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue(0));
+                                    line.append("\n");
+
                                     EmptyLine = false;
                                     EmptyTrack = false;
 
@@ -908,6 +937,9 @@ public class fit2gpx extends Component {
                         break;
                     case 4:
                         OutputFileName = InputFITfileName + ".SpO2.csv";
+                        break;
+                    case 5:
+                        OutputFileName = InputFITfileName + ".GSI.csv";
                         break;
                     case 99:
                         OutputFileName = InputFITfileName + ".DUMP.txt";

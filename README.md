@@ -1,6 +1,6 @@
 # fit2gpx
 
-Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2. Версия 0.1.0
+Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress. Версия 0.1.1
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -28,6 +28,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
                 --hrv-filter    | -f    тоже самое, что и --hrv, но используется пороговый фильтр для устранения всплесков
                         --filter=n      где: n - уставка порогового фильтра (для -f) в % от 1 до 99 (по умолчанию 35)
                 --oxy           | -o    разбор файлов мониторинга и запись в CSV значений оксигенации SpO2
+                --stress        | -i    разбор файлов мониторинга и запись в CSV значений уровня стресса
                 --no-dialog     | -n    не отображать диалоговое окно выбора файлов
                 --save-empty    | -e    сохранять файлы без координат (пустые треки)
                 --full-dump             сделать полный дамп записей файла в тестовый файл  
@@ -48,7 +49,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 # English
 
-Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2. Version 0.1.0
+Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress. Version 0.1.1
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -76,6 +77,7 @@ options:
                 --hrv-filter    | -f    same as --hr v, no threshold filter is used to eliminate spikes
                         --filter=n      where: n - threshold filter value (for -f) in % from 1 to 99 (default 35)
                 --oxy           | -o    parsing monitoring files and writing SpO2 oxygenation values in CSV
+                --stress        | -i    parsing monitoring files and writing Stress values in CSV
                 --no-dialog     | -n    do not display the file selection dialog
                 --save-empty    | -e    save files without coordinates (empty tracks)
                 --full-dump             create full text dump of all messages  
