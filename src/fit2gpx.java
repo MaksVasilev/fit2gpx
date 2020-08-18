@@ -812,6 +812,16 @@ public class fit2gpx extends Component {
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
                                     line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue(0));
+
+                                    if(mesg.getFieldIntegerValue(3) != null) { // 227.3 - body battery
+                                        line.append(";").append(mesg.getFieldIntegerValue(3)); } else { line.append(";"); }
+
+                                    if(mesg.getFieldStringValue(2) != null) { // 227.2 - ?
+                                        line.append(";").append(mesg.getFieldStringValue(2)); } else { line.append(";"); }
+
+                                    if(mesg.getFieldStringValue(4) != null) { // 227.4 - ?, always = 1?
+                                        line.append(";").append(mesg.getFieldStringValue(4)); } else { line.append(";"); }
+
                                     line.append("\n");
 
                                     EmptyLine = false;
