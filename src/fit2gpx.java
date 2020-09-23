@@ -226,8 +226,9 @@ public class fit2gpx extends Component {
         private final String out_hrv_head = "Timestamp,Time,RR,HR";
 
         final ArrayList<String> activity = new ArrayList<>();
-        private final Map<String,Integer> monitor_hr_buffer = new TreeMap<>();
-        private final Map<String,String[]> hrv_rr_buffer = new TreeMap<>();
+        private final Map<String,String> short_buffer = new TreeMap<>();
+        private final Map<String,String[]> array_buffer = new TreeMap<>();
+
         private Date TimeStamp = new Date();
         private boolean useISOdate = true;
 
@@ -325,8 +326,8 @@ public class fit2gpx extends Component {
 
             int writeStatus = this.write();
             activity.clear();
-            monitor_hr_buffer.clear();
-            hrv_rr_buffer.clear();
+            short_buffer.clear();
+            array_buffer.clear();
 
             return writeStatus;
         }
@@ -400,7 +401,6 @@ public class fit2gpx extends Component {
                 StringBuilder line = new StringBuilder();
 
                 EmptyLine = true;
-                //HrvTime = 0.0;
 
                     switch (OutputFormat) {
 
@@ -738,22 +738,10 @@ public class fit2gpx extends Component {
                                 if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null) {
 
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
-
-                                    monitor_hr_buffer.put(DateFormatCSV.format(TimeStamp),mesg.getFieldIntegerValue("heart_rate"));
-
-                                    /// line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue("heart_rate"));
-                                    /// line.append("\n");
-                                    // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
-                                    EmptyLine = false;
+                                    short_buffer.put(DateFormatCSV.format(TimeStamp),mesg.getFieldStringValue("heart_rate"));
                                     EmptyTrack = false;
-
-                                }
-
-                                if (!EmptyLine) {
-                                    /// activity.add(line.toString());
                                 }
                             }
-
                             break;
 
                         case 3: // R-R data
@@ -785,27 +773,16 @@ public class fit2gpx extends Component {
                                         if( deltaFilterHRV < thresholdFilterHRV) {
                                             lastGoodRR = currentRR;
                                             String[] l = {rounds(HrvTime, 3), String.valueOf(lastGoodRR), String.valueOf(round(60.0 / lastGoodRR, 3))};
-                                            hrv_rr_buffer.put(DateFormatCSVms.format(TimeStamp),l);
-
-                                            /// line.append(DateFormatCSVms.format(TimeStamp)).append(",");
-                                            /// line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
+                                            array_buffer.put(DateFormatCSVms.format(TimeStamp),l);
                                         }
                                     } else {
                                         lastGoodRR = mesg.getFieldDoubleValue("time", index);
                                         String[] l = {rounds(HrvTime, 3), String.valueOf(lastGoodRR), String.valueOf(round(60.0 / lastGoodRR, 3))};
-                                        hrv_rr_buffer.put(DateFormatCSVms.format(TimeStamp),l);
-                                        /// line.append(DateFormatCSVms.format(TimeStamp)).append(",");
-                                        /// line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
+                                        array_buffer.put(DateFormatCSVms.format(TimeStamp),l);
                                     }
                                     index++;
                                 }
-
-                                EmptyLine = false;
                                 EmptyTrack = false;
-                            }
-
-                            if (!EmptyLine) {
-                                // activity.add(line.toString());
                             }
                             break;
 
@@ -818,22 +795,11 @@ public class fit2gpx extends Component {
                                 }
 
                                 if (mesg.getField(0) != null ) {
-
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
-
-                                    line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue(0));
-                                    line.append("\n");
-
-                                    EmptyLine = false;
+                                    short_buffer.put(DateFormatCSV.format(TimeStamp),mesg.getFieldStringValue(0));
                                     EmptyTrack = false;
-
-                                }
-
-                                if (!EmptyLine) {
-                                    activity.add(line.toString());
                                 }
                             }
-
                             break;
 
                         case 5:  // monitor Garmin Stress Index (GSI) data
@@ -848,29 +814,24 @@ public class fit2gpx extends Component {
 
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                                    line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue(0));
+                                    String gsi_227_2 = "";
+                                    String gsi_227_3 = "";
+                                    String gsi_227_4 = "";
 
                                     if(mesg.getFieldIntegerValue(3) != null) { // 227.3 - body battery
-                                        line.append(";").append(mesg.getFieldIntegerValue(3)); } else { line.append(";"); }
+                                        gsi_227_3 = mesg.getFieldStringValue(3); }
 
-                                    if(mesg.getFieldStringValue(2) != null) { // 227.2 - ?
-                                        line.append(";").append(mesg.getFieldDoubleValue(2) / 100.0); } else { line.append(";"); }
+                                    if(mesg.getFieldStringValue(2) != null) { // 227.2 - delta
+                                        gsi_227_2 = mesg.getFieldStringValue(2); }
 
                                     if(mesg.getFieldStringValue(4) != null) { // 227.4 - ?, always = 1?
-                                        line.append(";").append(mesg.getFieldStringValue(4)); } else { line.append(";"); }
+                                        gsi_227_4 = mesg.getFieldStringValue(4); }
 
-                                    line.append("\n");
-
-                                    EmptyLine = false;
+                                    String[] l = {mesg.getFieldStringValue(0), gsi_227_3,gsi_227_2,gsi_227_4};
+                                    array_buffer.put(DateFormatCSV.format(TimeStamp),l);
                                     EmptyTrack = false;
-
-                                }
-
-                                if (!EmptyLine) {
-                                    activity.add(line.toString());
                                 }
                             }
-
                             break;
 
                         case 99:  // Full Debug
@@ -896,7 +857,6 @@ public class fit2gpx extends Component {
                                 activity.add(line.toString());
                             }
                             break;
-
                     }
                 };
             
@@ -938,24 +898,31 @@ public class fit2gpx extends Component {
                     activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
                     activity.add(out_gpx_tail);
                     break;
-                case 2:
-                    //activity.add(0, out_hr_head); // пишем без заголовка для склеивания файлов
-                    for(Map.Entry m: monitor_hr_buffer.entrySet()){
+                case 2:     // monitor HR
+                case 4:     // monitor SpO2
+                    for(Map.Entry m: short_buffer.entrySet()){
                         activity.add(m.getKey() + ";" + m.getValue());
-                        System.out.println(m.getKey()+" | "+m.getValue()); // TODO
                     }
                     break;
-                case 3:
+                case 3:     // activity HRV (R-R)
                     activity.add(0, out_hrv_head); // заголовок IBI файла вариабельности ЧСС
-                    for(Map.Entry m: hrv_rr_buffer.entrySet()){
+                    for(Map.Entry m: array_buffer.entrySet()){
                         String line = (String) m.getKey();
                         String[] l = (String[]) m.getValue();
                         for(String s:l){
                             line += "," + s;
                         }
                         activity.add(line);
-                     //   System.out.println(m.getKey()+" | "+ Arrays.toString(l)); // TODO
-                        System.out.println(line);
+                    }
+                    break;
+                case 5:     // monitor Garmin Stress Index
+                    for(Map.Entry m: array_buffer.entrySet()){
+                        String line = (String) m.getKey();
+                        String[] l = (String[]) m.getValue();
+                        for(String s:l){
+                            line += ";" + s;
+                        }
+                        activity.add(line);
                     }
                     break;
             }
