@@ -23,14 +23,12 @@ import com.garmin.fit.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.io.*;
 import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import java.util.*;
 
 import static javax.swing.UIManager.setLookAndFeel;
 
@@ -201,6 +199,11 @@ public class fit2gpx extends Component {
             return Math.round(d * dd) / dd;
         }
 
+        private String rounds(double d, int p) {
+            double dd = Math.pow(10, p);
+            return String.valueOf(Math.round(d * dd) / dd);
+        }
+
         private final String out_gpx_head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
                 "<gpx creator=\"Converted by fit2gpx, http://velo100.ru/garmin-fit-to-gpx from {creator}\" version=\"1.1\" " +
                 "xmlns=\"http://www.topografix.com/GPX/1/1\" " +
@@ -220,9 +223,11 @@ public class fit2gpx extends Component {
                 "field_num_61;field_num_66\n";
 
         private final String out_hr_head = "time;hr\n";
-        private final String out_hrv_head = "Timestamp,Time,RR,HR\n";
+        private final String out_hrv_head = "Timestamp,Time,RR,HR";
 
         final ArrayList<String> activity = new ArrayList<>();
+        private final Map<String,Integer> monitor_hr_buffer = new TreeMap<>();
+        private final Map<String,String[]> hrv_rr_buffer = new TreeMap<>();
         private Date TimeStamp = new Date();
         private boolean useISOdate = true;
 
@@ -320,6 +325,8 @@ public class fit2gpx extends Component {
 
             int writeStatus = this.write();
             activity.clear();
+            monitor_hr_buffer.clear();
+            hrv_rr_buffer.clear();
 
             return writeStatus;
         }
@@ -391,6 +398,7 @@ public class fit2gpx extends Component {
             MesgListener mesgListener = mesg -> {
 
                 StringBuilder line = new StringBuilder();
+
                 EmptyLine = true;
                 //HrvTime = 0.0;
 
@@ -731,8 +739,10 @@ public class fit2gpx extends Component {
 
                                     TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                                    line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue("heart_rate"));
-                                    line.append("\n");
+                                    monitor_hr_buffer.put(DateFormatCSV.format(TimeStamp),mesg.getFieldIntegerValue("heart_rate"));
+
+                                    /// line.append(DateFormatCSV.format(TimeStamp)).append(";").append(mesg.getFieldStringValue("heart_rate"));
+                                    /// line.append("\n");
                                     // System.out.print("\n" + Local_Timestamp + ";" + DateFormatCSV.format(TimeStamp) + ";" + TimeStamp + ";" + mesgTimestamp + ";" + mesg.getFieldLongValue("timestamp_16"));
                                     EmptyLine = false;
                                     EmptyTrack = false;
@@ -740,7 +750,7 @@ public class fit2gpx extends Component {
                                 }
 
                                 if (!EmptyLine) {
-                                    activity.add(line.toString());
+                                    /// activity.add(line.toString());
                                 }
                             }
 
@@ -774,13 +784,18 @@ public class fit2gpx extends Component {
 
                                         if( deltaFilterHRV < thresholdFilterHRV) {
                                             lastGoodRR = currentRR;
-                                            line.append(DateFormatCSVms.format(TimeStamp)).append(",");
-                                            line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
+                                            String[] l = {rounds(HrvTime, 3), String.valueOf(lastGoodRR), String.valueOf(round(60.0 / lastGoodRR, 3))};
+                                            hrv_rr_buffer.put(DateFormatCSVms.format(TimeStamp),l);
+
+                                            /// line.append(DateFormatCSVms.format(TimeStamp)).append(",");
+                                            /// line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
                                         }
                                     } else {
                                         lastGoodRR = mesg.getFieldDoubleValue("time", index);
-                                        line.append(DateFormatCSVms.format(TimeStamp)).append(",");
-                                        line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
+                                        String[] l = {rounds(HrvTime, 3), String.valueOf(lastGoodRR), String.valueOf(round(60.0 / lastGoodRR, 3))};
+                                        hrv_rr_buffer.put(DateFormatCSVms.format(TimeStamp),l);
+                                        /// line.append(DateFormatCSVms.format(TimeStamp)).append(",");
+                                        /// line.append(round(HrvTime, 3)).append(",").append(lastGoodRR).append(",").append(round(60.0 / lastGoodRR, 3)).append("\n");
                                     }
                                     index++;
                                 }
@@ -790,7 +805,7 @@ public class fit2gpx extends Component {
                             }
 
                             if (!EmptyLine) {
-                                activity.add(line.toString());
+                                // activity.add(line.toString());
                             }
                             break;
 
@@ -911,7 +926,7 @@ public class fit2gpx extends Component {
                 throw new RuntimeException(e);
             }
 
-            switch (OutputFormat) {
+            switch (OutputFormat) {     // format output from buffer to text
                 case 0:
                     if(!OnlyHRandTime) {
                         activity.add(0, out_csv_head);
@@ -925,9 +940,23 @@ public class fit2gpx extends Component {
                     break;
                 case 2:
                     //activity.add(0, out_hr_head); // пишем без заголовка для склеивания файлов
+                    for(Map.Entry m: monitor_hr_buffer.entrySet()){
+                        activity.add(m.getKey() + ";" + m.getValue());
+                        System.out.println(m.getKey()+" | "+m.getValue()); // TODO
+                    }
                     break;
                 case 3:
                     activity.add(0, out_hrv_head); // заголовок IBI файла вариабельности ЧСС
+                    for(Map.Entry m: hrv_rr_buffer.entrySet()){
+                        String line = (String) m.getKey();
+                        String[] l = (String[]) m.getValue();
+                        for(String s:l){
+                            line += "," + s;
+                        }
+                        activity.add(line);
+                     //   System.out.println(m.getKey()+" | "+ Arrays.toString(l)); // TODO
+                        System.out.println(line);
+                    }
                     break;
             }
 
@@ -983,16 +1012,21 @@ public class fit2gpx extends Component {
 
             try {
 
-                File OutputGPXfile = new File(OutputFileName);
+                File OutputFile = new File(OutputFileName);
 
-                if (!OutputGPXfile.exists()) {
-                    if(!OutputGPXfile.createNewFile()) {return 73;}
+                if (!OutputFile.exists()) {
+                    if(!OutputFile.createNewFile()) {return 73;}
                 }
 
-                try (PrintWriter OutWriter = new PrintWriter(OutputGPXfile.getAbsoluteFile())) {
+                try { // пытаемся записать в файл
+                    BufferedWriter OutWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(OutputFile, false), StandardCharsets.UTF_8));
+                    for (String s : activity) {
+                        OutWriter.write(s + System.lineSeparator());
+                    }
+                    OutWriter.close();
 
-                    activity.forEach(OutWriter::write);
-
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
 
             } catch (IOException e) {
