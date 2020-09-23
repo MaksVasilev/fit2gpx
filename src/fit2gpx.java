@@ -36,7 +36,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.1";
+    static final String _version_ = "0.1.2";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -99,6 +99,12 @@ public class fit2gpx extends Component {
                 try {
                     converter.setFilterHRV(Integer.parseInt(Filter[1]));
                 } catch (Exception ignored3) {}
+            }
+            if ( arg.startsWith("--iso-date=")) {
+                String[] isodate = arg.split("=", 2);
+                if(isodate[1].equals("no") || isodate[1].equals("n")) {
+                    converter.setUseISOdate(false);
+                } else converter.setUseISOdate(true);
             }
         }
 
@@ -218,11 +224,16 @@ public class fit2gpx extends Component {
 
         final ArrayList<String> activity = new ArrayList<>();
         private Date TimeStamp = new Date();
+        private boolean useISOdate = true;
 
-        private final SimpleDateFormat DateFormatCSV = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss");  // формат вывода в csv
-        private final SimpleDateFormat DateFormatCSVms = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss.SSS");  // формат вывода в csv с милисекундами
+        private final SimpleDateFormat nonISODateFormatCSV = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss");  // формат вывода в csv
+        private final SimpleDateFormat nonISODateFormatCSVms = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss.SSS");  // формат вывода в csv с милисекундами
+        private final SimpleDateFormat ISODateFormatCSV = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");  // формат вывода в csv ISO/ГОСТ
+        private final SimpleDateFormat ISODateFormatCSVms = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");  // формат вывода в csv с милисекундами ISO/ГОСТ
         private final SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
         private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
+        private SimpleDateFormat DateFormatCSV = ISODateFormatCSV;
+        private SimpleDateFormat DateFormatCSVms = ISODateFormatCSVms;
 
         private String InputFITfileName;
         private String OutputFileName;
@@ -279,6 +290,17 @@ public class fit2gpx extends Component {
                 needOffset = false;
                 
                 //e.printStackTrace();
+            }
+        }
+
+        void setUseISOdate(boolean b) {
+            useISOdate = b;
+            if(b) {
+                DateFormatCSV = ISODateFormatCSV;
+                DateFormatCSVms = ISODateFormatCSVms;
+            } else {
+                DateFormatCSV = nonISODateFormatCSV;
+                DateFormatCSVms = nonISODateFormatCSVms;
             }
         }
         
@@ -817,7 +839,7 @@ public class fit2gpx extends Component {
                                         line.append(";").append(mesg.getFieldIntegerValue(3)); } else { line.append(";"); }
 
                                     if(mesg.getFieldStringValue(2) != null) { // 227.2 - ?
-                                        line.append(";").append(mesg.getFieldStringValue(2)); } else { line.append(";"); }
+                                        line.append(";").append(mesg.getFieldDoubleValue(2) / 100.0); } else { line.append(";"); }
 
                                     if(mesg.getFieldStringValue(4) != null) { // 227.4 - ?, always = 1?
                                         line.append(";").append(mesg.getFieldStringValue(4)); } else { line.append(";"); }
