@@ -228,6 +228,26 @@ public class fit2gpx extends Component {
         final ArrayList<String> activity = new ArrayList<>();
         private final Map<String,String> short_buffer = new TreeMap<>();
         private final Map<String,String[]> array_buffer = new TreeMap<>();
+        private final Map<String,Map<String,String>> full_buffer = new TreeMap<>();
+
+        private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+                "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
+                "left_right_balance","left_power_phase","right_power_phase","left_power_phase_peak","right_power_phase_peak",
+                "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness","left_pco","right_pco"};
+
+        private static final String[] fieldnames_for_out = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+                "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
+                "left_right_balance","left_right_balance_persent","left_power_phase_start","left_power_phase_end","right_power_phase_start",
+                "right_power_phase_end","left_power_phase_peak_start","left_power_phase_peak_end","right_power_phase_peak_start","right_power_phase_peak_end",
+                "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness","left_pco","right_pco",
+                "respiratory","performance_contition","field_num_61","field_num_66"};
+
+        private static final Integer[] fieldindex = {
+                108,    // Respiratory
+                90,     // Performance Contition
+                61,     // ?
+                66      // ?
+        };
 
         private Date TimeStamp = new Date();
         private boolean useISOdate = true;
@@ -327,6 +347,7 @@ public class fit2gpx extends Component {
             int writeStatus = this.write();
             activity.clear();
             short_buffer.clear();
+            full_buffer.clear();
             array_buffer.clear();
 
             return writeStatus;
@@ -475,7 +496,75 @@ public class fit2gpx extends Component {
                             }
                             break;
 
-                        case 0: // Table output - CSV format
+                        case 0:
+
+
+                            if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
+
+                                Map<String,String> fields = new HashMap<>();
+
+                                TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+
+                                // fields.put("timestamp",DateFormatCSV.format(TimeStamp));
+
+                               // final Number lat = semicircleToDegree(mesg.getField("position_lat"));
+                               // final Number lon = semicircleToDegree(mesg.getField("position_long"));
+
+ /*                               if (lat != null && lon != null) {
+                                    fields.put("position_lat",lat.toString());
+                                    fields.put("position_long",lon.toString());
+                                }
+*/
+                                for(String field:fieldnames) {
+                                    if(mesg.getFieldStringValue(field) != null) {
+                                        String value = mesg.getFieldStringValue(field);
+                                        if(field.equals("position_lat") || field.equals("position_long")) {
+                                            value = semicircleToDegree(mesg.getField(field)).toString();
+                                        }
+                                        if(field.equals("left_power_phase") || field.equals("right_power_phase") ||
+                                                field.equals("left_power_phase_peak") || field.equals("right_power_phase_peak")) {
+                                            fields.put(field + "_start",mesg.getFieldStringValue(field,0));
+                                            fields.put(field + "_end",mesg.getFieldStringValue(field,1));
+//                                            System.out.println("String Found: " + field + "_start" + " = " + mesg.getFieldStringValue(field,0));
+//                                            System.out.println("String Found: " + field + "_end" + " = " + mesg.getFieldStringValue(field,1));
+                                        } else if (field.equals("left_right_balance")) {
+                                            fields.put(field,value);
+                                            fields.put(field + "_persent",String.valueOf((mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0));
+//                                            System.out.println("String Found: " + field + " = " + value);
+//                                            System.out.println("String Found: " + field + "_persent = " + String.valueOf((mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0));
+                                        } else {
+                                            fields.put(field,value);
+//                                            System.out.println("String Found: " + field + " = " + value);
+                                            }
+                                        }
+                                    }
+                                for(Integer field:fieldindex) {
+                                    if(mesg.getFieldStringValue(field) != null) {
+                                        String value = mesg.getFieldStringValue(field);
+                                        if(field == 108) {
+                                            fields.put("respiratory",value);
+                                        } else if(field == 90) {
+                                            fields.put("performance_contition",value);
+                                        } else {
+                                            fields.put("field_num_" + field, value);
+                                        }
+//                                        System.out.println("Integer Found: " + field + " = " + value);
+                                    }
+                                }
+                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }
+
+                                full_buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() {
+                                    {
+                                        for (Map.Entry<String, String> n : fields.entrySet()) {
+                                            put(n.getKey(), n.getValue());
+                                        }
+                                    }
+                                });
+                            }
+
+                            break;
+
+                        case 1000: // Table output - CSV format // TODO - TEMP
 
                              if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -888,8 +977,29 @@ public class fit2gpx extends Component {
 
             switch (OutputFormat) {     // format output from buffer to text
                 case 0:
-                    if(!OnlyHRandTime) {
+ /*                   if(!OnlyHRandTime) {
                         activity.add(0, out_csv_head);
+                    }
+*/
+                    String head = "time";
+                    for(String name: fieldnames_for_out) {
+                        head += ";" + name;
+                    }
+                    activity.add(0,head);
+
+                    for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()){
+                        String line;
+                        line =  m.getKey();
+//                        System.out.println("-> " + m.getKey());
+                        Map<String, String> ff = m.getValue();
+                        for(String s1: fieldnames_for_out) {
+                            line += ";";
+                            if(ff.containsKey(s1)) {
+                                line += ff.get(s1);
+//                                System.out.println(s1 + " = " + ff.get(s1));
+                            }
+                        }
+                        activity.add(line);
                     }
                     break;
                 case 1:
@@ -972,8 +1082,6 @@ public class fit2gpx extends Component {
                     case 99:
                         OutputFileName = InputFITfileName + ".DUMP.txt";
                         break;
-
-
                 }
             }
 
@@ -1005,6 +1113,23 @@ public class fit2gpx extends Component {
 
             return 0;
         }
+
+
+        private static boolean findFieldName(String name) {
+            for(String s: fieldnames){
+                if(s.equals(name))
+                    return true;
+            }
+            return false;
+        }
+        private static boolean findFieldIndex(Integer index) {
+            for(Integer i: fieldindex){
+                if(i.equals(index))
+                    return true;
+            }
+            return false;
+        }
+
 
     }
 
