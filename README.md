@@ -1,6 +1,6 @@
 # fit2gpx
 
-Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress. Версия 0.1.1
+Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress. Версия 0.1.2
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -22,6 +22,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
                 --statistic     | -s    вывод итоговой статистики в консоль
                 --csv           | -c    выходной файл будет в формате CSV
+                --iso-date=[yes|y|no|n]	использовать для CSV формата дату в формате ГОСТ ИСО 8601-2001 (ISO 8601) (по умолчанию 'yes')
                 --hr-only       | -r    выходной файл будет в формате CSV, содержимое: только ЧСС и время
                 --monitor       | -m    разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
                 --hrv           | -v    разбор файлов тренировки и запись в CSV интервалов R-R для анализа вариабельности
@@ -52,7 +53,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 # English
 
-Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress. Version 0.1.1
+Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress. Version 0.1.2
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -74,6 +75,7 @@ options:
 
                 --statistic     | -s    output of final statistics to the console
                 --csv           | -c    the output file will be in CSV format
+                --iso-date=[yes|y|no|n] use for CSV date in GOST ISO 8601 format (by default 'yes')
                 --hr-only       | -r    the output file will be in CSV format, content: heart rate and time only
                 --monitor       | -m    parsing heart rate monitoring files (not training), the output file will be in CSV format
                 --hrv           | -v    parsing training files and writing R-R intervals to CSV for variability analysis
