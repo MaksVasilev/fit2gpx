@@ -52,11 +52,6 @@ public class fit2gpx extends Component {
         ArrayList<String> FileList = new ArrayList<>();
         boolean DialogMode = true;
         boolean StatisticEnable = false;
-     //   boolean OutputCSV = false;
-     //   boolean MonitoringFIT = false;
-     //   boolean HrvFIT = false;
-     //   boolean SpO2FIT = false;
-     //   boolean SilentMode = false;
         boolean xDebug = false;
         String[] Filter = new String[3];
 
@@ -223,8 +218,7 @@ public class fit2gpx extends Component {
         private static final Integer[] fieldindex = {
                 108,    // Respiratory
                 90,     // Performance Contition
-                61,     // ?
-                66      // ?
+                61, 66    // ?
         };
 
         private static final String[] fieldnames_for_out = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
