@@ -263,13 +263,17 @@ public class fit2gpx extends Component {
         private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
         private boolean needOffset = false;
 
-        private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv, 3 = hrv-csv
+        private int OutputFormat = 1;
 
         private double lastGoodRR = 999.0;
         private double currentRR;
         private double thresholdFilterHRV = 35.0;
         private double deltaFilterHRV;
         private boolean useFilterHRV = false;
+
+        private String last_lat_fix = "";   // last_*_fix: Fix BRYTON hole in data
+        private String last_lon_fix = "";
+        private String last_ele_fix = "";
 
         void setOutputFormat(int outputFormat) {
             OutputFormat = outputFormat;
@@ -325,8 +329,15 @@ public class fit2gpx extends Component {
             short_buffer.clear();
             full_buffer.clear();
             array_buffer.clear();
+            fix_clear();
 
             return writeStatus;
+        }
+
+        private void fix_clear() {
+            last_ele_fix = "";
+            last_lat_fix = "";
+            last_lon_fix = "";
         }
 
         private int check() {   // этап проверки доступности файла
@@ -406,24 +417,28 @@ public class fit2gpx extends Component {
 
                                 TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
+                                // search all known fields (array fieldnames)
                                 for(String field:fieldnames) {
                                     if(mesg.getFieldStringValue(field) != null) {
                                         String value = mesg.getFieldStringValue(field);
                                         if(field.equals("position_lat") || field.equals("position_long")) {
                                             value = semicircleToDegree(mesg.getField(field)).toString();
                                         }
+                                        // fields with multiply values
                                         if(field.equals("left_power_phase") || field.equals("right_power_phase") ||
                                                 field.equals("left_power_phase_peak") || field.equals("right_power_phase_peak")) {
                                             fields.put(field + "_start",mesg.getFieldStringValue(field,0));
                                             fields.put(field + "_end",mesg.getFieldStringValue(field,1));
                                         } else if (field.equals("left_right_balance")) {
                                             fields.put(field,value);
+                                            // human readable balance
                                             fields.put(field + "_persent",String.valueOf((mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0));
                                         } else {
                                             fields.put(field,value);
                                             }
                                         }
                                     }
+                                // for field without name and unknown fields use list of indexes
                                 for(Integer field:fieldindex) {
                                     if(mesg.getFieldStringValue(field) != null) {
                                         String value = mesg.getFieldStringValue(field);
@@ -436,10 +451,34 @@ public class fit2gpx extends Component {
                                         }
                                     }
                                 }
-                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }
+
+                                // fix BRYTON hole in data: lat/lon part (#1)
+                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) {
+                                    last_lat_fix = fields.get("position_lat");
+                                    last_lon_fix = fields.get("position_long");
+                                    EmptyTrack = false;
+                                } else if(!last_lat_fix.equals("") && !last_lon_fix.equals("")) {
+                                    fields.put("position_lat",last_lat_fix);
+                                    fields.put("position_long",last_lon_fix);
+                                }
+
+                                // use altitude only if it present and enhanced_altitude not (#13)
+                                if(fields.get("altitude") != null && fields.get("enhanced_altitude") == null) { fields.put("enhanced_altitude",fields.get("altitude")); } ;
+
+                                // use speed only if it present and enhanced_speed not (#13)
+                                if(fields.get("speed") != null && fields.get("enhanced_speed") == null) { fields.put("enhanced_speed",fields.get("speed")); }
+
+                                // fix BRYTON hole in data: elevation part (#1)
+                                if(fields.containsKey("enhanced_altitude")) {
+                                    last_ele_fix = fields.get("enhanced_altitude");
+                                } else if(!last_ele_fix.equals("")) {
+                                    fields.put("altitude",last_ele_fix);
+                                    fields.put("enhanced_altitude",last_ele_fix);
+                                }
 
                                 String RecordedDate = DateFormatCSV.format(TimeStamp);
 
+                                // if records with this time already present, then merge existing key=value to current set
                                 if(full_buffer.containsKey(RecordedDate)) {
                                     for(String key:full_buffer.get(RecordedDate).keySet()) {
                                         fields.put(key, full_buffer.get(RecordedDate).get(key));
@@ -448,6 +487,7 @@ public class fit2gpx extends Component {
 
                                 full_buffer.put(RecordedDate, new HashMap<>() {
                                     {
+                                        // GPXtime - need to use in GPX output only, not sensitive to --iso-date=y/n !
                                         put("GPXtime",DateFormatGPX.format(TimeStamp));
                                         for (Map.Entry<String, String> n : fields.entrySet()) {
                                             put(n.getKey(), n.getValue());
