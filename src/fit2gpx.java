@@ -508,21 +508,28 @@ public class fit2gpx extends Component {
                                     }
                                 }
 
-                                // fix BRYTON hole in data: lat/lon part (#1)
-                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) {
-                                    last_lat_fix = fields.get("position_lat");
-                                    last_lon_fix = fields.get("position_long");
-                                    EmptyTrack = false;
-                                } else if(!last_lat_fix.equals("") && !last_lon_fix.equals("")) {
-                                    fields.put("position_lat",last_lat_fix);
-                                    fields.put("position_long",last_lon_fix);
-                                }
-
                                 // use altitude only if it present and enhanced_altitude not (#13)
                                 if(fields.get("altitude") != null && fields.get("enhanced_altitude") == null) { fields.put("enhanced_altitude",fields.get("altitude")); } ;
 
                                 // use speed only if it present and enhanced_speed not (#13)
                                 if(fields.get("speed") != null && fields.get("enhanced_speed") == null) { fields.put("enhanced_speed",fields.get("speed")); }
+
+                                // fix BRYTON hole in data: lat/lon part (#1)
+                                double speed;
+                                try {
+                                    speed = Double.parseDouble(fields.get("enhanced_speed"));
+                                } catch (Exception ignore) {
+                                    speed = 0.0;
+                                }
+
+                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) {
+                                    last_lat_fix = fields.get("position_lat");
+                                    last_lon_fix = fields.get("position_long");
+                                    EmptyTrack = false;
+                                } else if(!last_lat_fix.equals("") && !last_lon_fix.equals("") && speed == 0.0) {
+                                        fields.put("position_lat", last_lat_fix);
+                                        fields.put("position_long", last_lon_fix);
+                                }
 
                                 // fix BRYTON hole in data: elevation part (#1)
                                 if(fields.containsKey("enhanced_altitude")) {
