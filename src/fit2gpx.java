@@ -34,7 +34,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.2";
+    static final String _version_ = "0.1.3 - unstable!";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -67,7 +67,7 @@ public class fit2gpx extends Component {
         OpenTitle[3] = tr.getString("OpenTitleHRV");
         OpenTitle[4] = tr.getString("OpenTitleOxy");
         OpenTitle[5] = tr.getString("OpenTitleStress");
-        OpenTitle[90] = tr.getString("OpenTitleHR");
+        OpenTitle[6] = tr.getString("OpenTitleHR");
         OpenTitle[99] = tr.getString("OpenTitleDebug");
 
         Converter converter = new Converter();
@@ -83,7 +83,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--hrv-filter") || arg.equals("-f")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
             if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
             if ( arg.equals("--stress") || arg.equals("-i")) { converter.setOutputFormat(5);  }
-            if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOnlyHRandTime(true); converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOutputFormat(6); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
             if ( arg.equals("--full-dump")) { converter.setOutputFormat(99);  }
@@ -136,9 +136,6 @@ public class fit2gpx extends Component {
             chooser.setLocale(Locale.getDefault());
 
             chooser.setDialogTitle((OpenTitle[converter.OutputFormat]));
-            if(converter.OnlyHRandTime) {
-                chooser.setDialogTitle(OpenTitle[90]);
-            }
             chooser.setApproveButtonText(tr.getString("Open"));
             chooser.setPreferredSize(new Dimension(1200,600));
 
@@ -173,13 +170,10 @@ public class fit2gpx extends Component {
             }
 
             int MessageType = JOptionPane.INFORMATION_MESSAGE;
-
             if(converterResult.getEmptyFilesCount() > 0) {MessageType = JOptionPane.WARNING_MESSAGE;}
-
             if(converterResult.getBadFilesCount() > 0) {MessageType = JOptionPane.ERROR_MESSAGE;}
 
             JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), tr.getString("ConvResult"), MessageType);
-
         }
     }
 
@@ -216,15 +210,6 @@ public class fit2gpx extends Component {
         private final String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
         private final String out_gpx_tail = "\n  </trkseg>\n </trk>\n</gpx>";
 
-        private final String out_csv_head = "time;lat;lon;altitude;enhanced_altitude;speed;enhanced_speed;grade;cadence;fractional_cadence;distance;temperature;calories;heart_rate;respiratory;" +
-                "performance_contition;power;accumulated_power_kJ;left_right_balance;left_right_balance_persent;left_torque_effectiveness;right_torque_effectiveness;left_pedal_smoothness;right_pedal_smoothness;" +
-                "left_pco;right_pco;left_power_phase_start;left_power_phase_end;right_power_phase_start;right_power_phase_end;" +
-                "left_power_phase_peak_start;left_power_phase_peak_end;right_power_phase_peak_start;right_power_phase_peak_end;" +
-                "field_num_61;field_num_66\n";
-
-        private final String out_hr_head = "time;hr\n";
-        private final String out_hrv_head = "Timestamp,Time,RR,HR";
-
         final ArrayList<String> activity = new ArrayList<>();
         private final Map<String,String> short_buffer = new TreeMap<>();
         private final Map<String,String[]> array_buffer = new TreeMap<>();
@@ -250,8 +235,6 @@ public class fit2gpx extends Component {
         };
 
         private Date TimeStamp = new Date();
-        private boolean useISOdate = true;
-
         private final SimpleDateFormat nonISODateFormatCSV = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss");  // формат вывода в csv
         private final SimpleDateFormat nonISODateFormatCSVms = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss.SSS");  // формат вывода в csv с милисекундами
         private final SimpleDateFormat ISODateFormatCSV = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");  // формат вывода в csv ISO/ГОСТ
@@ -282,7 +265,6 @@ public class fit2gpx extends Component {
         private boolean needOffset = false;
 
         private int OutputFormat = 1;   // формат вывода, по умолчанию 1 = gpx, 0 = csv, 2 = hr-csv, 3 = hrv-csv
-        private boolean OnlyHRandTime = false;
 
         private double lastGoodRR = 999.0;
         private double currentRR;
@@ -301,10 +283,6 @@ public class fit2gpx extends Component {
             }
         }
         void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
-        void setOnlyHRandTime(boolean onlyHRandTime) {OnlyHRandTime = onlyHRandTime;}
-
-        //public void setOutputGPXfileName(String outputGPXfileName) {OutputGPXfileName = String.valueOf(outputGPXfileName);}
-        //public String getOutputGPXfileName() {return OutputGPXfileName;}
         String getInputFITfileName() {return InputFITfileName;}
         
         public void setNewFileTime(String newtime) {
@@ -320,7 +298,6 @@ public class fit2gpx extends Component {
         }
 
         void setUseISOdate(boolean b) {
-            useISOdate = b;
             if(b) {
                 DateFormatCSV = ISODateFormatCSV;
                 DateFormatCSVms = ISODateFormatCSVms;
@@ -408,13 +385,14 @@ public class fit2gpx extends Component {
                 }
 
                 if (mesg.getManufacturer() != null) {
-                    _Manufacturer = " (" + FitTools.manufacturerById(mesg.getManufacturer()) + ")";
+                    _Manufacturer = " (" + Manufacturer.getStringFromValue(mesg.getManufacturer()) + ")";
                 }
 
                 if (mesg.getProduct() != null) {
-                    _Product = FitTools.productById(mesg.getProduct()) + _Manufacturer;
+                    _Product = GarminProduct.getStringFromValue(mesg.getProduct()) + _Manufacturer;
                 }
                 DeviceCreator = _Product;
+                System.out.println(_Product);
             };
 
             MesgListener mesgListener = mesg -> {
@@ -496,8 +474,7 @@ public class fit2gpx extends Component {
                             }
                             break;
 
-                        case 0:
-
+                        case 0: // Table output - CSV format TODO OnlyHRandTime
 
                             if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -505,16 +482,6 @@ public class fit2gpx extends Component {
 
                                 TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                                // fields.put("timestamp",DateFormatCSV.format(TimeStamp));
-
-                               // final Number lat = semicircleToDegree(mesg.getField("position_lat"));
-                               // final Number lon = semicircleToDegree(mesg.getField("position_long"));
-
- /*                               if (lat != null && lon != null) {
-                                    fields.put("position_lat",lat.toString());
-                                    fields.put("position_long",lon.toString());
-                                }
-*/
                                 for(String field:fieldnames) {
                                     if(mesg.getFieldStringValue(field) != null) {
                                         String value = mesg.getFieldStringValue(field);
@@ -525,16 +492,11 @@ public class fit2gpx extends Component {
                                                 field.equals("left_power_phase_peak") || field.equals("right_power_phase_peak")) {
                                             fields.put(field + "_start",mesg.getFieldStringValue(field,0));
                                             fields.put(field + "_end",mesg.getFieldStringValue(field,1));
-//                                            System.out.println("String Found: " + field + "_start" + " = " + mesg.getFieldStringValue(field,0));
-//                                            System.out.println("String Found: " + field + "_end" + " = " + mesg.getFieldStringValue(field,1));
                                         } else if (field.equals("left_right_balance")) {
                                             fields.put(field,value);
                                             fields.put(field + "_persent",String.valueOf((mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0));
-//                                            System.out.println("String Found: " + field + " = " + value);
-//                                            System.out.println("String Found: " + field + "_persent = " + String.valueOf((mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0));
                                         } else {
                                             fields.put(field,value);
-//                                            System.out.println("String Found: " + field + " = " + value);
                                             }
                                         }
                                     }
@@ -548,7 +510,6 @@ public class fit2gpx extends Component {
                                         } else {
                                             fields.put("field_num_" + field, value);
                                         }
-//                                        System.out.println("Integer Found: " + field + " = " + value);
                                     }
                                 }
                                 if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }
@@ -564,7 +525,18 @@ public class fit2gpx extends Component {
 
                             break;
 
-                        case 1000: // Table output - CSV format // TODO - TEMP
+                        case 6: // Table output - Only HR and Time from actyvites
+
+                            if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
+                                if (mesg.getFieldStringValue("heart_rate") != null) {
+                                    TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+                                    short_buffer.put(DateFormatCSV.format(TimeStamp), mesg.getFieldStringValue("heart_rate"));
+                                    EmptyTrack = false;
+                                }
+                            }
+                           break;
+/*
+                        case 1000: // Table output - CSV format
 
                              if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -813,7 +785,7 @@ public class fit2gpx extends Component {
                                 }
                             }
                             break;
-
+*/
                         case 2:  // monitor HR data
 
                             if(mesg.getName().equals("monitoring")) {
@@ -977,10 +949,6 @@ public class fit2gpx extends Component {
 
             switch (OutputFormat) {     // format output from buffer to text
                 case 0:
- /*                   if(!OnlyHRandTime) {
-                        activity.add(0, out_csv_head);
-                    }
-*/
                     String head = "time";
                     for(String name: fieldnames_for_out) {
                         head += ";" + name;
@@ -990,13 +958,11 @@ public class fit2gpx extends Component {
                     for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()){
                         String line;
                         line =  m.getKey();
-//                        System.out.println("-> " + m.getKey());
                         Map<String, String> ff = m.getValue();
                         for(String s1: fieldnames_for_out) {
                             line += ";";
                             if(ff.containsKey(s1)) {
                                 line += ff.get(s1);
-//                                System.out.println(s1 + " = " + ff.get(s1));
                             }
                         }
                         activity.add(line);
@@ -1008,14 +974,15 @@ public class fit2gpx extends Component {
                     activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
                     activity.add(out_gpx_tail);
                     break;
-                case 2:     // monitor HR
-                case 4:     // monitor SpO2
+                case 2:     // monitor: HR
+                case 4:     // monitor: SpO2
+                case 6:     // activity: Only HR
                     for(Map.Entry m: short_buffer.entrySet()){
                         activity.add(m.getKey() + ";" + m.getValue());
                     }
                     break;
-                case 3:     // activity HRV (R-R)
-                    activity.add(0, out_hrv_head); // заголовок IBI файла вариабельности ЧСС
+                case 3:     // activity: HRV (R-R)
+                    activity.add(0, "Timestamp,Time,RR,HR"); // заголовок IBI файла вариабельности ЧСС
                     for(Map.Entry m: array_buffer.entrySet()){
                         String line = (String) m.getKey();
                         String[] l = (String[]) m.getValue();
@@ -1025,7 +992,7 @@ public class fit2gpx extends Component {
                         activity.add(line);
                     }
                     break;
-                case 5:     // monitor Garmin Stress Index
+                case 5:     // monitor: Garmin Stress Index
                     for(Map.Entry m: array_buffer.entrySet()){
                         String line = (String) m.getKey();
                         String[] l = (String[]) m.getValue();
@@ -1044,7 +1011,6 @@ public class fit2gpx extends Component {
 
             if (EmptyTrack && !SaveIfEmpty) {
                 return 201;
-                // System.exit(200);
             }
 
             if (EmptyTrack) {
@@ -1058,11 +1024,7 @@ public class fit2gpx extends Component {
 
                 switch (OutputFormat) {
                     case 0:
-                        if(!OnlyHRandTime) {
-                            OutputFileName = InputFITfileName + ".csv";
-                        } else {
-                            OutputFileName = InputFITfileName + ".HR.csv";
-                        }
+                        OutputFileName = InputFITfileName + ".csv";
                         break;
                     case 1:
                         OutputFileName = InputFITfileName + ".gpx";
@@ -1078,6 +1040,9 @@ public class fit2gpx extends Component {
                         break;
                     case 5:
                         OutputFileName = InputFITfileName + ".GSI.csv";
+                        break;
+                    case 6:
+                        OutputFileName = InputFITfileName + ".HR.csv";
                         break;
                     case 99:
                         OutputFileName = InputFITfileName + ".DUMP.txt";
@@ -1129,7 +1094,6 @@ public class fit2gpx extends Component {
             }
             return false;
         }
-
 
     }
 
