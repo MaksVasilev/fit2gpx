@@ -34,7 +34,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.3 - unstable!";
+    static final String _version_ = "0.1.4";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -316,28 +316,88 @@ public class fit2gpx extends Component {
 
         int run() {  // Основной поэтапный цикл работы конвертера
 
-            int checkStatus = this.check();
+            int checkStatus = this.check();     // check file
             if(checkStatus != 0) {return checkStatus;}
 
             EmptyTrack = true;
 
-            int readStatus = this.read();
+            int readStatus = this.read();       // read file to buffer
             if(readStatus !=0) {return readStatus;}
 
-            int writeStatus = this.write();
-            activity.clear();
-            short_buffer.clear();
-            full_buffer.clear();
-            array_buffer.clear();
-            fix_clear();
+            int fixstatus = this.fix();         // try to fix data in non corrupted file
+            if(fixstatus !=0) {return fixstatus;}
+
+            int formatstatus = this.format();   // format output to write in file
+            if(formatstatus !=0) {return formatstatus;}
+
+            int writeStatus = this.write();     // write buffer to out
+
+            converter_clear();           // clean for reuse in loop
 
             return writeStatus;
         }
 
-        private void fix_clear() {
+        private void converter_clear() {
+            activity.clear();
+            short_buffer.clear();
+            full_buffer.clear();
+            array_buffer.clear();
             last_ele_fix = "";
             last_lat_fix = "";
             last_lon_fix = "";
+        }
+
+        private int fix() {             // fix various error and hole in data (#1, #17)
+
+            switch (OutputFormat) {
+                case 0: // Table output - CSV format
+                case 1: // Standart Garmin point exchange format GPX
+
+                    // fill all null lat/lon data before first real coordinates to this
+                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                        if(m.getValue().get("position_lat") != null && m.getValue().get("position_long") != null) {
+                            String first_latlon = m.getKey();
+                            String lat = m.getValue().get("position_lat");
+                            String lon = m.getValue().get("position_long");
+                            Map<String,String> row;
+                            for(Map.Entry<String,Map<String,String>> n:full_buffer.entrySet()) {
+                                if(!n.getKey().equals(first_latlon)) {
+                                    row = n.getValue();
+                                    row.put("position_lat",lat);
+                                    row.put("position_long",lon);
+                                    full_buffer.put(n.getKey(),row);
+                                } else {
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    // fill all null elevation data before first real ele to this ele
+                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                        if(m.getValue().get("enhanced_altitude") != null) {
+                            String first_ele = m.getKey();
+                            String ele = m.getValue().get("altitude");
+                            Map<String,String> row;
+                            for(Map.Entry<String,Map<String,String>> n:full_buffer.entrySet()) {
+                                if(!n.getKey().equals(first_ele)) {
+                                    row = n.getValue();
+                                    row.put("enhanced_altitude",ele);
+                                    row.put("altitude",ele);
+                                    full_buffer.put(n.getKey(),row);
+                                } else {
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    break;
+            }
+
+            return 0;
         }
 
         private int check() {   // этап проверки доступности файла
@@ -665,6 +725,10 @@ public class fit2gpx extends Component {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+            return 0;
+        }
+
+        private int format() {
 
             switch (OutputFormat) {     // format output from buffer to text
 
