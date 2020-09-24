@@ -211,8 +211,9 @@ public class fit2gpx extends Component {
         private final Map<String,Map<String,String>> full_buffer = new TreeMap<>();
 
         private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+                "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
                 "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
-                "left_right_balance","left_power_phase","right_power_phase","left_power_phase_peak","right_power_phase_peak",
+                "left_right_balance","left_power_phase","right_power_phase","left_power_phase_peak","right_power_phase_peak",       // bike dinamics
                 "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness","left_pco","right_pco"};
 
         private static final Integer[] fieldindex = {
@@ -222,6 +223,7 @@ public class fit2gpx extends Component {
         };
 
         private static final String[] fieldnames_for_out = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+                "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
                 "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
                 "left_right_balance","left_right_balance_persent","left_power_phase_start","left_power_phase_end","right_power_phase_start",
                 "right_power_phase_end","left_power_phase_peak_start","left_power_phase_peak_end","right_power_phase_peak_start","right_power_phase_peak_end",
