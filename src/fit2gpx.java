@@ -438,7 +438,15 @@ public class fit2gpx extends Component {
                                 }
                                 if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }
 
-                                full_buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() {
+                                String RecordedDate = DateFormatCSV.format(TimeStamp);
+
+                                if(full_buffer.containsKey(RecordedDate)) {
+                                    for(String key:full_buffer.get(RecordedDate).keySet()) {
+                                        fields.put(key, full_buffer.get(RecordedDate).get(key));
+                                    }
+                                }
+
+                                full_buffer.put(RecordedDate, new HashMap<>() {
                                     {
                                         put("GPXtime",DateFormatGPX.format(TimeStamp));
                                         for (Map.Entry<String, String> n : fields.entrySet()) {
@@ -647,7 +655,11 @@ public class fit2gpx extends Component {
                     activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
 
                     for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
-                        activity.add("   <trkpt lat=\"{lat}\"".replace("{lat}",m.getValue().get("position_lat")) + " lon=\"{lon}\">".replace("{lon}",m.getValue().get("position_long")));
+                        if(m.getValue().get("position_lat") != null && m.getValue().get("position_long") != null) {
+                            activity.add("   <trkpt lat=\"{lat}\"".replace("{lat}", m.getValue().get("position_lat")) + " lon=\"{lon}\">".replace("{lon}", m.getValue().get("position_long")));
+                        } else {
+                            activity.add("   <trkpt lat=\"\"" + " lon=\"\">");
+                        }
                         activity.add("    <time>{time}</time>".replace("{time}",m.getValue().get("GPXtime")));
                         if(m.getValue().get("enhanced_altitude") != null) { activity.add("    <ele>{enhanced_altitude}</ele>".replace("{enhanced_altitude}",m.getValue().get("enhanced_altitude"))); }
                         boolean extention = m.getValue().get("power") != null || m.getValue().get("enhanced_speed") != null;
