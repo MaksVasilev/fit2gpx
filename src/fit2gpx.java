@@ -343,11 +343,53 @@ public class fit2gpx extends Component {
             last_lon_fix = "";
         }
 
-        private int fix() {             // fix various error and hole in data (#1, #17)
+        private int fix() {             // fix various error and hole in data (#1, #13, #17)
 
             switch (OutputFormat) {
                 case 0: // Table output - CSV format
                 case 1: // Standart Garmin point exchange format GPX
+
+                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                        Map<String,String> row1 = m.getValue();
+
+                        // use altitude only if it present and enhanced_altitude not (#13)
+                        if (row1.get("altitude") != null && row1.get("enhanced_altitude") == null) {
+                            row1.put("enhanced_altitude", row1.get("altitude"));
+                        }
+
+                        // use speed only if it present and enhanced_speed not (#13)
+                        if (row1.get("speed") != null && row1.get("enhanced_speed") == null) {
+                            row1.put("enhanced_speed", row1.get("speed"));
+                        }
+                        
+                        // fix BRYTON hole in data: lat/lon (#1)
+                        double speed;
+                        try {
+                            speed = Double.parseDouble(row1.get("enhanced_speed"));
+                        } catch (Exception ignore) {
+                            speed = 0.0;
+                        }
+
+                        if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {
+                            last_lat_fix = row1.get("position_lat");
+                            last_lon_fix = row1.get("position_long");
+                            EmptyTrack = false;
+                        } else if (!last_lat_fix.equals("") && !last_lon_fix.equals("") && speed == 0.0) {
+                            row1.put("position_lat", last_lat_fix);
+                            row1.put("position_long", last_lon_fix);
+                        }
+
+                        // fix BRYTON hole in data: elevation (#1)
+                        if (row1.containsKey("enhanced_altitude")) {
+                            last_ele_fix = row1.get("enhanced_altitude");
+                        } else if (!last_ele_fix.equals("")) {
+                            row1.put("altitude", last_ele_fix);
+                            row1.put("enhanced_altitude", last_ele_fix);
+                        }
+
+                        full_buffer.put(m.getKey(), new HashMap<>() { { row1.forEach(this::put); } });
+                        row1.clear();
+                    }
 
                     // fill all null lat/lon data before first real coordinates to this
                     for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
@@ -355,14 +397,14 @@ public class fit2gpx extends Component {
                             String first_latlon = m.getKey();
                             String lat = m.getValue().get("position_lat");
                             String lon = m.getValue().get("position_long");
-                            Map<String,String> row;
+                            
                             for(Map.Entry<String,Map<String,String>> n:full_buffer.entrySet()) {
                                 if(!n.getKey().equals(first_latlon)) {
-                                    row = n.getValue();
-                                    row.put("position_lat",lat);
-                                    row.put("position_long",lon);
-                                    full_buffer.put(n.getKey(),row);
-                                } else {
+                                    Map<String,String> row2 = n.getValue();
+                                    row2.put("position_lat",lat);
+                                    row2.put("position_long",lon);
+                                    full_buffer.put(n.getKey(), new HashMap<>() { { row2.forEach(this::put); } });
+                                 } else {
                                     break;
                                 }
                             }
@@ -375,13 +417,13 @@ public class fit2gpx extends Component {
                         if(m.getValue().get("enhanced_altitude") != null) {
                             String first_ele = m.getKey();
                             String ele = m.getValue().get("altitude");
-                            Map<String,String> row;
+                            
                             for(Map.Entry<String,Map<String,String>> n:full_buffer.entrySet()) {
                                 if(!n.getKey().equals(first_ele)) {
-                                    row = n.getValue();
-                                    row.put("enhanced_altitude",ele);
-                                    row.put("altitude",ele);
-                                    full_buffer.put(n.getKey(),row);
+                                    Map<String,String> row3 = n.getValue();
+                                    row3.put("enhanced_altitude",ele);
+                                    row3.put("altitude",ele);
+                                    full_buffer.put(n.getKey(), new HashMap<>() { { row3.forEach(this::put); } });
                                 } else {
                                     break;
                                 }
@@ -389,10 +431,8 @@ public class fit2gpx extends Component {
                             break;
                         }
                     }
-
                     break;
             }
-
             return 0;
         }
 
@@ -491,9 +531,11 @@ public class fit2gpx extends Component {
                                             fields.put(field + "_persent",String.valueOf((mesg.getFieldDoubleValue("left_right_balance") / 3.6) - 50.0));
                                         } else {
                                             fields.put(field,value);
+                                            // System.out.println(field + "|" + value);
                                             }
                                         }
                                     }
+
                                 // for field without name and unknown fields use list of indexes
                                 for(Integer field:fieldindex) {
                                     if(mesg.getFieldStringValue(field) != null) {
@@ -508,53 +550,23 @@ public class fit2gpx extends Component {
                                     }
                                 }
 
-                                // use altitude only if it present and enhanced_altitude not (#13)
-                                if(fields.get("altitude") != null && fields.get("enhanced_altitude") == null) { fields.put("enhanced_altitude",fields.get("altitude")); } ;
-
-                                // use speed only if it present and enhanced_speed not (#13)
-                                if(fields.get("speed") != null && fields.get("enhanced_speed") == null) { fields.put("enhanced_speed",fields.get("speed")); }
-
-                                // fix BRYTON hole in data: lat/lon part (#1)
-                                double speed;
-                                try {
-                                    speed = Double.parseDouble(fields.get("enhanced_speed"));
-                                } catch (Exception ignore) {
-                                    speed = 0.0;
-                                }
-
-                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) {
-                                    last_lat_fix = fields.get("position_lat");
-                                    last_lon_fix = fields.get("position_long");
-                                    EmptyTrack = false;
-                                } else if(!last_lat_fix.equals("") && !last_lon_fix.equals("") && speed == 0.0) {
-                                        fields.put("position_lat", last_lat_fix);
-                                        fields.put("position_long", last_lon_fix);
-                                }
-
-                                // fix BRYTON hole in data: elevation part (#1)
-                                if(fields.containsKey("enhanced_altitude")) {
-                                    last_ele_fix = fields.get("enhanced_altitude");
-                                } else if(!last_ele_fix.equals("")) {
-                                    fields.put("altitude",last_ele_fix);
-                                    fields.put("enhanced_altitude",last_ele_fix);
-                                }
-
                                 String RecordedDate = DateFormatCSV.format(TimeStamp);
 
                                 // if records with this time already present, then merge existing key=value to current set
+                                // part of Bryton fixes
                                 if(full_buffer.containsKey(RecordedDate)) {
                                     for(String key:full_buffer.get(RecordedDate).keySet()) {
                                         fields.put(key, full_buffer.get(RecordedDate).get(key));
                                     }
                                 }
 
+                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }
+
                                 full_buffer.put(RecordedDate, new HashMap<>() {
                                     {
                                         // GPXtime - need to use in GPX output only, not sensitive to --iso-date=y/n !
                                         put("GPXtime",DateFormatGPX.format(TimeStamp));
-                                        for (Map.Entry<String, String> n : fields.entrySet()) {
-                                            put(n.getKey(), n.getValue());
-                                        }
+                                        fields.forEach(this::put);
                                     }
                                 });
                             }
