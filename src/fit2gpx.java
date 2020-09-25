@@ -73,14 +73,15 @@ public class fit2gpx extends Component {
             if ( arg.equals("--help") || arg.equals("-h")) { Help.usage(); }
             if ( arg.equals("--statistic") || arg.equals("-s")) {  StatisticEnable = true; }
             if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--monitor") || arg.equals("-m")) {  converter.setOutputFormat(2); }
-            if ( arg.equals("--hrv") || arg.equals("-v")) {  converter.setOutputFormat(3); }
-            if ( arg.equals("--hrv-filter") || arg.equals("-f")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
-            if ( arg.equals("--oxy") || arg.equals("-o")) { converter.setOutputFormat(4);  }
-            if ( arg.equals("--stress") || arg.equals("-i")) { converter.setOutputFormat(5);  }
-            if ( arg.equals("--hr-only") || arg.equals("-r")) {  converter.setOutputFormat(6); converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--no-dialog") || arg.equals("-n") ) {  DialogMode = false; }
-            if ( arg.equals("--save-empty") || arg.equals("-e") ) { converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  converter.setOutputFormat(2); }
+            if ( arg.equals("--hrv") || arg.equals("-vr")) {  converter.setOutputFormat(3); }
+            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
+            if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setOutputFormat(4);  }
+            if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setOutputFormat(5);  }
+            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setOutputFormat(6); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); }
+            if ( arg.equals("--no-dialog") || arg.equals("-nd") ) {  DialogMode = false; }
+            if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
             if ( arg.equals("--full-dump")) { converter.setOutputFormat(99);  }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
@@ -107,11 +108,22 @@ public class fit2gpx extends Component {
                 System.exit(204);
             }
 
+            if(xDebug) { System.out.println("Files: " + FileList.size()); }
+            if(FileList.size() < 2) { converter.setMergeOut(false); }
+            if(xDebug) { System.out.println("Merge: " + converter.getMergeOut()); }
+
+            converter.setFirstElement(true);    // for format header
+
             for (String f : FileList) {
                 if(xDebug) { System.out.println("file: " + f); }
 
-                converter.setInputFITfileName(f);
-                converterResult.add(converter.run(), converter.getInputFITfileName());
+                converter.setInputFITfileName(f);    // file to work
+                converterResult.add(converter.run(), converter.getInputFITfileName());      // run and get result
+            }
+            if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
+
+            if(converterResult.getGoodFilesCount() != 0) {
+                converter.writeEndfile();    // write tail of file
             }
 
             if(StatisticEnable) {
@@ -145,15 +157,28 @@ public class fit2gpx extends Component {
                 chooser.setFileFilter(filter);
             }
 
-
             int returnVal = chooser.showOpenDialog(chooser.getParent());
             if (returnVal == JFileChooser.APPROVE_OPTION) {
 
                 MultipleFilesList = chooser.getSelectedFiles();
 
+                if(xDebug) { System.out.println("Files: " + MultipleFilesList.length); }
+                if(MultipleFilesList.length < 2) { converter.setMergeOut(false); }
+                if(xDebug) { System.out.println("Merge: " + converter.getMergeOut()); }
+
+                converter.setFirstElement(true);    // for format header
+
                 for (File file : MultipleFilesList) {
-                    converter.setInputFITfileName(file.getAbsoluteFile().getAbsolutePath());
-                    converterResult.add(converter.run(), converter.getInputFITfileName());
+                    if(xDebug) { System.out.println("file: " + file); }
+
+                    converter.setInputFITfileName(file.getAbsoluteFile().getAbsolutePath());    // file to work
+                    converterResult.add(converter.run(), converter.getInputFITfileName());      // run and get result
+                }
+
+                if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
+
+                if(converterResult.getGoodFilesCount() != 0) {
+                    converter.writeEndfile();    // write tail of file
                 }
 
             } else {
@@ -173,6 +198,17 @@ public class fit2gpx extends Component {
     }
 
     private static class Converter {
+
+        /*
+0: Table output - CSV format
+1: Standart Garmin point exchange format GPX
+2: monitor: HR data (no headers)
+3: HRV: R-R data
+4: monitor: SpO2 data (no headers)
+5: monitor: Garmin Stress Index (GSI) data (no headers)
+6: Table output CSV format - Only HR and Time from actyvites (no headers)
+99: Full Debug - all records (only text output)
+         */
 
         private Number semicircleToDegree(Field field) {
             if (field != null && "semicircles".equals(field.getUnits())) {
@@ -203,12 +239,13 @@ public class fit2gpx extends Component {
                 "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">";
         private final String out_gpx_head1 = " <metadata>\n  <time>{time}</time>\n </metadata>";
         private final String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
-        private final String out_gpx_tail = "  </trkseg>\n </trk>\n</gpx>";
+        private final String out_gpx_tail1 = "  </trkseg>\n </trk>";
+        private final String out_gpx_tail2 = "</gpx>";
 
         final ArrayList<String> activity = new ArrayList<>();
-        private final Map<String,String> short_buffer = new TreeMap<>();
-        private final Map<String,String[]> array_buffer = new TreeMap<>();
-        private final Map<String,Map<String,String>> full_buffer = new TreeMap<>();
+        private final Map<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
+        private final Map<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
+        private final Map<String,Map<String,String>> full_buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
         private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
                 "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
@@ -246,6 +283,9 @@ public class fit2gpx extends Component {
         private FileInputStream InputStream;
         private File InputFITfile;
 
+        private boolean MergeOut = false;
+        private String OutputFileNameMerged = "";
+        private boolean firstElement = false;
         private boolean EmptyTrack = true;      // признак того, что трек не содержит координат
         private boolean SaveIfEmpty = false;     // разрешить сохранение пустого трека без точек
         private Long Local_Timestamp = 0L;      //
@@ -275,6 +315,9 @@ public class fit2gpx extends Component {
             OutputFormat = outputFormat;
         }
         void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
+        void setMergeOut(boolean merge) { MergeOut = merge; }
+        boolean getMergeOut() {return MergeOut; }
+        void setFirstElement(boolean b) { firstElement = b; }
         void setUseFilterHRV(boolean useFilter) {useFilterHRV = useFilter;}
         void setFilterHRV(Integer FilterFactor) {
             if(FilterFactor != null &&  FilterFactor > 0 && FilterFactor < 100) {
@@ -312,6 +355,8 @@ public class fit2gpx extends Component {
 
         int run() {  // Основной поэтапный цикл работы конвертера
 
+            if(this.OutputFormat == 99) { MergeOut = false; }    // don't merge out for debug!
+
             int checkStatus = this.check();     // check file
             if(checkStatus != 0) {return checkStatus;}
 
@@ -323,8 +368,8 @@ public class fit2gpx extends Component {
             int fixstatus = this.fix();         // try to fix data in non corrupted file
             if(fixstatus !=0) {return fixstatus;}
 
-            int formatstatus = this.format();   // format output to write in file
-            if(formatstatus !=0) {return formatstatus;}
+            int formatstatus = this.format(readStatus,fixstatus);   // format output to write in file
+            // if(formatstatus !=0) {return formatstatus;}
 
             int writeStatus = this.write();     // write buffer to out
 
@@ -470,7 +515,7 @@ public class fit2gpx extends Component {
             return 0;
         }
 
-        private int read() {    // попытка прочитать входной файл
+        private int read() {    // Try to read input file // Чукча-читатель
 
             Decode decode = new Decode();
 
@@ -583,7 +628,7 @@ public class fit2gpx extends Component {
                             }
                            break;
 
-                        case 2:  // monitor HR data
+                        case 2: // monitor HR data
 
                             if(mesg.getName().equals("monitoring")) {
 
@@ -602,7 +647,7 @@ public class fit2gpx extends Component {
                             }
                             break;
 
-                        case 3: // R-R data
+                        case 3: // HRV: R-R data
 
                             if (mesg.getName().equals("event") ) {
                                 if (mesg.getFieldStringValue("timestamp") != null && mesg.getFieldIntegerValue("event_type") == 0) {
@@ -743,17 +788,43 @@ public class fit2gpx extends Component {
             return 0;
         }
 
-        private int format() {
+        private int format(int readstatus, int fixstatus) {     // format output from buffer to text
 
-            switch (OutputFormat) {     // format output from buffer to text
+            if(EmptyTrack) {
+                return 100;
+            }
 
-                case 0:
-                    StringBuilder head = new StringBuilder("time");
-                    for(String name: fieldnames_for_out) {
-                        head.append(";").append(name);
-                    }
-                    activity.add(0, head.toString());
+            if(firstElement) {
+                switch (OutputFormat) {                                // format header of file
+                    case 0:     // Table output - CSV format
+                        activity.clear();
+                        StringBuilder head = new StringBuilder("time");
+                        for (String name : fieldnames_for_out) {
+                            head.append(";").append(name);
+                        }
+                        activity.add(head.toString());
+                        break;
+                    case 1:     // Standart Garmin point exchange format GPX
+                        activity.clear();
+                        activity.add(out_gpx_head.replace("{creator}", DeviceCreator));
+                        activity.add(out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
+                        break;
+                    case 3:     // activity: HRV (R-R)
+                        activity.clear();
+                        activity.add(0, "Timestamp,Time,RR,HR"); // заголовок IBI файла вариабельности ЧСС
+                        break;
+                    case 2:     // monitor: HR
+                    case 4:     // monitor: SpO2
+                    case 5:     // monitor: Garmin Stress Index
+                    case 6:     // activity: Only HR
+                        activity.clear();
+                        break;
+                }
+                firstElement = false;
+            }
 
+            switch (OutputFormat) {                                   // format body
+                case 0:     // Table output - CSV format
                     for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()){
                         StringBuilder line;
                         line = new StringBuilder(m.getKey());
@@ -768,10 +839,8 @@ public class fit2gpx extends Component {
                     }
                     break;
 
-                case 1:
-                    activity.add(0, out_gpx_head.replace("{creator}", DeviceCreator));
-                    activity.add(1, out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
-                    activity.add(2, out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
+                case 1:     // Standart Garmin point exchange format GPX
+                    activity.add(out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
 
                     for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
                         if(m.getValue().get("position_lat") != null && m.getValue().get("position_long") != null) {
@@ -796,7 +865,7 @@ public class fit2gpx extends Component {
                         activity.add("    </extensions>"); }
                         activity.add("   </trkpt>");
                     }
-                    activity.add(out_gpx_tail);
+                    activity.add(out_gpx_tail1);
                     break;
 
                 case 2:     // monitor: HR
@@ -808,7 +877,6 @@ public class fit2gpx extends Component {
                     break;
 
                 case 3:     // activity: HRV (R-R)
-                    activity.add(0, "Timestamp,Time,RR,HR"); // заголовок IBI файла вариабельности ЧСС
                     for(Map.Entry<String,String[]> m: array_buffer.entrySet()){
                         StringBuilder line = new StringBuilder(m.getKey());
                         String[] l = m.getValue();
@@ -833,7 +901,37 @@ public class fit2gpx extends Component {
             return 0;
         }
 
-        private int write() {   // попытка записать выходной файл
+        private int writeEndfile() {
+            final ArrayList<String> tail = new ArrayList<>();
+            if (OutputFormat == 1) {
+                tail.add(out_gpx_tail2);
+            }
+
+            if(tail.size() > 0) {
+                try {
+                    File OutputFile = new File(OutputFileName);
+                    if (!OutputFile.exists()) {return 73;}
+
+                    try { // пытаемся записать в файл
+                        BufferedWriter OutWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(OutputFile, true), StandardCharsets.UTF_8));
+                        for (String s : tail) {
+                            OutWriter.write(s + System.lineSeparator());
+                        }
+                        OutWriter.close();
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                    //System.exit(73);
+                }
+            }
+                return 0;
+        }
+
+        private int write() {   // Try to write output file // Чукча-писатель
 
             if (EmptyTrack && !SaveIfEmpty) {
                 return 201;
@@ -848,34 +946,48 @@ public class fit2gpx extends Component {
 
             } else {
 
+                String m = "";
+                if(MergeOut) { m = ".merged"; }
+
                 switch (OutputFormat) {
                     case 0:
-                        OutputFileName = InputFITfileName + ".csv";
+                        OutputFileName = InputFITfileName + m + ".csv";
                         break;
                     case 1:
-                        OutputFileName = InputFITfileName + ".gpx";
+                        OutputFileName = InputFITfileName + m + ".gpx";
                         break;
                     case 2:
-                        OutputFileName = InputFITfileName + ".monitor-HR.csv";
+                        OutputFileName = InputFITfileName + m + ".monitor-HR.csv";
                         break;
                     case 3:
-                        OutputFileName = InputFITfileName + ".HRV.csv";
+                        OutputFileName = InputFITfileName + m + ".HRV.csv";
                         break;
                     case 4:
-                        OutputFileName = InputFITfileName + ".SpO2.csv";
+                        OutputFileName = InputFITfileName + m + ".SpO2.csv";
                         break;
                     case 5:
-                        OutputFileName = InputFITfileName + ".GSI.csv";
+                        OutputFileName = InputFITfileName + m + ".GSI.csv";
                         break;
                     case 6:
-                        OutputFileName = InputFITfileName + ".HR.csv";
+                        OutputFileName = InputFITfileName + m + ".HR.csv";
                         break;
                     case 99:
-                        OutputFileName = InputFITfileName + ".DUMP.txt";
+                        OutputFileName = InputFITfileName + m + ".DUMP.txt";
                         break;
                 }
             }
+            boolean append = false;
 
+            if(MergeOut) {              // TODO определить стратегию формирования имени выходного файла
+                if (OutputFileNameMerged.equals("")) {
+                    OutputFileNameMerged = OutputFileName;
+                    append = false;
+                } else {
+                    OutputFileName = OutputFileNameMerged;
+                    append = true;
+                }
+            }
+            {System.out.println("Output File Name: " + OutputFileName); }
             try {
 
                 File OutputFile = new File(OutputFileName);
@@ -885,7 +997,7 @@ public class fit2gpx extends Component {
                 }
 
                 try { // пытаемся записать в файл
-                    BufferedWriter OutWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(OutputFile, false), StandardCharsets.UTF_8));
+                    BufferedWriter OutWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(OutputFile, append), StandardCharsets.UTF_8));
                     for (String s : activity) {
                         OutWriter.write(s + System.lineSeparator());
                     }
@@ -912,7 +1024,7 @@ public class fit2gpx extends Component {
         private final ArrayList<String> EmptyFiles = new ArrayList<>();
         private final ArrayList<String> BadFiles = new ArrayList<>();
 
-        //public int getGoodFilesCount() {return GoodFiles.size();}
+        public int getGoodFilesCount() {return GoodFiles.size();}
         int getEmptyFilesCount() {return EmptyFiles.size();}
         int getBadFilesCount() {return BadFiles.size();}
 

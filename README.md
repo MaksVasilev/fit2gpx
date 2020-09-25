@@ -22,19 +22,20 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
                 --statistic     | -s    вывод итоговой статистики в консоль
                 --csv           | -c    выходной файл будет в формате CSV
-                --iso-date=[yes|y|no|n]	использовать для CSV формата дату в формате ГОСТ ИСО 8601-2001 (ISO 8601) (по умолчанию 'yes')
-                --hr-only       | -r    выходной файл будет в формате CSV, содержимое: только ЧСС и время
-                --monitor       | -m    разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
-                --hrv           | -v    разбор файлов тренировки и запись в CSV интервалов R-R для анализа вариабельности
-                --hrv-filter    | -f    тоже самое, что и --hrv, но используется пороговый фильтр для устранения всплесков
+                --merge         | -m    объеденить все выходные файлы в один
+                --iso-date=[yes|y|no|n] использовать для CSV формата дату в формате ГОСТ ИСО 8601-2001 (ISO 8601) (по умолчанию 'yes')
+                --hr-only       | -hr   выходной файл будет в формате CSV, содержимое: только ЧСС и время
+                --monitor-hr    | -mh   разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
+                --hrv           | -vr   разбор файлов тренировки и запись в CSV интервалов R-R для анализа вариабельности
+                --hrv-filter    | -vf   тоже самое, что и --hrv, но используется пороговый фильтр для устранения всплесков
                         --filter=n      где: n - уставка порогового фильтра (для -f) в % от 1 до 99 (по умолчанию 35)
 
-                --oxy           | -o    разбор файлов мониторинга и запись в CSV значений оксигенации SpO2
-                --stress        | -i    разбор файлов мониторинга и запись в CSV значений уровня стресса
-                        поля в CSV: Дата время; Индекс Стресса Garmin; Уровень батареи тела; неизвестно; неизвестно
+                --monitor-oxy           | -spo  разбор файлов мониторинга и запись в CSV значений оксигенации SpO2
+                --monitor-stress        | -si   разбор файлов мониторинга и запись в CSV значений уровня стресса
+                        поля в CSV: Дата время; Индекс Стресса Garmin; Уровень батареи тела; дельта; неизвестно
 
-                --no-dialog     | -n    не отображать диалоговое окно выбора файлов
-                --save-empty    | -e    сохранять файлы без координат (пустые треки)
+                --no-dialog     | -nd   не отображать диалоговое окно выбора файлов
+                --save-empty    | -se   сохранять файлы без координат (пустые треки)
                 --full-dump             сделать полный дамп записей файла в тестовый файл  
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без указания файлов для конвертации
@@ -75,20 +76,21 @@ options:
 
                 --statistic     | -s    output of final statistics to the console
                 --csv           | -c    the output file will be in CSV format
+                --merge         | -m    merge all output files in one file
                 --iso-date=[yes|y|no|n] use for CSV date in GOST ISO 8601 format (by default 'yes')
-                --hr-only       | -r    the output file will be in CSV format, content: heart rate and time only
-                --monitor       | -m    parsing heart rate monitoring files (not training), the output file will be in CSV format
-                --hrv           | -v    parsing training files and writing R-R intervals to CSV for variability analysis
-                --hrv-filter    | -f    same as --hrv, but threshold filter is used to eliminate spikes
+                --hr-only       | -hr   the output file will be in CSV format, content: heart rate and time only
+                --monitor-hr    | -mh   parsing heart rate monitoring files (not training), the output file will be in CSV format
+                --hrv           | -vr   parsing training files and writing R-R intervals to CSV for variability analysis
+                --hrv-filter    | -vf   same as --hrv, but threshold filter is used to eliminate spikes
                         --filter=n      where: n - threshold filter value (for -f) in % from 1 to 99 (default 35)
 
-                --oxy           | -o    parsing monitoring files and writing SpO2 oxygenation values in CSV
-                --stress        | -i    parsing monitoring files and writing Stress values in CSV
-                        fields in CSV: Date time; Garmin Stress Index; Body Battery; unknown; unknown
+                --monitor-oxy           | -spo  parsing monitoring files and writing SpO2 oxygenation values in CSV
+                --monitor-stress        | -si   parsing monitoring files and writing Stress values in CSV
+                        fields in CSV: Date time; Garmin Stress Index; Body Battery; delta; unknown
 
-                --no-dialog     | -n    do not display the file selection dialog
-                --save-empty    | -e    save files without coordinates (empty tracks)
-                --full-dump             create full text dump of all messages  
+                --no-dialog     | -nd   do not display the file selection dialog
+                --save-empty    | -se   save files without coordinates (empty tracks)
+                --full-dump             create full text dump of all messages
 
 The Converter has two modes of operation: console and graphic. When running without files in parameters, a dialog box opens
 for selecting the file to convert. If you use the file name as an argument at startup, the conversion occurs without launching dialog boxes.
@@ -106,6 +108,8 @@ The minimum Java version is 11.0
 
 # Features after 0.1.0 release
 
+- 0.1.4 - options and short options chenged! See help
+- new (0.1.4) -  merge all output in one file with --merge
 - new (0.1.4) - fix Bryton Rider data (holes and null values), tested on 310 model
 - new (0.1.4) - [internal] interface fix() to repair bad data
 - new (0.1.3) - Garmin Running Dinamics added in CSV output
