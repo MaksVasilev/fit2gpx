@@ -1,6 +1,6 @@
 # fit2gpx
 
-Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress. Версия 0.1.2
+Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress. Версия 0.1.4
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -53,7 +53,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 # English
 
-Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress. Version 0.1.2
+Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress. Version 0.1.4
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -103,3 +103,11 @@ Dump all the headers of the file (debug mode):
         java -cp fit2gpx.jar DebugDecode <file Garmin .FIT>
       
 The minimum Java version is 11.0
+
+# Features after 0.1.0 release
+
+- new (0.1.4) - fix Bryton Rider data (holes and null values), tested on 310 model
+- new (0.1.4) - [internal] interface fix() to repair bad data
+- new (0.1.3) - Garmin Running Dinamics added in CSV output
+- new (0.1.2) - now use ISO date format "yyyy-mm-ddThh:mm:ss" for all (in GPX allways), for use old date format "yyyy.mm.dd hh:mm:ss" use --iso-date=no
+- new (0.1.1) - Garmin Stress Index (variation of Baevsky Index) added
