@@ -23,6 +23,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
                 --statistic     | -s    вывод итоговой статистики в консоль
                 --csv           | -c    выходной файл будет в формате CSV
                 --merge         | -m    объединить все выходные файлы в один
+                         Внимание! в объединённом файле данные могут быть не в хронологическом порядке! (см. issue #21)
                 --iso-date=[yes|y|no|n] использовать для CSV формата дату в формате ГОСТ ИСО 8601-2001 (ISO 8601) (по умолчанию 'yes')
                 --hr-only       | -hr   выходной файл будет в формате CSV, содержимое: только ЧСС и время
                 --monitor-hr    | -mh   разбор файлов мониторинга пульса (не тренировки), выходной файл будет в формате CSV
@@ -55,7 +56,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 # Возможности добавленные после релиза 0.1.0
 
 - 0.1.4 - параметры командной строки и сокращённые параметры изменены!
-- new (0.1.4) - объединение всех выходных файлов в один с помощью --merge
+- new (0.1.4) - объединение всех выходных файлов в один с помощью --merge (данные могут быть не в хронологическом порядке!)
 - new (0.1.4) - исправление данных велокомпьютера Bryton Rider (дыры в данных и нулевые значения), проверено на 310 модели
 - new (0.1.4) - [внутренний] интерфейс fix() для исправления данных
 - new (0.1.3) - добавлена Garmin Running Dinamics в выводе CSV
@@ -87,6 +88,7 @@ options:
                 --statistic     | -s    output of final statistics to the console
                 --csv           | -c    the output file will be in CSV format
                 --merge         | -m    merge all output files in one file
+                         Attention! the data in the merged file may not be in chronological order! (see issue #21)
                 --iso-date=[yes|y|no|n] use for CSV date in GOST ISO 8601 format (by default 'yes')
                 --hr-only       | -hr   the output file will be in CSV format, content: heart rate and time only
                 --monitor-hr    | -mh   parsing heart rate monitoring files (not training), the output file will be in CSV format
@@ -119,7 +121,7 @@ The minimum Java version is 11.0
 # Features after 0.1.0 release
 
 - 0.1.4 - options and short options chenged! See help
-- new (0.1.4) -  merge all output in one file with --merge
+- new (0.1.4) -  merge all output in one file with --merge (data in the merged file may not be in chronological order!)
 - new (0.1.4) - fix Bryton Rider data (holes and null values), tested on 310 model
 - new (0.1.4) - [internal] interface fix() to repair bad data
 - new (0.1.3) - Garmin Running Dinamics added in CSV output
