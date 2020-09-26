@@ -1,2 +1,2 @@
 #!/bin/sh
-java -jar fit2gpx.jar --hr-only
+java -jar fit2gpx.jar --hr-only --merge
