@@ -19,6 +19,7 @@ exit code:
 */
 
 import com.garmin.fit.*;
+import com.garmin.fit.plugins.HrToRecordMesgBroadcastPlugin;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -34,7 +35,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.4";
+    static final String _version_ = "0.1.5";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -42,10 +43,15 @@ public class fit2gpx extends Component {
 
         try {
             setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
-        } catch(Exception ignored){
-         /*   try {
-                setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-            } catch(Exception ignored2){} */
+        } catch(Exception ignored1){
+            try {
+                for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                    if ("Nimbus".equals(info.getName())) {
+                        UIManager.setLookAndFeel(info.getClassName());
+                        break;
+                    }
+                }
+            } catch (Exception ignored2) { }
         }
 
         File[] MultipleFilesList;
@@ -243,9 +249,9 @@ public class fit2gpx extends Component {
         private final String out_gpx_tail2 = "</gpx>";
 
         final ArrayList<String> activity = new ArrayList<>();
-        private final Map<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
-        private final Map<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
-        private final Map<String,Map<String,String>> full_buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
+        private final TreeMap<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
+        private final TreeMap<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
+        private final TreeMap<String,Map<String,String>> full_buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
         private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
                 "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
@@ -265,7 +271,8 @@ public class fit2gpx extends Component {
                 "left_right_balance","left_right_balance_persent","left_power_phase_start","left_power_phase_end","right_power_phase_start",
                 "right_power_phase_end","left_power_phase_peak_start","left_power_phase_peak_end","right_power_phase_peak_start","right_power_phase_peak_end",
                 "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness","left_pco","right_pco",
-                "respiratory","performance_contition","field_num_61","field_num_66"};
+                "respiratory","performance_contition","field_num_61","field_num_66",
+                "fixed"};
 
         private Date TimeStamp = new Date();
         private final SimpleDateFormat nonISODateFormatCSV = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss");  // формат вывода в csv
@@ -307,9 +314,7 @@ public class fit2gpx extends Component {
         private double deltaFilterHRV;
         private boolean useFilterHRV = false;
 
-        private String last_lat_fix = "";   // last_*_fix: Fix BRYTON hole in data
-        private String last_lon_fix = "";
-        private String last_ele_fix = "";
+
 
         void setOutputFormat(int outputFormat) {
             OutputFormat = outputFormat;
@@ -383,102 +388,215 @@ public class fit2gpx extends Component {
             short_buffer.clear();
             full_buffer.clear();
             array_buffer.clear();
-            last_ele_fix = "";
-            last_lat_fix = "";
-            last_lon_fix = "";
         }
 
         private int fix() {             // fix various error and hole in data (#1, #13, #17)
+
 
             switch (OutputFormat) {
                 case 0: // Table output - CSV format
                 case 1: // Standart Garmin point exchange format GPX
 
-                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                    String last_lat = ""; 
+                    String last_lon = "";
+                    String last_ele = "";
+                    Double last_dist = 0.0;
+                    Double prev_dist = 0.0;
+
+                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {       // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
                         Map<String,String> row1 = m.getValue();
 
                         // use altitude only if it present and enhanced_altitude not (#13)
                         if (row1.get("altitude") != null && row1.get("enhanced_altitude") == null) {
                             row1.put("enhanced_altitude", row1.get("altitude"));
+                            row1.put("fixed",append(row1.get("fixed"),"no-enh-ele,"));
                         }
 
                         // use speed only if it present and enhanced_speed not (#13)
                         if (row1.get("speed") != null && row1.get("enhanced_speed") == null) {
                             row1.put("enhanced_speed", row1.get("speed"));
+                            row1.put("fixed",append(row1.get("fixed"),"no-enh-speed,"));
                         }
-                        
+
                         // fix BRYTON hole in data: lat/lon (#1)
-                        double speed;
+                        Double speed;
+
                         try {
                             speed = Double.parseDouble(row1.get("enhanced_speed"));
                         } catch (Exception ignore) {
                             speed = 0.0;
                         }
 
-                        if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {
-                            last_lat_fix = row1.get("position_lat");
-                            last_lon_fix = row1.get("position_long");
-                            EmptyTrack = false;
-                        } else if (!last_lat_fix.equals("") && !last_lon_fix.equals("") && speed == 0.0) {
-                            row1.put("position_lat", last_lat_fix);
-                            row1.put("position_long", last_lon_fix);
+                        if(row1.containsKey("distance")) {
+                            try {
+                                last_dist = Double.parseDouble(row1.get("distance"));
+                            } catch (Exception ignore) {
+                                last_dist = 0.0;
+                            }
                         }
+                        if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {
+                            last_lat = row1.get("position_lat");
+                            last_lon = row1.get("position_long");
+
+                            EmptyTrack = false;
+                        } else if (!last_lat.equals("") && !last_lon.equals("") && speed == 0.0 && (last_dist.equals(prev_dist))) {  // TODO and dist!
+                            row1.put("position_lat", last_lat);
+                            row1.put("position_long", last_lon);
+                            row1.put("fixed",append(row1.get("fixed"),"Bryton-hole-coord,"));
+                        }
+                        prev_dist = last_dist;
 
                         // fix BRYTON hole in data: elevation (#1)
                         if (row1.containsKey("enhanced_altitude")) {
-                            last_ele_fix = row1.get("enhanced_altitude");
-                        } else if (!last_ele_fix.equals("")) {
-                            row1.put("altitude", last_ele_fix);
-                            row1.put("enhanced_altitude", last_ele_fix);
+                            last_ele = row1.get("enhanced_altitude");
+                        } else if (!last_ele.equals("")) {
+                            row1.put("altitude", last_ele);
+                            row1.put("enhanced_altitude", last_ele);
+                            row1.put("fixed",append(row1.get("fixed"),"Bryton-hole-ele,"));
                         }
 
-                        full_buffer.put(m.getKey(), new HashMap<>() { { row1.forEach(this::put); } });
+                        full_buffer.put(m.getKey(), new HashMap<>() { { row1.forEach(this::put); } });   // write change to buffer
                         row1.clear();
-                    }
+                    }                                                                            // End 01-Bryton-hole-ele/Bryton-hole-coord
 
                     // fill all null lat/lon data before first real coordinates to this
-                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
-                        if(m.getValue().get("position_lat") != null && m.getValue().get("position_long") != null) {
-                            String first_latlon = m.getKey();
-                            String lat = m.getValue().get("position_lat");
-                            String lon = m.getValue().get("position_long");
+                    for(Map.Entry<String,Map<String,String>> map02b:full_buffer.entrySet()) {        // Fix 02-Bryton-start-coord - Bryton start without coordinates fix
+                        if(map02b.getValue().get("position_lat") != null && map02b.getValue().get("position_long") != null) {
+                            String first_latlon = map02b.getKey();
+                            String lat = map02b.getValue().get("position_lat");
+                            String lon = map02b.getValue().get("position_long");
                             
-                            for(Map.Entry<String,Map<String,String>> n:full_buffer.entrySet()) {
-                                if(!n.getKey().equals(first_latlon)) {
-                                    Map<String,String> row2 = n.getValue();
+                            for(Map.Entry<String,Map<String,String>> map02b_i:full_buffer.entrySet()) {
+                                if(!map02b_i.getKey().equals(first_latlon)) {
+                                    Map<String,String> row2 = map02b_i.getValue();
                                     row2.put("position_lat",lat);
                                     row2.put("position_long",lon);
-                                    full_buffer.put(n.getKey(), new HashMap<>() { { row2.forEach(this::put); } });
+                                    row2.put("fixed",append(row2.get("fixed"),"Bryton-start-coord,"));
+                                    full_buffer.put(map02b_i.getKey(), new HashMap<>() { { row2.forEach(this::put); } });   // write change to buffer
+                                    row2.clear();
                                  } else {
                                     break;
                                 }
                             }
                             break;
                         }
-                    }
+                    }                                                                           // End 02-Bryton-start-coord
 
                     // fill all null elevation data before first real ele to this ele
-                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
-                        if(m.getValue().get("enhanced_altitude") != null) {
-                            String first_ele = m.getKey();
-                            String ele = m.getValue().get("altitude");
+                    for(Map.Entry<String,Map<String,String>> map03b:full_buffer.entrySet()) {        // Fix 03-Bryton-start-ele - Bryton start without elevation fix
+                        if(map03b.getValue().get("enhanced_altitude") != null) {
+                            String first_ele = map03b.getKey();
+                            String ele = map03b.getValue().get("altitude");
                             
-                            for(Map.Entry<String,Map<String,String>> n:full_buffer.entrySet()) {
-                                if(!n.getKey().equals(first_ele)) {
-                                    Map<String,String> row3 = n.getValue();
+                            for(Map.Entry<String,Map<String,String>> map03b_i:full_buffer.entrySet()) {
+                                if(!map03b_i.getKey().equals(first_ele)) {
+                                    Map<String,String> row3 = map03b_i.getValue();
                                     row3.put("enhanced_altitude",ele);
                                     row3.put("altitude",ele);
-                                    full_buffer.put(n.getKey(), new HashMap<>() { { row3.forEach(this::put); } });
+                                    row3.put("fixed",append(row3.get("fixed"),"Bryton-start-ele,"));
+
+                                    full_buffer.put(map03b_i.getKey(), new HashMap<>() { { row3.forEach(this::put); } });   // write change to buffer
+                                    row3.clear();
                                 } else {
                                     break;
                                 }
                             }
                             break;
                         }
-                    }
-                    break;
+                    }                                                                             // End 03-Bryton-start-ele
+
+                    Double last_lat_d = 0.0;                                                      // Fix 04-Swim-no-coord - empty coordinates for Swim, if distance increment
+                    Double last_lon_d = 0.0;
+                    last_ele = "";
+                    last_dist = 0.0;
+
+
+                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                        Double lat = 0.0;
+                        Double lon = 0.0;
+                        Double dist = 0.0;
+
+                        Map<String, String> row0 = m.getValue();
+                        String start = "";
+                        String end= "";
+
+                         if(row0.get("position_lat") != null && row0.get("position_long") != null && row0.get("distance") != null) {
+                            last_lat_d = checkD(row0.get("position_lat"));
+                            last_lon_d = checkD(row0.get("position_long"));
+                            last_dist = checkD(row0.get("distance"));
+                        }
+
+                        if(row0.get("position_lat") == null && row0.get("position_long") == null) {     // Search for first entry fith empty coordinates
+                            start = m.getKey();
+
+                            ArrayList<Double> dist_steps = new ArrayList<>();
+
+                            for(Map.Entry<String,Map<String,String>> n: full_buffer.subMap(start,full_buffer.lastKey()+1).entrySet()) {
+                                Map<String, String> row00 = n.getValue();
+                                if(row00.get("distance") != null) {
+                                    try {
+                                        Double d = Double.parseDouble(row00.get("distance"));
+                                        dist_steps.add(d - last_dist);
+                                    } catch (Exception ignore) { }
+                                }
+
+                                if(row00.get("distance") != null) {
+                                    dist = checkD(row00.get("distance"));
+                                }
+                                if(row00.get("position_lat") != null && row00.get("position_long") != null && (dist > last_dist) ) {  // Search for end of hole
+                                    lat = checkD(row00.get("position_lat"));
+                                    lon = checkD(row00.get("position_long"));
+                                    end = n.getKey();
+
+                                    Double delta_dist = dist - last_dist;
+                                    Double delta_lat = lat - last_lat_d;
+                                    Double delta_lon = lon - last_lon_d;
+
+                                    int st = 0;
+                                    for(Map.Entry<String,Map<String,String>> insert: full_buffer.subMap(start,end).entrySet()) {
+                                        Map<String,String> row_insert = insert.getValue();
+
+                                        Double step_dist_persent = (dist_steps.get(st)/delta_dist);
+                                        Double step_lat = last_lat_d + (delta_lat * step_dist_persent);   // increase lat/lon proportionally increasing distance
+                                        Double step_lon = last_lon_d + (delta_lon * step_dist_persent);
+
+                                        row_insert.put("position_lat", String.valueOf(step_lat));
+                                        row_insert.put("position_long", String.valueOf(step_lon));
+                                        row_insert.put("fixed",append(row_insert.get("fixed"),"Swim-no-coord,"));
+
+                                        full_buffer.put(insert.getKey(), new HashMap<>() { { row_insert.forEach(this::put); } });   // write change to buffer
+                                        row_insert.clear();
+                                      st++;
+                                    }
+                                    dist_steps.clear();
+                                    break;
+                                }
+                            }
+                        }
+                    }                                                                           // End 04-Swim-no-coord
+
+                    break; // end of GPX, CSV format
             }
             return 0;
+        }
+
+        private static String append(Object obj, String string){
+            if(obj != null && (obj instanceof String)){
+                return obj + string;
+            } else {
+                return string;
+            }
+        }
+
+        private static double checkD(String D) {    // check Double
+            double d;
+            if( D.equals("") ) {return -1.0;}
+            try {
+                d = Double.parseDouble(D.replace(",","."));
+            } catch (NumberFormatException ignoreD) {
+                return -1.0;
+            }
+            return d;
         }
 
         private int check() {   // этап проверки доступности файла
@@ -519,7 +637,7 @@ public class fit2gpx extends Component {
 
             Decode decode = new Decode();
 
-            MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
+            BufferedMesgBroadcaster mesgBroadcaster = new BufferedMesgBroadcaster(decode);
 
             FileIdMesgListener fileIdMesgListener = mesg -> {
 
@@ -615,6 +733,7 @@ public class fit2gpx extends Component {
                                     }
                                 });
                             }
+
                             break;
 
                         case 6: // Table output - Only HR and Time from actyvites
@@ -759,12 +878,20 @@ public class fit2gpx extends Component {
                             break;
                     }
                 };
+
+            HrMesgListener hrListener = mesg -> {};
             
             mesgBroadcaster.addListener(fileIdMesgListener);
             mesgBroadcaster.addListener(mesgListener);
+            mesgBroadcaster.addListener(hrListener);
+
+
+            MesgBroadcastPlugin hr_plugin = new HrToRecordMesgBroadcastPlugin();
+            mesgBroadcaster.registerMesgBroadcastPlugin(hr_plugin);
             
             try {
                 mesgBroadcaster.run(new BufferedInputStream(new FileInputStream(InputFITfile)));
+                mesgBroadcaster.broadcast();
             } catch (FitRuntimeException e) {
                 System.err.print(tr.getString("ErrorParsingFile_") + InputFITfile + ": ");
                 System.err.println(e.getMessage());
@@ -987,7 +1114,7 @@ public class fit2gpx extends Component {
                     append = true;
                 }
             }
-            {System.out.println("Output File Name: " + OutputFileName); }
+            // {System.out.println("Output File Name: " + OutputFileName); }
             try {
 
                 File OutputFile = new File(OutputFileName);

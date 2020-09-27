@@ -54,7 +54,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="52.38691996783018" lon="31.032320950180292">
+   <trkpt lat="52.386932645063354" lon="31.03232546691906">
     <time>2017-07-29T18:12:36Z</time>
     <ele>124.79999999999995</ele>
     <extensions>
@@ -7100,7 +7100,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="52.40580297075212" lon="31.045904997736216">
+   <trkpt lat="52.405801960818316" lon="31.045895445445666">
     <time>2017-07-29T18:21:38Z</time>
     <ele>122.60000000000002</ele>
     <extensions>
@@ -17526,7 +17526,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="52.43382593616843" lon="31.080157980322838">
+   <trkpt lat="52.433828798910746" lon="31.080165273499684">
     <time>2017-07-29T18:35:00Z</time>
     <ele>127.60000000000002</ele>
     <extensions>
@@ -32346,7 +32346,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="52.478259997442365" lon="31.177379926666617">
+   <trkpt lat="52.478255019942516" lon="31.177377618663897">
     <time>2017-07-29T18:54:00Z</time>
     <ele>124.39999999999998</ele>
     <extensions>
@@ -38560,7 +38560,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46820297092199" lon="31.124945925548673">
     <time>2017-07-29T19:01:58Z</time>
     <ele>124.79999999999995</ele>
     <extensions>
@@ -38586,7 +38586,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46823250279077" lon="31.1247478478545">
     <time>2017-07-29T19:02:00Z</time>
     <ele>124.79999999999995</ele>
     <extensions>
@@ -39548,7 +39548,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46909497305751" lon="31.115127950906754">
     <time>2017-07-29T19:03:14Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
@@ -39561,7 +39561,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46909497305751" lon="31.115127950906754">
     <time>2017-07-29T19:03:15Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
@@ -39574,7 +39574,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46909497305751" lon="31.115127950906754">
     <time>2017-07-29T19:03:16Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
@@ -39587,7 +39587,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46900081217886" lon="31.11452023958519">
     <time>2017-07-29T19:03:17Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
@@ -39600,7 +39600,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46898825739504" lon="31.114439211408982">
     <time>2017-07-29T19:03:18Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
@@ -39613,7 +39613,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.46897554449052" lon="31.114357162726776">
     <time>2017-07-29T19:03:19Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
@@ -52288,7 +52288,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.41839996539056" lon="31.052932972088456">
     <time>2017-07-29T19:19:34Z</time>
     <ele>121.39999999999998</ele>
     <extensions>
@@ -52301,7 +52301,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="52.41838999092579" lon="31.05292492546141">
+   <trkpt lat="52.41839996539056" lon="31.052932972088456">
     <time>2017-07-29T19:19:35Z</time>
     <ele>121.79999999999995</ele>
     <extensions>
@@ -52327,7 +52327,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="52.41838596761227" lon="31.05292098596692">
+   <trkpt lat="52.418381824825346" lon="31.05291959732326">
     <time>2017-07-29T19:19:37Z</time>
     <ele>121.79999999999995</ele>
     <extensions>
@@ -52340,7 +52340,7 @@
      </gpxtpx:TrackPointExtension>
     </extensions>
    </trkpt>
-   <trkpt lat="" lon="">
+   <trkpt lat="52.418377308814385" lon="31.052918083576568">
     <time>2017-07-29T19:19:38Z</time>
     <ele>121.79999999999995</ele>
     <extensions>
