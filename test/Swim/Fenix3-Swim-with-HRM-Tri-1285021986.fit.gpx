@@ -2882,10 +2882,12 @@
    <trkpt lat="58.466401566417616" lon="50.013453646707426">
     <time>2016-08-02T18:58:16Z</time>
     <extensions>
+     <nmea:speed>0.08000000000000303</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>27</gpxtpx:atemp>
       <gpxtpx:hr>148</gpxtpx:hr>
       <gpxtpx:cad>20</gpxtpx:cad>
+      <gpxtpx:speed>0.08000000000000303</gpxtpx:speed>
       <gpxtpx:course>878.66</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -2958,10 +2960,12 @@
    <trkpt lat="58.46638625487685" lon="50.013472102582455">
     <time>2016-08-02T18:58:50Z</time>
     <extensions>
+     <nmea:speed>0.5833333333333334</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>27</gpxtpx:atemp>
       <gpxtpx:hr>152</gpxtpx:hr>
       <gpxtpx:cad>27</gpxtpx:cad>
+      <gpxtpx:speed>0.5833333333333334</gpxtpx:speed>
       <gpxtpx:course>899.73</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -2969,10 +2973,12 @@
    <trkpt lat="58.46638625487685" lon="50.013472102582455">
     <time>2016-08-02T18:58:56Z</time>
     <extensions>
+     <nmea:speed>0.0</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>27</gpxtpx:atemp>
       <gpxtpx:hr>150</gpxtpx:hr>
       <gpxtpx:cad>34</gpxtpx:cad>
+      <gpxtpx:speed>0.0</gpxtpx:speed>
       <gpxtpx:course>899.73</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -2980,10 +2986,12 @@
    <trkpt lat="58.46638625487685" lon="50.013472102582455">
     <time>2016-08-02T18:59:02Z</time>
     <extensions>
+     <nmea:speed>0.0</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>27</gpxtpx:atemp>
       <gpxtpx:hr>149</gpxtpx:hr>
       <gpxtpx:cad>27</gpxtpx:cad>
+      <gpxtpx:speed>0.0</gpxtpx:speed>
       <gpxtpx:course>899.73</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -2991,10 +2999,12 @@
    <trkpt lat="58.46638625487685" lon="50.013472102582455">
     <time>2016-08-02T18:59:08Z</time>
     <extensions>
+     <nmea:speed>0.0</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>27</gpxtpx:atemp>
       <gpxtpx:hr>148</gpxtpx:hr>
       <gpxtpx:cad>29</gpxtpx:cad>
+      <gpxtpx:speed>0.0</gpxtpx:speed>
       <gpxtpx:course>899.73</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -3002,10 +3012,12 @@
    <trkpt lat="58.46638625487685" lon="50.013472102582455">
     <time>2016-08-02T18:59:14Z</time>
     <extensions>
+     <nmea:speed>0.0</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>27</gpxtpx:atemp>
       <gpxtpx:hr>148</gpxtpx:hr>
       <gpxtpx:cad>29</gpxtpx:cad>
+      <gpxtpx:speed>0.0</gpxtpx:speed>
       <gpxtpx:course>899.73</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>

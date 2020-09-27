@@ -402,17 +402,23 @@ public class fit2gpx extends Component {
                     String last_ele = "";
                     Double last_dist = 0.0;
                     Double prev_dist = 0.0;
+                    Date date = new Date();
+                    Date prev_date = new Date();
 
-                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {       // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
+                    for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                        try {
+                            date = DateFormatCSV.parse(m.getKey());
+                        } catch (ParseException ignore) {}
+
                         Map<String,String> row1 = m.getValue();
 
-                        // use altitude only if it present and enhanced_altitude not (#13)
+                        // use altitude only if it present and enhanced_altitude not (#13)              // generic: alt -> enh_alt if it not present
                         if (row1.get("altitude") != null && row1.get("enhanced_altitude") == null) {
                             row1.put("enhanced_altitude", row1.get("altitude"));
                             row1.put("fixed",append(row1.get("fixed"),"no-enh-ele,"));
                         }
 
-                        // use speed only if it present and enhanced_speed not (#13)
+                        // use speed only if it present and enhanced_speed not (#13)              // generic: speed -> enh_speed if it not present
                         if (row1.get("speed") != null && row1.get("enhanced_speed") == null) {
                             row1.put("enhanced_speed", row1.get("speed"));
                             row1.put("fixed",append(row1.get("fixed"),"no-enh-speed,"));
@@ -427,19 +433,29 @@ public class fit2gpx extends Component {
                             speed = 0.0;
                         }
 
-                        if(row1.containsKey("distance")) {
+                        if(row1.containsKey("distance")) {                                      // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
                             try {
                                 last_dist = Double.parseDouble(row1.get("distance"));
                             } catch (Exception ignore) {
                                 last_dist = 0.0;
                             }
                         }
+                        if(speed == 0.0) {                                                      // generic: Speed from distance if speed = 0 and distance incremented
+                            if (last_dist > prev_dist) {
+                                speed = (last_dist - prev_dist) / ((date.getTime() - prev_date.getTime()) / 1000);
+                            }
+                            row1.put("speed",String.valueOf(speed));
+                            row1.put("enhanced_speed",String.valueOf(speed));
+                            row1.put("fixed",append(row1.get("fixed"),"speed-from-distance,"));
+                        }
+                        prev_date = date;
+
                         if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {
                             last_lat = row1.get("position_lat");
                             last_lon = row1.get("position_long");
 
                             EmptyTrack = false;
-                        } else if (!last_lat.equals("") && !last_lon.equals("") && speed == 0.0 && (last_dist.equals(prev_dist))) {  // TODO and dist!
+                        } else if (!last_lat.equals("") && !last_lon.equals("") && speed == 0.0 && (last_dist.equals(prev_dist))) {  // fix (01) only if distance not incremended
                             row1.put("position_lat", last_lat);
                             row1.put("position_long", last_lon);
                             row1.put("fixed",append(row1.get("fixed"),"Bryton-hole-coord,"));

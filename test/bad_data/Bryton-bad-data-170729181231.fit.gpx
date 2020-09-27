@@ -10,7 +10,9 @@
     <time>2017-07-29T18:12:32Z</time>
     <ele>124.79999999999995</ele>
     <extensions>
+     <nmea:speed>0.0</nmea:speed>
      <gpxtpx:TrackPointExtension>
+      <gpxtpx:speed>0.0</gpxtpx:speed>
       <gpxtpx:course>0.0</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -58,11 +60,11 @@
     <time>2017-07-29T18:12:36Z</time>
     <ele>124.79999999999995</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>2.64</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>24</gpxtpx:atemp>
       <gpxtpx:hr>103</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>2.64</gpxtpx:speed>
       <gpxtpx:course>2.64</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -71,11 +73,11 @@
     <time>2017-07-29T18:12:37Z</time>
     <ele>124.20000000000005</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>3.19</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>24</gpxtpx:atemp>
       <gpxtpx:hr>103</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>3.19</gpxtpx:speed>
       <gpxtpx:course>5.83</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -7104,11 +7106,11 @@
     <time>2017-07-29T18:21:38Z</time>
     <ele>122.60000000000002</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>1.2300000000000182</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>23</gpxtpx:atemp>
       <gpxtpx:hr>164</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>1.2300000000000182</gpxtpx:speed>
       <gpxtpx:course>3141.28</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -7117,11 +7119,11 @@
     <time>2017-07-29T18:21:39Z</time>
     <ele>122.39999999999998</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>1.2199999999998</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>23</gpxtpx:atemp>
       <gpxtpx:hr>163</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>1.2199999999998</gpxtpx:speed>
       <gpxtpx:course>3142.5</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -17530,11 +17532,11 @@
     <time>2017-07-29T18:35:00Z</time>
     <ele>127.60000000000002</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>1.109999999998763</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>22</gpxtpx:atemp>
       <gpxtpx:hr>130</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>1.109999999998763</gpxtpx:speed>
       <gpxtpx:course>8723.22</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -17543,11 +17545,11 @@
     <time>2017-07-29T18:35:01Z</time>
     <ele>127.79999999999995</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>1.6200000000008004</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>22</gpxtpx:atemp>
       <gpxtpx:hr>131</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>1.6200000000008004</gpxtpx:speed>
       <gpxtpx:course>8724.84</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -32350,11 +32352,11 @@
     <time>2017-07-29T18:54:00Z</time>
     <ele>124.39999999999998</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>0.7000000000007276</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>19</gpxtpx:atemp>
       <gpxtpx:hr>186</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>0.7000000000007276</gpxtpx:speed>
       <gpxtpx:course>18374.43</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -52266,11 +52268,11 @@
     <time>2017-07-29T19:19:32Z</time>
     <ele>121.39999999999998</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>0.6299999999973807</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>18</gpxtpx:atemp>
       <gpxtpx:hr>147</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>0.6299999999973807</gpxtpx:speed>
       <gpxtpx:course>30591.12</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -52318,11 +52320,11 @@
     <time>2017-07-29T19:19:36Z</time>
     <ele>121.79999999999995</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>1.1500000000014552</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>18</gpxtpx:atemp>
       <gpxtpx:hr>147</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>1.1500000000014552</gpxtpx:speed>
       <gpxtpx:course>30592.27</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
@@ -52331,11 +52333,11 @@
     <time>2017-07-29T19:19:37Z</time>
     <ele>121.79999999999995</ele>
     <extensions>
-     <nmea:speed>0.0</nmea:speed>
+     <nmea:speed>1.110000000000582</nmea:speed>
      <gpxtpx:TrackPointExtension>
       <gpxtpx:atemp>18</gpxtpx:atemp>
       <gpxtpx:hr>146</gpxtpx:hr>
-      <gpxtpx:speed>0.0</gpxtpx:speed>
+      <gpxtpx:speed>1.110000000000582</gpxtpx:speed>
       <gpxtpx:course>30593.38</gpxtpx:course>
      </gpxtpx:TrackPointExtension>
     </extensions>
