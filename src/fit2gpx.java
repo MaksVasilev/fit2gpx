@@ -427,30 +427,42 @@ public class fit2gpx extends Component {
                         // fix BRYTON hole in data: lat/lon (#1)
                         Double speed;
 
-                        try {
-                            speed = Double.parseDouble(row1.get("enhanced_speed"));
-                        } catch (Exception ignore) {
-                            speed = 0.0;
-                        }
-
-                        if(row1.containsKey("distance")) {                                      // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
+                        if(row1.containsKey("distance")) {
                             try {
                                 last_dist = Double.parseDouble(row1.get("distance"));
                             } catch (Exception ignore) {
                                 last_dist = 0.0;
                             }
                         }
-                        if(speed == 0.0) {                                                      // generic: Speed from distance if speed = 0 and distance incremented
+
+                        if(row1.containsKey("enhanced_speed")) {
+                            try {
+                                speed = Double.parseDouble(row1.get("enhanced_speed"));
+                            } catch (Exception ignore) {                              // generic: Speed from parce error
+                                speed = 0.0;
+                                row1.put("speed","0.0");
+                                row1.put("enhanced_speed","0.0");
+                                row1.put("fixed",append(row1.get("fixed"),"non-number-speed-to-zero,"));
+                            }
+                        }  else {                                                     // generic: Speed from null
+                            speed = 0.0;
+                            row1.put("speed","0.0");
+                            row1.put("enhanced_speed","0.0");
+                            row1.put("fixed",append(row1.get("fixed"),"empty-speed-to-zero,"));
+                        }
+
+                        if(speed == 0.0) {                                            // generic: Speed from distance if speed = 0 and distance incremented
                             if (last_dist > prev_dist) {
                                 speed = (last_dist - prev_dist) / ((date.getTime() - prev_date.getTime()) / 1000);
+                                row1.put("speed",String.valueOf(speed));
+                                row1.put("enhanced_speed",String.valueOf(speed));
+                                row1.put("fixed",append(row1.get("fixed"),"speed-from-distance,"));
                             }
-                            row1.put("speed",String.valueOf(speed));
-                            row1.put("enhanced_speed",String.valueOf(speed));
-                            row1.put("fixed",append(row1.get("fixed"),"speed-from-distance,"));
                         }
+
                         prev_date = date;
 
-                        if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {
+                        if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {        // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
                             last_lat = row1.get("position_lat");
                             last_lon = row1.get("position_long");
 
