@@ -609,7 +609,7 @@ public class fit2gpx extends Component {
         }
 
         private static String append(Object obj, String string){
-            if(obj != null && (obj instanceof String)){
+            if(obj instanceof String){
                 return obj + string;
             } else {
                 return string;
@@ -732,12 +732,16 @@ public class fit2gpx extends Component {
                                 for(Integer field:fieldindex) {
                                     if(mesg.getFieldStringValue(field) != null) {
                                         String value = mesg.getFieldStringValue(field);
-                                        if(field == 108) {
-                                            fields.put("respiratory",value);
-                                        } else if(field == 90) {
-                                            fields.put("performance_contition",value);
-                                        } else {
-                                            fields.put("field_num_" + field, value);
+                                        switch (field) {
+                                            case 108:
+                                                fields.put("respiratory", value);
+                                                break;
+                                            case 90:
+                                                fields.put("performance_contition", value);
+                                                break;
+                                            default:
+                                                fields.put("field_num_" + field, value);
+                                                break;
                                         }
                                     }
                                 }
@@ -902,12 +906,13 @@ public class fit2gpx extends Component {
             
             mesgBroadcaster.addListener(fileIdMesgListener);
             mesgBroadcaster.addListener(mesgListener);
-            mesgBroadcaster.addListener(hrListener);
 
+            if(OutputFormat != 99) {                                                    // not merge all appened HR data in "Dump" mode!
+                mesgBroadcaster.addListener(hrListener);                                // disable plugin HR to Dump
+                MesgBroadcastPlugin hr_plugin = new HrToRecordMesgBroadcastPlugin();
+                mesgBroadcaster.registerMesgBroadcastPlugin(hr_plugin);
+            }
 
-            MesgBroadcastPlugin hr_plugin = new HrToRecordMesgBroadcastPlugin();
-            mesgBroadcaster.registerMesgBroadcastPlugin(hr_plugin);
-            
             try {
                 mesgBroadcaster.run(new BufferedInputStream(new FileInputStream(InputFITfile)));
                 mesgBroadcaster.broadcast();
