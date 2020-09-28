@@ -392,6 +392,9 @@ public class fit2gpx extends Component {
 
         private int fix() {             // fix various error and hole in data (#1, #13, #17)
 
+            if (EmptyTrack && !SaveIfEmpty) {
+                return 201;
+            }
 
             switch (OutputFormat) {
                 case 0: // Table output - CSV format
