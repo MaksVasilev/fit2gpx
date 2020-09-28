@@ -35,7 +35,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.5";
+    static final String _version_ = "0.1.6";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -265,7 +265,7 @@ public class fit2gpx extends Component {
                 61, 66    // ?
         };
 
-        private static final String[] fieldnames_for_out = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+        private static final String[] fieldnames_for_out = {"duration","position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
                 "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
                 "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
                 "left_right_balance","left_right_balance_persent","left_power_phase_start","left_power_phase_end","right_power_phase_start",
@@ -300,11 +300,11 @@ public class fit2gpx extends Component {
         private double HrvTime = 0.0;
 
         private Date FileTimeStamp = new Date();
-        private Date NewFileTime = new Date();  // Дата и время начала трека, если необходимо сдвинуть время
+        private Date StartTime = new Date();
+        private boolean StartTimeFlag = false;
         private String DeviceCreator = "";
         
         private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
-        private boolean needOffset = false;
 
         private int OutputFormat = 1;
 
@@ -331,18 +331,6 @@ public class fit2gpx extends Component {
         }
         void setInputFITfileName(String inputFITfileName) {InputFITfileName = String.valueOf(inputFITfileName);}
         String getInputFITfileName() {return InputFITfileName;}
-        
-        public void setNewFileTime(String newtime) {
-            try {
-                NewFileTime = NewFileTimeFormat.parse(newtime);
-                needOffset = true;
-            } catch (ParseException e) {
-                System.err.println(tr.getString("ErrorTimeToShift"));
-                needOffset = false;
-                
-                //e.printStackTrace();
-            }
-        }
 
         void setUseISOdate(boolean b) {
             if(b) {
@@ -354,10 +342,6 @@ public class fit2gpx extends Component {
             }
         }
         
-        void setNewOffset(long newOffset) {
-            timeOffset = newOffset;
-        }
-
         int run() {  // Основной поэтапный цикл работы конвертера
 
             if(this.OutputFormat == 99) { MergeOut = false; }    // don't merge out for debug!
@@ -373,7 +357,7 @@ public class fit2gpx extends Component {
             int fixstatus = this.fix();         // try to fix data in non corrupted file
             if(fixstatus !=0) {return fixstatus;}
 
-            int formatstatus = this.format(readStatus,fixstatus);   // format output to write in file
+            int formatstatus = this.format(0,0);   // format output to write in file
             // if(formatstatus !=0) {return formatstatus;}
 
             int writeStatus = this.write();     // write buffer to out
@@ -388,6 +372,7 @@ public class fit2gpx extends Component {
             short_buffer.clear();
             full_buffer.clear();
             array_buffer.clear();
+            StartTimeFlag = false;
         }
 
         private int fix() {             // fix various error and hole in data (#1, #13, #17)
@@ -677,10 +662,6 @@ public class fit2gpx extends Component {
 
                 if (mesg.getTimeCreated() != null) {
 
-                    if(needOffset) {
-                        setNewOffset((NewFileTime.getTime() / 1000) - mesg.getTimeCreated().getTimestamp() - (DateTime.OFFSET / 1000));
-                    }
-
                     FileTimeStamp = new Date(mesg.getTimeCreated().getTimestamp() * 1000 + DateTime.OFFSET + (timeOffset * 1000));
                 }
 
@@ -707,6 +688,11 @@ public class fit2gpx extends Component {
                                 Map<String,String> fields = new HashMap<>();
 
                                 TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+
+                                if(!StartTimeFlag) { StartTime = TimeStamp; StartTimeFlag = true; }
+
+                                long duration_ms = (TimeStamp.getTime() - StartTime.getTime());
+                                fields.put("duration", String.format("%02d:%02d:%02d", (duration_ms / (1000*60*60)) , ((duration_ms / (1000*60)) % 60) , ((duration_ms / 1000) % 60) ));
 
                                 // search all known fields (array fieldnames)
                                 for(String field:fieldnames) {
@@ -1025,7 +1011,9 @@ public class fit2gpx extends Component {
                 case 6:     // activity: Only HR
                     for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
                         if(m.getValue().containsKey("heart_rate")) {
-                            activity.add(m.getKey() + ";" + m.getValue().get("heart_rate"));
+                            String duration = "";
+                            if(m.getValue().containsKey("duration")) { duration = m.getValue().get("duration"); }
+                            activity.add(m.getKey() + ";" + m.getValue().get("heart_rate") + ";" + duration);
                         }
                     }
                     break;
