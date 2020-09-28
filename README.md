@@ -53,19 +53,12 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Минимальная версия Java - 11.0
 
-# Возможности добавленные после релиза 0.1.0
+# Текущий релиз:
+https://github.com/MaksVasilev/fit2gpx/releases/latest
 
-- new (0.1.5) - в выходном файле CSV теперь есть колонка, где перечислены применённые исправления (см. раздел про исправления)
-- new (0.1.5) - базовые исправления: нулевая скорость при увеличении дистанции, поля скорости из возможных (см. раздел про исправления)
-- new (0.1.5) - исправление пропущенных координат для заплывов по данным дистанции (Swim), может так же работать для туннелей
-- new (0.1.5) - запись пульса с автономных датчиков HRM-Tri, HRM-Swim, HRM-Pro теперь автоматически добавляется в тренировку
-- new (0.1.4) !!!  параметры командной строки и сокращённые параметры изменены!
-- new (0.1.4) - объединение всех выходных файлов в один с помощью --merge (данные могут быть не в хронологическом порядке!)
-- new (0.1.4) - исправление данных велокомпьютера Bryton Rider (дыры в данных и нулевые значения), проверено на 310 модели
-- new (0.1.4) - [внутренний] интерфейс fix() для исправления данных
-- new (0.1.3) - добавлена Garmin Running Dinamics в выводе CSV
-- new (0.1.2) - используется дата в формате ГОСТ/ISO "yyyy-mm-ddThh:mm:ss" для всего (для GPX всегда), для старого формата "yyyy.mm.dd hh:mm:ss" используйте --iso-date=no
-- new (0.1.1) - добавлен Garmin Stress Index (вариация Индекса Баевского)
+# Возможности добавленные после релиза 0.1.5
+
+- 
 
 # English
 
@@ -122,16 +115,10 @@ Dump all the headers of the file (debug mode):
       
 The minimum Java version is 11.0
 
-# Features after 0.1.0 release
 
-- new (0.1.5) - the output CSV file now has a column that lists the applied fixes (see the section about fixes)
-- new (0.1.5) - generic fixes: zero speed when increasing the distance, the speed from all possible (see the section about fixes)
-- new (0.1.5) - correction of missing coordinates for swims based on distance data (Swim), can also work for tunnels and bikes
-- new (0.1.5) - heart rate recording from standalone HRM-Tri, HRM-Swim, HRM-Pro sensors is now automatically added to workout
-- new (0.1.4) !!! command line parameters and short parameters have been changed!
-- new (0.1.4) -  merge all output in one file with --merge (data in the merged file may not be in chronological order!)
-- new (0.1.4) - fix Bryton Rider data (holes and null values), tested on 310 model
-- new (0.1.4) - [internal] interface fix() to repair bad data
-- new (0.1.3) - Garmin Running Dinamics added in CSV output
-- new (0.1.2) - now use ISO date format "yyyy-mm-ddThh:mm:ss" for all (in GPX allways), for use old date format "yyyy.mm.dd hh:mm:ss" use --iso-date=no
-- new (0.1.1) - Garmin Stress Index (variation of Baevsky Index) added
+#Actual release:
+https://github.com/MaksVasilev/fit2gpx/releases/latest
+
+# Features after 0.1.5 release
+
+- 
