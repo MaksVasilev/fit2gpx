@@ -697,6 +697,7 @@ public class fit2gpx extends Component {
 
                         case 0: // Table output - CSV format
                         case 1: // Standart Garmin point exchange format GPX
+                        case 6: // Table output - Only HR and Time from actyvites
 
                             if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -751,9 +752,10 @@ public class fit2gpx extends Component {
                                     }
                                 }
 
-                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }
+                                if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }   // flag for track
+                                if((OutputFormat == 6) && fields.containsKey("heart_rate")) { EmptyTrack = false; }                     // flag for HR only
 
-                                full_buffer.put(RecordedDate, new HashMap<>() {
+                                full_buffer.put(RecordedDate, new HashMap<>() {                                         // write all field to buffer
                                     {
                                         // GPXtime - need to use in GPX output only, not sensitive to --iso-date=y/n !
                                         put("GPXtime",DateFormatGPX.format(TimeStamp));
@@ -763,17 +765,6 @@ public class fit2gpx extends Component {
                             }
 
                             break;
-
-                        case 6: // Table output - Only HR and Time from actyvites
-
-                            if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
-                                if (mesg.getFieldStringValue("heart_rate") != null) {
-                                    TimeStamp = new Date((mesg.getFieldLongValue("timestamp") * 1000) + DateTime.OFFSET + (timeOffset * 1000));
-                                    short_buffer.put(DateFormatCSV.format(TimeStamp), mesg.getFieldStringValue("heart_rate"));
-                                    EmptyTrack = false;
-                                }
-                            }
-                           break;
 
                         case 2: // monitor HR data
 
@@ -1023,9 +1014,16 @@ public class fit2gpx extends Component {
                     activity.add(out_gpx_tail1);
                     break;
 
+                case 6:     // activity: Only HR
+                    for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
+                        if(m.getValue().containsKey("heart_rate")) {
+                            activity.add(m.getKey() + ";" + m.getValue().get("heart_rate"));
+                        }
+                    }
+                    break;
+
                 case 2:     // monitor: HR
                 case 4:     // monitor: SpO2
-                case 6:     // activity: Only HR
                     for(Map.Entry<String,String> m: short_buffer.entrySet()){
                         activity.add(m.getKey() + ";" + m.getValue());
                     }
