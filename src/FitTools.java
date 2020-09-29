@@ -1,6 +1,14 @@
 import com.garmin.fit.*;
 
 public class FitTools {
+
+    public static String BrytonProduct(int brytonProduct) {
+        switch (brytonProduct) {
+            case 1505: return "Rider 310";
+            case 1508: return "Rider 530";
+            default: return "Device ID: " + brytonProduct;
+        }
+    }
     
     public static String productById(int garminProduct) {
         switch (garminProduct) {

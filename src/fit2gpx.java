@@ -29,6 +29,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.TimeZone;
 import java.util.*;
 
 import static javax.swing.UIManager.setLookAndFeel;
@@ -244,7 +245,7 @@ public class fit2gpx extends Component {
                 "xmlns:gpxx=\"http://www.garmin.com/xmlschemas/WaypointExtension/v1\" " +
                 "xmlns:nmea=\"http://trekbuddy.net/2009/01/gpx/nmea\">";
         private final String out_gpx_head1 = " <metadata>\n  <time>{time}</time>\n </metadata>";
-        private final String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <trkseg>";
+        private final String out_gpx_head2 = " <trk>\n  <name>{FTIFile}</name>\n  <number>{serialnumber}</number>\n  <trkseg>";
         private final String out_gpx_tail1 = "  </trkseg>\n </trk>";
         private final String out_gpx_tail2 = "</gpx>";
 
@@ -295,11 +296,13 @@ public class fit2gpx extends Component {
         private boolean firstElement = false;
         private boolean EmptyTrack = true;      // признак того, что трек не содержит координат
         private boolean SaveIfEmpty = false;     // разрешить сохранение пустого трека без точек
-        private Long Local_Timestamp = 0L;      //
+        private Long SerialNumber = 0L;      //
+        private Date FileTimeStamp = new Date();
+        private String hashActivity = "";
+
         private Long mesgTimestamp;
         private double HrvTime = 0.0;
 
-        private Date FileTimeStamp = new Date();
         private Date StartTime = new Date();
         private boolean StartTimeFlag = false;
         private String DeviceCreator = "";
@@ -649,6 +652,17 @@ public class fit2gpx extends Component {
             return 0;
         }
 
+        public String SHA1(String sha1) {
+            try {
+                java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA1");
+                byte[] array = md.digest(sha1.getBytes(StandardCharsets.UTF_8));
+                StringBuilder s = new StringBuilder();
+                for (byte b : array) { s.append(Integer.toHexString((b & 0xFF) | 0x100), 1, 3); }
+                return s.toString().toUpperCase();
+            } catch (java.security.NoSuchAlgorithmException ignored) {}
+            return "";
+        }
+
         private int read() {    // Try to read input file // Чукча-читатель
 
             Decode decode = new Decode();
@@ -661,18 +675,43 @@ public class fit2gpx extends Component {
                 String _Manufacturer = "";
 
                 if (mesg.getTimeCreated() != null) {
-
                     FileTimeStamp = new Date(mesg.getTimeCreated().getTimestamp() * 1000 + DateTime.OFFSET + (timeOffset * 1000));
                 }
 
+                int __product = 0;
+                int __manufacturer = 0;
+
                 if (mesg.getManufacturer() != null) {
+                    __manufacturer = mesg.getManufacturer();
                     _Manufacturer = " (" + Manufacturer.getStringFromValue(mesg.getManufacturer()) + ")";
+
+                    if (mesg.getProduct() != null) {
+
+                        __product = mesg.getProduct();
+
+                        if(__manufacturer == Manufacturer.GARMIN) {
+                            _Product = GarminProduct.getStringFromValue(mesg.getGarminProduct()) + _Manufacturer;
+                        } else if (mesg.getManufacturer() == Manufacturer.FAVERO_ELECTRONICS ){
+                            _Product = FaveroProduct.getStringFromValue(mesg.getFaveroProduct()) + _Manufacturer;
+                        } else if (mesg.getManufacturer() == Manufacturer.BRYTON) {
+                            _Product = FitTools.BrytonProduct(__product) + _Manufacturer;
+                        } else {
+                            _Product = "Device ID: " + mesg.getProduct() + _Manufacturer;
+                        }
+                    }
                 }
 
-                if (mesg.getProduct() != null) {
-                    _Product = GarminProduct.getStringFromValue(mesg.getProduct()) + _Manufacturer;
+                if(mesg.getSerialNumber() != null) {
+                    SerialNumber = mesg.getSerialNumber();
                 }
+
                 DeviceCreator = _Product;
+                SimpleDateFormat hashDate = new SimpleDateFormat("yyyyMMddHHmmss");
+                hashDate.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+                String hashString = (String.valueOf(__manufacturer) + String.valueOf(__product) + hashDate.format(FileTimeStamp) + String.valueOf(SerialNumber));
+                hashActivity = SHA1(hashString);
+//                System.out.println(SHA1(hashActivity));
             };
 
             MesgListener mesgListener = mesg -> {
@@ -980,7 +1019,7 @@ public class fit2gpx extends Component {
                     break;
 
                 case 1:     // Standart Garmin point exchange format GPX
-                    activity.add(out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()));
+                    activity.add(out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()).replace("{serialnumber}", String.valueOf(SerialNumber)));
 
                     for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
                         if(m.getValue().get("position_lat") != null && m.getValue().get("position_long") != null) {
