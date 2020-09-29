@@ -969,7 +969,7 @@ public class fit2gpx extends Component {
 
         private int format(int readstatus, int fixstatus) {     // format output from buffer to text
 
-            if(EmptyTrack) {
+            if(EmptyTrack && !SaveIfEmpty) {
                 return 100;
             }
 
