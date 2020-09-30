@@ -32,7 +32,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.6";
+    static final String _version_ = "0.1.7";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -62,6 +62,7 @@ public class fit2gpx extends Component {
         ConverterResult converterResult = new ConverterResult();
         Database database = Database.NONE;
         String db_connect = "";
+        String db_prefix = "";
 
         for (String arg:args) {
             if(xDebug) { System.out.println("argument: " + arg); }
@@ -101,12 +102,18 @@ public class fit2gpx extends Component {
                 String[] connect = arg.split("=", 2);
                 db_connect = connect[1];
             }
+            if ( arg.startsWith("--db-prefix=")) {
+                String[] connect = arg.split("=", 2);
+                db_prefix = connect[1];
+            }
         }
 
         if(database != Database.NONE && !db_connect.equals("")) {
-            DB DataBase = new DB(database,db_connect,converter.getMODE());
+            DB DataBase = new DB(converter.getMODE());
             DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
             DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
+
+            DataBase.connctDB(database,db_connect,db_prefix);
         }
 
         if(!DialogMode) {
