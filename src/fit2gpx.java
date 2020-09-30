@@ -60,6 +60,8 @@ public class fit2gpx extends Component {
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
+        Database database = Database.NONE;
+        String db_connect = "";
 
         for (String arg:args) {
             if(xDebug) { System.out.println("argument: " + arg); }
@@ -75,8 +77,8 @@ public class fit2gpx extends Component {
             if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); converter.setOUT(Out.MERGED_FILES); }
             if ( arg.equals("--no-dialog") || arg.equals("-nd") ) { DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--db-sqlite") || arg.equals("-dbs") ) { converter.setDBASE(Database.SQLITE); }
-            if ( arg.equals("--db-pgsql") || arg.equals("-dbp") ) { converter.setDBASE(Database.POSTGRESQL); }
+            if ( arg.equals("--db-sqlite") || arg.equals("-dbs") ) { database = Database.SQLITE; }
+            if ( arg.equals("--db-pgsql") || arg.equals("-dbp") ) { database = Database.POSTGRESQL; }
             if ( arg.equals("--full-dump")) { converter.setMode(Mode.DUMP);  }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
@@ -95,6 +97,16 @@ public class fit2gpx extends Component {
                     converter.setUseISOdate(false);
                 } else converter.setUseISOdate(true);
             }
+            if ( arg.startsWith("--db-connect=")) {
+                String[] connect = arg.split("=", 2);
+                db_connect = connect[1];
+            }
+        }
+
+        if(database != Database.NONE && !db_connect.equals("")) {
+            DB DataBase = new DB(database,db_connect,converter.getMODE());
+            DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
+            DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
         }
 
         if(!DialogMode) {

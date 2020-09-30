@@ -47,8 +47,6 @@ public class Converter {
     private final String out_gpx_tail2 = "</gpx>";
 
     final ArrayList<String> activity = new ArrayList<>();
-//    private final TreeMap<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
-//    private final TreeMap<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
     private final TreeMap<String, Map<String,String>> Buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
     private static final String[] fieldnames = {"position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
@@ -111,7 +109,6 @@ public class Converter {
 
     private Mode MODE = Mode.GPX;
     private Out OUT = Out.SINGLE_FILE;
-    private Database DBASE = Database.NONE;
 
     private double lastGoodRR = 999.0;
     private double currentRR;
@@ -119,8 +116,6 @@ public class Converter {
     private double deltaFilterHRV;
     private boolean useFilterHRV = false;
 
-    void setDBASE(Database dbase) { this.DBASE = dbase; }
-    Database getDBASE() { return DBASE; }
     void setMode(Mode m) { this.MODE = m; }
     Mode getMODE() { return MODE; }
     void setOUT(Out out) { this.OUT = out; }
@@ -149,6 +144,8 @@ public class Converter {
         }
     }
 
+    public TreeMap<String, Map<String,String>> getBuffer() { return Buffer; }
+
     int run() {  // Основной поэтапный цикл работы конвертера
 
         if(MODE == Mode.DUMP) { MergeOut = false; }    // don't merge out for debug!
@@ -164,14 +161,20 @@ public class Converter {
         int fixstatus = this.fix();         // try to fix data in non corrupted file
         if(fixstatus !=0) {return fixstatus;}
 
-        int formatstatus = this.format(0,0);   // format output to write in file
-        // if(formatstatus !=0) {return formatstatus;}
+        if(OUT == Out.DATABASE) {
 
-        int writeStatus = this.write();     // write buffer to out
+            return fixstatus;
 
-        converter_clear();           // clean for reuse in loop
+        } else {
 
-        return writeStatus;
+            int formatstatus = this.format(0, 0);   // format output to write in file
+            // if(formatstatus !=0) {return formatstatus;}
+
+            int writeStatus = this.write();     // write buffer to out
+            converter_clear();           // clean for reuse in loop
+
+            return writeStatus;
+        }
     }
 
     private void converter_clear() {
