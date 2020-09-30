@@ -18,7 +18,7 @@ exit code:
 209 - debug break
 */
 
-import format.Mode;
+import format.*;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -56,17 +56,7 @@ public class fit2gpx extends Component {
         boolean DialogMode = true;
         boolean StatisticEnable = false;
         boolean xDebug = false;
-        String[] Filter = new String[3];
-
-        String[] OpenTitle = new String[100];
-        OpenTitle[0] = tr.getString("OpenTitleCSV");
-        OpenTitle[1] = tr.getString("OpenTitle");
-        OpenTitle[2] = tr.getString("OpenTitleM");
-        OpenTitle[3] = tr.getString("OpenTitleHRV");
-        OpenTitle[4] = tr.getString("OpenTitleOxy");
-        OpenTitle[5] = tr.getString("OpenTitleStress");
-        OpenTitle[6] = tr.getString("OpenTitleHR");
-        OpenTitle[99] = tr.getString("OpenTitleDebug");
+        String[] Filter;
 
         Converter converter = new Converter();
         ConverterResult converterResult = new ConverterResult();
@@ -82,9 +72,11 @@ public class fit2gpx extends Component {
             if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setOutputFormat(4); converter.setMode(Mode.MONITOR_SPO2); }
             if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setOutputFormat(5); converter.setMode(Mode.MONITOR_GSI); }
             if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setOutputFormat(6); converter.setMode(Mode.CSV_HR); converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); }
-            if ( arg.equals("--no-dialog") || arg.equals("-nd") ) {  DialogMode = false; }
+            if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); converter.setOUT(Out.MERGED_FILES); }
+            if ( arg.equals("--no-dialog") || arg.equals("-nd") ) { DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--db-sqlite") || arg.equals("-dbs") ) { converter.setDBASE(Database.SQLITE); }
+            if ( arg.equals("--db-pgsql") || arg.equals("-dbp") ) { converter.setDBASE(Database.POSTGRESQL); }
             if ( arg.equals("--full-dump")) { converter.setOutputFormat(99);  }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
@@ -144,20 +136,48 @@ public class fit2gpx extends Component {
 
             JFileChooser chooser = new JFileChooser();
             chooser.setLocale(Locale.getDefault());
-
-            chooser.setDialogTitle((OpenTitle[converter.OutputFormat]));
             chooser.setApproveButtonText(tr.getString("Open"));
             chooser.setPreferredSize(new Dimension(1200,600));
-
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
             FileNameExtensionFilter filter;
-            if(converter.OutputFormat == 2 || converter.OutputFormat == 4 || converter.OutputFormat == 5) {
-                filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
-            } else {
-                filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+
+            switch (converter.getMODE()) {
+                case GPX:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitle"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                    break;
+                case CSV:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleCSV"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                    break;
+                case CSV_HR:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleHR"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                    break;
+                case HRV:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleHRV"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                    break;
+                case MONITOR_HR:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleM"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                    break;
+                case MONITOR_SPO2:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleOxy"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                    break;
+                case MONITOR_GSI:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleStress"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                    break;
+                default:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleDebug"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTdefault"), "FIT", "fit");
+                    break;
             }
+
             chooser.setFileFilter(filter);
 
             int returnVal = chooser.showOpenDialog(chooser.getParent());

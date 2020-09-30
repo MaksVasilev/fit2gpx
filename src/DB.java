@@ -7,10 +7,11 @@ import java.util.TreeMap;
 public class DB {
     private TreeMap<String, Map<String,String>> full_buffer = new TreeMap<>();
     private String[] fields;
-    private Mode mode = Mode.UNKNOWN;
-    private Out out = Out.DB_SQLITE;
+    private Mode MODE = Mode.UNKNOWN;
+//    private Out OUT = Out.S;
+    private Database DBASE = Database.SQLITE;
     private String hash;
-    private String db;
+    private String database;
 
     public DB(String db,Mode mode, String hash) {
         setMode(mode);
@@ -18,22 +19,20 @@ public class DB {
         setDb(db);
     }
 
-    public void setDBtype(Out db) {
-        if(db == Out.DB_SQLITE || db == Out.DB_POSTGRESQL) {
-            out= db;
-        }
+    public void setDBtype(Database dbase) {
+        DBASE = dbase;
     }
 
     public void setFields(String[] fields) { this.fields = fields; }
-    private void setDb(String db) { this.db = db; }
-    private void setMode(Mode m) { this.mode = m; }
+    private void setDb(String db) { this.database = db; }
+    private void setMode(Mode m) { this.MODE = m; }
     private void setHash(String hash) { this.hash = hash; }
     public void setFull_buffer(TreeMap<String, Map<String,String>> fb) { this.full_buffer = fb; }
 
     public void setShort_buffer(TreeMap<String,String> sb) {
         full_buffer.clear();
 
-        switch (mode) {
+        switch (MODE) {
             case MONITOR_HR:
                 for(Map.Entry<String,String> monitor: sb.entrySet()) {
                     full_buffer.put(monitor.getKey(), new HashMap<>() { { put("heart_rate", monitor.getValue()); } });
@@ -49,7 +48,7 @@ public class DB {
     public void setArray_buffer(TreeMap<String,String[]> ab) {
         full_buffer.clear();
 
-        switch (mode) {
+        switch (MODE) {
             case HRV:
                 for (Map.Entry<String, String[]> array_row : ab.entrySet()) {
                     full_buffer.put(array_row.getKey(), new HashMap<>() {

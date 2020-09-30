@@ -1,6 +1,6 @@
 import com.garmin.fit.*;
 import com.garmin.fit.plugins.HrToRecordMesgBroadcastPlugin;
-import format.Mode;
+import format.*;
 
 import java.io.*;
 import java.io.File;
@@ -107,7 +107,9 @@ public class Converter {
     private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
 
     public int OutputFormat = 1; // TODO заменить на энумы везде и ликвидировать
-    private Mode mode = Mode.GPX;
+    private Mode MODE = Mode.GPX;
+    private Out OUT = Out.SINGLE_FILE;
+    private Database DBASE = Database.NONE;
 
     private double lastGoodRR = 999.0;
     private double currentRR;
@@ -116,7 +118,13 @@ public class Converter {
     private boolean useFilterHRV = false;
 
 
-    void setMode(Mode m) { this.mode = m; }
+    void setDBASE(Database dbase) { this.DBASE = dbase; }
+    Database getDBASE() { return DBASE; }
+    void setMode(Mode m) { this.MODE = m; }
+    Mode getMODE() { return MODE; }
+    void setOUT(Out out) { this.OUT = out; }
+    Out getOUT() { return OUT; }
+
     void setOutputFormat(int outputFormat) {
         OutputFormat = outputFormat;
     }
@@ -214,7 +222,7 @@ public class Converter {
                     }
 
                     // fix BRYTON hole in data: lat/lon (#1)
-                    Double speed;
+                    double speed;
 
                     if(row1.containsKey("distance")) {
                         try {
@@ -242,7 +250,7 @@ public class Converter {
 
                     if(speed == 0.0) {                                            // generic: Speed from distance if speed = 0 and distance incremented
                         if (last_dist > prev_dist) {
-                            speed = (last_dist - prev_dist) / ((date.getTime() - prev_date.getTime()) / 1000);
+                            speed = (last_dist - prev_dist) / (date.getTime() - prev_date.getTime()) * 1000;
                             row1.put("speed",String.valueOf(speed));
                             row1.put("enhanced_speed",String.valueOf(speed));
                             row1.put("fixed",append(row1.get("fixed"),"speed-from-distance,"));
@@ -322,20 +330,19 @@ public class Converter {
                     }
                 }                                                                             // End 03-Bryton-start-ele
 
-                Double last_lat_d = 0.0;                                                      // Fix 04-Swim-no-coord - empty coordinates for Swim, if distance increment
-                Double last_lon_d = 0.0;
-                last_ele = "";
+                double last_lat_d = 0.0;                                                      // Fix 04-Swim-no-coord - empty coordinates for Swim, if distance increment
+                double last_lon_d = 0.0;
                 last_dist = 0.0;
 
 
                 for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
-                    Double lat = 0.0;
-                    Double lon = 0.0;
-                    Double dist = 0.0;
+                    double lat;
+                    double lon;
+                    double dist = 0.0;
 
                     Map<String, String> row0 = m.getValue();
-                    String start = "";
-                    String end= "";
+                    String start;
+                    String end;
 
                     if(row0.get("position_lat") != null && row0.get("position_long") != null && row0.get("distance") != null) {
                         last_lat_d = checkD(row0.get("position_lat"));
@@ -470,7 +477,7 @@ public class Converter {
         FileIdMesgListener fileIdMesgListener = mesg -> {
 
             String _Product = "";
-            String _Manufacturer = "";
+            String _Manufacturer;
 
             if (mesg.getTimeCreated() != null) {
                 FileTimeStamp = new Date(mesg.getTimeCreated().getTimestamp() * 1000 + DateTime.OFFSET + (timeOffset * 1000));
