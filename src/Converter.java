@@ -49,7 +49,7 @@ public class Converter {
     final ArrayList<String> activity = new ArrayList<>();
     private final TreeMap<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
     private final TreeMap<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
-    private final TreeMap<String, Map<String,String>> full_buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
+    private final TreeMap<String, Map<String,String>> Buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
     private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
             "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
@@ -106,7 +106,6 @@ public class Converter {
 
     private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
 
-//    public int OutputFormat = 1; // TODO заменить на энумы везде и ликвидировать
     private Mode MODE = Mode.GPX;
     private Out OUT = Out.SINGLE_FILE;
     private Database DBASE = Database.NONE;
@@ -117,7 +116,6 @@ public class Converter {
     private double deltaFilterHRV;
     private boolean useFilterHRV = false;
 
-
     void setDBASE(Database dbase) { this.DBASE = dbase; }
     Database getDBASE() { return DBASE; }
     void setMode(Mode m) { this.MODE = m; }
@@ -125,7 +123,6 @@ public class Converter {
     void setOUT(Out out) { this.OUT = out; }
     Out getOUT() { return OUT; }
 
-//    void setOutputFormat(int outputFormat) { OutputFormat = outputFormat; }
     void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
     void setMergeOut(boolean merge) { MergeOut = merge; }
     boolean getMergeOut() {return MergeOut; }
@@ -177,7 +174,7 @@ public class Converter {
     private void converter_clear() {
         activity.clear();
         short_buffer.clear();
-        full_buffer.clear();
+        Buffer.clear();
         array_buffer.clear();
         StartTimeFlag = false;
     }
@@ -200,7 +197,7 @@ public class Converter {
                 Date date = new Date();
                 Date prev_date = new Date();
 
-                for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                for(Map.Entry<String,Map<String,String>> m: Buffer.entrySet()) {
                     try {
                         date = DateFormatCSV.parse(m.getKey());
                     } catch (ParseException ignore) {}
@@ -278,24 +275,24 @@ public class Converter {
                         row1.put("fixed",append(row1.get("fixed"),"Bryton-hole-ele,"));
                     }
 
-                    full_buffer.put(m.getKey(), new HashMap<>() { { row1.forEach(this::put); } });   // write change to buffer
+                    Buffer.put(m.getKey(), new HashMap<>() { { row1.forEach(this::put); } });   // write change to buffer
                     row1.clear();
                 }                                                                            // End 01-Bryton-hole-ele/Bryton-hole-coord
 
                 // fill all null lat/lon data before first real coordinates to this
-                for(Map.Entry<String,Map<String,String>> map02b:full_buffer.entrySet()) {        // Fix 02-Bryton-start-coord - Bryton start without coordinates fix
+                for(Map.Entry<String,Map<String,String>> map02b: Buffer.entrySet()) {        // Fix 02-Bryton-start-coord - Bryton start without coordinates fix
                     if(map02b.getValue().get("position_lat") != null && map02b.getValue().get("position_long") != null) {
                         String first_latlon = map02b.getKey();
                         String lat = map02b.getValue().get("position_lat");
                         String lon = map02b.getValue().get("position_long");
 
-                        for(Map.Entry<String,Map<String,String>> map02b_i:full_buffer.entrySet()) {
+                        for(Map.Entry<String,Map<String,String>> map02b_i: Buffer.entrySet()) {
                             if(!map02b_i.getKey().equals(first_latlon)) {
                                 Map<String,String> row2 = map02b_i.getValue();
                                 row2.put("position_lat",lat);
                                 row2.put("position_long",lon);
                                 row2.put("fixed",append(row2.get("fixed"),"Bryton-start-coord,"));
-                                full_buffer.put(map02b_i.getKey(), new HashMap<>() { { row2.forEach(this::put); } });   // write change to buffer
+                                Buffer.put(map02b_i.getKey(), new HashMap<>() { { row2.forEach(this::put); } });   // write change to buffer
                                 row2.clear();
                             } else {
                                 break;
@@ -306,19 +303,19 @@ public class Converter {
                 }                                                                           // End 02-Bryton-start-coord
 
                 // fill all null elevation data before first real ele to this ele
-                for(Map.Entry<String,Map<String,String>> map03b:full_buffer.entrySet()) {        // Fix 03-Bryton-start-ele - Bryton start without elevation fix
+                for(Map.Entry<String,Map<String,String>> map03b: Buffer.entrySet()) {        // Fix 03-Bryton-start-ele - Bryton start without elevation fix
                     if(map03b.getValue().get("enhanced_altitude") != null) {
                         String first_ele = map03b.getKey();
                         String ele = map03b.getValue().get("altitude");
 
-                        for(Map.Entry<String,Map<String,String>> map03b_i:full_buffer.entrySet()) {
+                        for(Map.Entry<String,Map<String,String>> map03b_i: Buffer.entrySet()) {
                             if(!map03b_i.getKey().equals(first_ele)) {
                                 Map<String,String> row3 = map03b_i.getValue();
                                 row3.put("enhanced_altitude",ele);
                                 row3.put("altitude",ele);
                                 row3.put("fixed",append(row3.get("fixed"),"Bryton-start-ele,"));
 
-                                full_buffer.put(map03b_i.getKey(), new HashMap<>() { { row3.forEach(this::put); } });   // write change to buffer
+                                Buffer.put(map03b_i.getKey(), new HashMap<>() { { row3.forEach(this::put); } });   // write change to buffer
                                 row3.clear();
                             } else {
                                 break;
@@ -333,7 +330,7 @@ public class Converter {
                 last_dist = 0.0;
 
 
-                for(Map.Entry<String,Map<String,String>> m:full_buffer.entrySet()) {
+                for(Map.Entry<String,Map<String,String>> m: Buffer.entrySet()) {
                     double lat;
                     double lon;
                     double dist = 0.0;
@@ -353,7 +350,7 @@ public class Converter {
 
                         ArrayList<Double> dist_steps = new ArrayList<>();
 
-                        for(Map.Entry<String,Map<String,String>> n: full_buffer.subMap(start,full_buffer.lastKey()+1).entrySet()) {
+                        for(Map.Entry<String,Map<String,String>> n: Buffer.subMap(start, Buffer.lastKey()+1).entrySet()) {
                             Map<String, String> row00 = n.getValue();
                             if(row00.get("distance") != null) {
                                 try {
@@ -375,7 +372,7 @@ public class Converter {
                                 Double delta_lon = lon - last_lon_d;
 
                                 int st = 0;
-                                for(Map.Entry<String,Map<String,String>> insert: full_buffer.subMap(start,end).entrySet()) {
+                                for(Map.Entry<String,Map<String,String>> insert: Buffer.subMap(start,end).entrySet()) {
                                     Map<String,String> row_insert = insert.getValue();
 
                                     Double step_dist_persent = (dist_steps.get(st)/delta_dist);
@@ -386,7 +383,7 @@ public class Converter {
                                     row_insert.put("position_long", String.valueOf(step_lon));
                                     row_insert.put("fixed",append(row_insert.get("fixed"),"Swim-no-coord,"));
 
-                                    full_buffer.put(insert.getKey(), new HashMap<>() { { row_insert.forEach(this::put); } });   // write change to buffer
+                                    Buffer.put(insert.getKey(), new HashMap<>() { { row_insert.forEach(this::put); } });   // write change to buffer
                                     row_insert.clear();
                                     st++;
                                 }
@@ -581,16 +578,16 @@ public class Converter {
 
                         // if records with this time already present, then merge existing key=value to current set
                         // part of Bryton fixes
-                        if(full_buffer.containsKey(RecordedDate)) {
-                            for(String key:full_buffer.get(RecordedDate).keySet()) {
-                                fields.put(key, full_buffer.get(RecordedDate).get(key));
+                        if(Buffer.containsKey(RecordedDate)) {
+                            for(String key: Buffer.get(RecordedDate).keySet()) {
+                                fields.put(key, Buffer.get(RecordedDate).get(key));
                             }
                         }
 
                         if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }   // flag for track
                         if((MODE == Mode.CSV_HR) && fields.containsKey("heart_rate")) { EmptyTrack = false; }                     // flag for HR only
 
-                        full_buffer.put(RecordedDate, new HashMap<>() {                                         // write all field to buffer
+                        Buffer.put(RecordedDate, new HashMap<>() {                                         // write all field to buffer
                             {
                                 // GPXtime - need to use in GPX output only, not sensitive to --iso-date=y/n !
                                 put("GPXtime",DateFormatGPX.format(TimeStamp));
@@ -807,7 +804,7 @@ public class Converter {
 
         switch (MODE) {                                   // format body
             case CSV:     // Table output - CSV format
-                for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()){
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()){
                     StringBuilder line;
                     line = new StringBuilder(m.getKey());
                     Map<String, String> ff = m.getValue();
@@ -824,7 +821,7 @@ public class Converter {
             case GPX:     // Standart Garmin point exchange format GPX
                 activity.add(out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()).replace("{serialnumber}", String.valueOf(SerialNumber)));
 
-                for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
                     if(m.getValue().get("position_lat") != null && m.getValue().get("position_long") != null) {
                         activity.add("   <trkpt lat=\"{lat}\"".replace("{lat}", m.getValue().get("position_lat")) + " lon=\"{lon}\">".replace("{lon}", m.getValue().get("position_long")));
                     } else {
@@ -851,7 +848,7 @@ public class Converter {
                 break;
 
             case CSV_HR:     // activity: Only HR
-                for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
                     if(m.getValue().containsKey("heart_rate")) {
                         String duration = "";
                         if(m.getValue().containsKey("duration")) { duration = m.getValue().get("duration"); }
