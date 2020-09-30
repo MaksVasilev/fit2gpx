@@ -51,11 +51,13 @@ public class Converter {
 //    private final TreeMap<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
     private final TreeMap<String, Map<String,String>> Buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
-    private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+    private static final String[] fieldnames = {"position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
             "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
             "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
             "left_right_balance","left_power_phase","right_power_phase","left_power_phase_peak","right_power_phase_peak",       // bike dinamics
-            "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness","left_pco","right_pco"};
+            "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness",
+            "combined_pedal_smoothness","left_pco","right_pco","grit","flow",
+            "absolute_pressure"};
 
     private static final Integer[] fieldindex = {
             108,    // Respiratory
@@ -63,12 +65,13 @@ public class Converter {
             61, 66    // ?
     };
 
-    private static final String[] fieldnames_for_out = {"duration","position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
+    private static final String[] fieldnames_for_out = {"duration","position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
             "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
             "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
             "left_right_balance","left_right_balance_persent","left_power_phase_start","left_power_phase_end","right_power_phase_start",
             "right_power_phase_end","left_power_phase_peak_start","left_power_phase_peak_end","right_power_phase_peak_start","right_power_phase_peak_end",
-            "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness","left_pco","right_pco",
+            "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness",
+            "combined_pedal_smoothness","left_pco","right_pco","grit","flow","absolute_pressure",
             "respiratory","performance_contition","field_num_61","field_num_66",
             "fixed"};
 
