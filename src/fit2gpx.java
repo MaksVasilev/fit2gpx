@@ -18,6 +18,7 @@ exit code:
 209 - debug break
 */
 
+import format.*;
 import com.garmin.fit.*;
 import com.garmin.fit.plugins.HrToRecordMesgBroadcastPlugin;
 
@@ -79,13 +80,13 @@ public class fit2gpx extends Component {
             if(xDebug) { System.out.println("argument: " + arg); }
             if ( arg.equals("--help") || arg.equals("-h")) { Help.usage(); }
             if ( arg.equals("--statistic") || arg.equals("-s")) {  StatisticEnable = true; }
-            if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  converter.setOutputFormat(2); }
-            if ( arg.equals("--hrv") || arg.equals("-vr")) {  converter.setOutputFormat(3); }
-            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  converter.setOutputFormat(3); converter.setUseFilterHRV(true); }
-            if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setOutputFormat(4);  }
-            if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setOutputFormat(5);  }
-            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setOutputFormat(6); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setMode(Mode.CSV); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  converter.setOutputFormat(2); converter.setMode(Mode.MONITOR_HR);}
+            if ( arg.equals("--hrv") || arg.equals("-vr")) {  converter.setOutputFormat(3); converter.setMode(Mode.HRV); }
+            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  converter.setOutputFormat(3); converter.setMode(Mode.HRV); converter.setUseFilterHRV(true); }
+            if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setOutputFormat(4); converter.setMode(Mode.MONITOR_SPO2); }
+            if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setOutputFormat(5); converter.setMode(Mode.MONITOR_GSI); }
+            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setOutputFormat(6); converter.setMode(Mode.CSV_HR); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); }
             if ( arg.equals("--no-dialog") || arg.equals("-nd") ) {  DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
@@ -156,13 +157,13 @@ public class fit2gpx extends Component {
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
+            FileNameExtensionFilter filter;
             if(converter.OutputFormat == 2 || converter.OutputFormat == 4 || converter.OutputFormat == 5) {
-                FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
-                chooser.setFileFilter(filter);
+                filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
             } else {
-                FileNameExtensionFilter filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
-                chooser.setFileFilter(filter);
+                filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
             }
+            chooser.setFileFilter(filter);
 
             int returnVal = chooser.showOpenDialog(chooser.getParent());
             if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -203,6 +204,7 @@ public class fit2gpx extends Component {
             JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), tr.getString("ConvResult"), MessageType);
         }
     }
+
 
     private static class Converter {
 
@@ -310,6 +312,7 @@ public class fit2gpx extends Component {
         private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
 
         private int OutputFormat = 1;
+        private Mode mode = Mode.GPX;
 
         private double lastGoodRR = 999.0;
         private double currentRR;
@@ -318,7 +321,7 @@ public class fit2gpx extends Component {
         private boolean useFilterHRV = false;
 
 
-
+        void setMode(Mode m) { this.mode = m; }
         void setOutputFormat(int outputFormat) {
             OutputFormat = outputFormat;
         }
@@ -711,7 +714,7 @@ public class fit2gpx extends Component {
 
                 String hashString = (String.valueOf(__manufacturer) + String.valueOf(__product) + hashDate.format(FileTimeStamp) + String.valueOf(SerialNumber));
                 hashActivity = SHA1(hashString);
-//                System.out.println(SHA1(hashActivity));
+
             };
 
             MesgListener mesgListener = mesg -> {
