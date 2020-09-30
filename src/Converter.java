@@ -106,7 +106,7 @@ public class Converter {
 
     private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
 
-    public int OutputFormat = 1; // TODO заменить на энумы везде и ликвидировать
+//    public int OutputFormat = 1; // TODO заменить на энумы везде и ликвидировать
     private Mode MODE = Mode.GPX;
     private Out OUT = Out.SINGLE_FILE;
     private Database DBASE = Database.NONE;
@@ -125,9 +125,7 @@ public class Converter {
     void setOUT(Out out) { this.OUT = out; }
     Out getOUT() { return OUT; }
 
-    void setOutputFormat(int outputFormat) {
-        OutputFormat = outputFormat;
-    }
+//    void setOutputFormat(int outputFormat) { OutputFormat = outputFormat; }
     void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
     void setMergeOut(boolean merge) { MergeOut = merge; }
     boolean getMergeOut() {return MergeOut; }
@@ -153,7 +151,7 @@ public class Converter {
 
     int run() {  // Основной поэтапный цикл работы конвертера
 
-        if(this.OutputFormat == 99) { MergeOut = false; }    // don't merge out for debug!
+        if(MODE == Mode.DUMP) { MergeOut = false; }    // don't merge out for debug!
 
         int checkStatus = this.check();     // check file
         if(checkStatus != 0) {return checkStatus;}
@@ -190,9 +188,9 @@ public class Converter {
             return 201;
         }
 
-        switch (OutputFormat) {
-            case 0: // Table output - CSV format
-            case 1: // Standart Garmin point exchange format GPX
+        switch (MODE) {
+            case CSV: // Table output - CSV format
+            case GPX: // Standart Garmin point exchange format GPX
 
                 String last_lat = "";
                 String last_lon = "";
@@ -521,11 +519,11 @@ public class Converter {
 
         MesgListener mesgListener = mesg -> {
 
-            switch (OutputFormat) {
+            switch (MODE) {
 
-                case 0: // Table output - CSV format
-                case 1: // Standart Garmin point exchange format GPX
-                case 6: // Table output - Only HR and Time from actyvites
+                case CSV: // Table output - CSV format
+                case GPX: // Standart Garmin point exchange format GPX
+                case CSV_HR: // Table output - Only HR and Time from actyvites
 
                     if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -590,7 +588,7 @@ public class Converter {
                         }
 
                         if(fields.containsKey("position_lat") && fields.containsKey("position_long")) { EmptyTrack = false; }   // flag for track
-                        if((OutputFormat == 6) && fields.containsKey("heart_rate")) { EmptyTrack = false; }                     // flag for HR only
+                        if((MODE == Mode.CSV_HR) && fields.containsKey("heart_rate")) { EmptyTrack = false; }                     // flag for HR only
 
                         full_buffer.put(RecordedDate, new HashMap<>() {                                         // write all field to buffer
                             {
@@ -603,7 +601,7 @@ public class Converter {
 
                     break;
 
-                case 2: // monitor HR data
+                case MONITOR_HR: // monitor HR data
 
                     if(mesg.getName().equals("monitoring")) {
 
@@ -622,7 +620,7 @@ public class Converter {
                     }
                     break;
 
-                case 3: // HRV: R-R data
+                case HRV: // HRV: R-R data
 
                     if (mesg.getName().equals("event") ) {
                         if (mesg.getFieldStringValue("timestamp") != null && mesg.getFieldIntegerValue("event_type") == 0) {
@@ -664,7 +662,7 @@ public class Converter {
                     }
                     break;
 
-                case 4:  // monitor SpO2 data
+                case MONITOR_SPO2:  // monitor SpO2 data
 
                     if(mesg.getNum() == 269) { // 269 - Oxygenation SpO2
 
@@ -680,7 +678,7 @@ public class Converter {
                     }
                     break;
 
-                case 5:  // monitor Garmin Stress Index (GSI) data
+                case MONITOR_GSI:  // monitor Garmin Stress Index (GSI) data
 
                     if(mesg.getNum() == 227) { // 227 - Garmin Stress Index
 
@@ -712,7 +710,7 @@ public class Converter {
                     }
                     break;
 
-                case 99:  // Full Debug
+                case DUMP:  // Full Debug
 
                     StringBuilder line = new StringBuilder();
                     line.append("Message number: ").append(mesg.getNum()).append("\tName: \"").append(mesg.getName()).append("\"\tFields: ").append(mesg.getNumFields()).append("\n");
@@ -740,7 +738,7 @@ public class Converter {
         mesgBroadcaster.addListener(fileIdMesgListener);
         mesgBroadcaster.addListener(mesgListener);
 
-        if(OutputFormat != 99) {                                                    // not merge all appened HR data in "Dump" mode!
+        if(MODE != Mode.DUMP) {                                                    // not merge all appened HR data in "Dump" mode!
             mesgBroadcaster.addListener(hrListener);                                // disable plugin HR to Dump
             MesgBroadcastPlugin hr_plugin = new HrToRecordMesgBroadcastPlugin();
             mesgBroadcaster.registerMesgBroadcastPlugin(hr_plugin);
@@ -779,8 +777,8 @@ public class Converter {
         }
 
         if(firstElement) {
-            switch (OutputFormat) {                                // format header of file
-                case 0:     // Table output - CSV format
+            switch (MODE) {                                // format header of file
+                case CSV:     // Table output - CSV format
                     activity.clear();
                     StringBuilder head = new StringBuilder("time");
                     for (String name : fieldnames_for_out) {
@@ -788,27 +786,27 @@ public class Converter {
                     }
                     activity.add(head.toString());
                     break;
-                case 1:     // Standart Garmin point exchange format GPX
+                case GPX:     // Standart Garmin point exchange format GPX
                     activity.clear();
                     activity.add(out_gpx_head.replace("{creator}", DeviceCreator));
                     activity.add(out_gpx_head1.replace("{time}", DateFormatGPX.format(FileTimeStamp)));
                     break;
-                case 3:     // activity: HRV (R-R)
+                case HRV:     // activity: HRV (R-R)
                     activity.clear();
                     activity.add(0, "Timestamp,Time,RR,HR"); // заголовок IBI файла вариабельности ЧСС
                     break;
-                case 2:     // monitor: HR
-                case 4:     // monitor: SpO2
-                case 5:     // monitor: Garmin Stress Index
-                case 6:     // activity: Only HR
+                case MONITOR_HR:     // monitor: HR
+                case MONITOR_SPO2:     // monitor: SpO2
+                case MONITOR_GSI:     // monitor: Garmin Stress Index
+                case CSV_HR:     // activity: Only HR
                     activity.clear();
                     break;
             }
             firstElement = false;
         }
 
-        switch (OutputFormat) {                                   // format body
-            case 0:     // Table output - CSV format
+        switch (MODE) {                                   // format body
+            case CSV:     // Table output - CSV format
                 for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()){
                     StringBuilder line;
                     line = new StringBuilder(m.getKey());
@@ -823,7 +821,7 @@ public class Converter {
                 }
                 break;
 
-            case 1:     // Standart Garmin point exchange format GPX
+            case GPX:     // Standart Garmin point exchange format GPX
                 activity.add(out_gpx_head2.replace("{FTIFile}", InputFITfile.getName()).replace("{serialnumber}", String.valueOf(SerialNumber)));
 
                 for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
@@ -852,7 +850,7 @@ public class Converter {
                 activity.add(out_gpx_tail1);
                 break;
 
-            case 6:     // activity: Only HR
+            case CSV_HR:     // activity: Only HR
                 for(Map.Entry<String, Map<String, String>> m: full_buffer.entrySet()) {
                     if(m.getValue().containsKey("heart_rate")) {
                         String duration = "";
@@ -862,14 +860,14 @@ public class Converter {
                 }
                 break;
 
-            case 2:     // monitor: HR
-            case 4:     // monitor: SpO2
+            case MONITOR_HR:     // monitor: HR
+            case MONITOR_SPO2:     // monitor: SpO2
                 for(Map.Entry<String,String> m: short_buffer.entrySet()){
                     activity.add(m.getKey() + ";" + m.getValue());
                 }
                 break;
 
-            case 3:     // activity: HRV (R-R)
+            case HRV:     // activity: HRV (R-R)
                 for(Map.Entry<String,String[]> m: array_buffer.entrySet()){
                     StringBuilder line = new StringBuilder(m.getKey());
                     String[] l = m.getValue();
@@ -880,7 +878,7 @@ public class Converter {
                 }
                 break;
 
-            case 5:     // monitor: Garmin Stress Index
+            case MONITOR_GSI:     // monitor: Garmin Stress Index
                 for(Map.Entry<String,String[]> m: array_buffer.entrySet()){
                     StringBuilder line = new StringBuilder(m.getKey());
                     String[] l = m.getValue();
@@ -896,7 +894,7 @@ public class Converter {
 
     int writeEndfile() {
         final ArrayList<String> tail = new ArrayList<>();
-        if (OutputFormat == 1) {
+        if (MODE == Mode.GPX) {
             tail.add(out_gpx_tail2);
         }
 
@@ -931,7 +929,7 @@ public class Converter {
         }
 
         if (EmptyTrack) {
-            if(OutputFormat == 0) {
+            if(MODE == Mode.CSV) {
                 OutputFileName = InputFITfileName + ".empty.csv";
             } else {
                 OutputFileName = InputFITfileName + ".empty";
@@ -942,29 +940,29 @@ public class Converter {
             String m = "";
             if(MergeOut) { m = ".merged"; }
 
-            switch (OutputFormat) {
-                case 0:
+            switch (MODE) {
+                case CSV:
                     OutputFileName = InputFITfileName + m + ".csv";
                     break;
-                case 1:
+                case GPX:
                     OutputFileName = InputFITfileName + m + ".gpx";
                     break;
-                case 2:
+                case MONITOR_HR:
                     OutputFileName = InputFITfileName + m + ".monitor-HR.csv";
                     break;
-                case 3:
+                case HRV:
                     OutputFileName = InputFITfileName + m + ".HRV.csv";
                     break;
-                case 4:
+                case MONITOR_SPO2:
                     OutputFileName = InputFITfileName + m + ".SpO2.csv";
                     break;
-                case 5:
+                case MONITOR_GSI:
                     OutputFileName = InputFITfileName + m + ".GSI.csv";
                     break;
-                case 6:
+                case CSV_HR:
                     OutputFileName = InputFITfileName + m + ".HR.csv";
                     break;
-                case 99:
+                case DUMP:
                     OutputFileName = InputFITfileName + m + ".DUMP.txt";
                     break;
             }

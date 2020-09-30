@@ -65,19 +65,19 @@ public class fit2gpx extends Component {
             if(xDebug) { System.out.println("argument: " + arg); }
             if ( arg.equals("--help") || arg.equals("-h")) { Help.usage(); }
             if ( arg.equals("--statistic") || arg.equals("-s")) {  StatisticEnable = true; }
-            if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setOutputFormat(0); converter.setMode(Mode.CSV); converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  converter.setOutputFormat(2); converter.setMode(Mode.MONITOR_HR);}
-            if ( arg.equals("--hrv") || arg.equals("-vr")) {  converter.setOutputFormat(3); converter.setMode(Mode.HRV); }
-            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  converter.setOutputFormat(3); converter.setMode(Mode.HRV); converter.setUseFilterHRV(true); }
-            if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setOutputFormat(4); converter.setMode(Mode.MONITOR_SPO2); }
-            if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setOutputFormat(5); converter.setMode(Mode.MONITOR_GSI); }
-            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setOutputFormat(6); converter.setMode(Mode.CSV_HR); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--csv") || arg.equals("-c")) {  converter.setMode(Mode.CSV); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  converter.setMode(Mode.MONITOR_HR);}
+            if ( arg.equals("--hrv") || arg.equals("-vr")) {  converter.setMode(Mode.HRV); }
+            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  converter.setMode(Mode.HRV); converter.setUseFilterHRV(true); }
+            if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setMode(Mode.MONITOR_SPO2); }
+            if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setMode(Mode.MONITOR_GSI); }
+            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setMode(Mode.CSV_HR); converter.setSaveIfEmpty(true); }
             if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); converter.setOUT(Out.MERGED_FILES); }
             if ( arg.equals("--no-dialog") || arg.equals("-nd") ) { DialogMode = false; }
             if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
             if ( arg.equals("--db-sqlite") || arg.equals("-dbs") ) { converter.setDBASE(Database.SQLITE); }
             if ( arg.equals("--db-pgsql") || arg.equals("-dbp") ) { converter.setDBASE(Database.POSTGRESQL); }
-            if ( arg.equals("--full-dump")) { converter.setOutputFormat(99);  }
+            if ( arg.equals("--full-dump")) { converter.setMode(Mode.DUMP);  }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
                 FileList.add(arg);
