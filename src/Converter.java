@@ -47,8 +47,8 @@ public class Converter {
     private final String out_gpx_tail2 = "</gpx>";
 
     final ArrayList<String> activity = new ArrayList<>();
-    private final TreeMap<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
-    private final TreeMap<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
+//    private final TreeMap<String,String> short_buffer = new TreeMap<>();    // buffer for read pair "key = value" - monitoring HR, SpO2..
+//    private final TreeMap<String,String[]> array_buffer = new TreeMap<>();  // buffer for read pair "key = value1,value2..." - HRV RR from activity
     private final TreeMap<String, Map<String,String>> Buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
     private static final String[] fieldnames = {"position_lat","position_long","altitude","enhanced_altitude","speed","enhanced_speed",
@@ -173,9 +173,7 @@ public class Converter {
 
     private void converter_clear() {
         activity.clear();
-        short_buffer.clear();
         Buffer.clear();
-        array_buffer.clear();
         StartTimeFlag = false;
     }
 
@@ -611,7 +609,8 @@ public class Converter {
                         if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null) {
 
                             TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
-                            short_buffer.put(DateFormatCSV.format(TimeStamp),mesg.getFieldStringValue("heart_rate"));
+
+                            Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() { { put("heart_rate", mesg.getFieldStringValue("heart_rate")); } });
                             EmptyTrack = false;
                         }
                     }
@@ -645,13 +644,21 @@ public class Converter {
 
                                 if( deltaFilterHRV < thresholdFilterHRV) {
                                     lastGoodRR = currentRR;
-                                    String[] l = {rounds(HrvTime, 3), String.valueOf(lastGoodRR), String.valueOf(round(60.0 / lastGoodRR, 3))};
-                                    array_buffer.put(DateFormatCSVms.format(TimeStamp),l);
+
+                                    Buffer.put(DateFormatCSVms.format(TimeStamp), new HashMap<>() {                         {
+                                        put("Time", rounds(HrvTime, 3));
+                                        put("RR", String.valueOf(lastGoodRR));
+                                        put("HR", String.valueOf(round(60.0 / lastGoodRR, 3)));
+                                    } });
                                 }
                             } else {
                                 lastGoodRR = mesg.getFieldDoubleValue("time", index);
-                                String[] l = {rounds(HrvTime, 3), String.valueOf(lastGoodRR), String.valueOf(round(60.0 / lastGoodRR, 3))};
-                                array_buffer.put(DateFormatCSVms.format(TimeStamp),l);
+
+                                Buffer.put(DateFormatCSVms.format(TimeStamp), new HashMap<>() {                         {
+                                    put("Time", rounds(HrvTime, 3));
+                                    put("RR", String.valueOf(lastGoodRR));
+                                    put("HR", String.valueOf(round(60.0 / lastGoodRR, 3)));
+                                } });
                             }
                             index++;
                         }
@@ -669,7 +676,7 @@ public class Converter {
 
                         if (mesg.getField(0) != null ) {
                             TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
-                            short_buffer.put(DateFormatCSV.format(TimeStamp),mesg.getFieldStringValue(0));
+                            Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() { { put("SPO2", mesg.getFieldStringValue(0)); } });
                             EmptyTrack = false;
                         }
                     }
@@ -679,29 +686,28 @@ public class Converter {
 
                     if(mesg.getNum() == 227) { // 227 - Garmin Stress Index
 
+                        Map<String,String> fields = new HashMap<>();
+
                         if (mesg.getField(1) != null) {
                             mesgTimestamp = mesg.getFieldLongValue(1);
                         }
 
                         if (mesg.getFieldIntegerValue(0) > 0 ) { // "-1" - no data; "-2" - active time
+                            fields.put("GSI",mesg.getFieldStringValue(0));
 
                             TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                            String gsi_227_2 = "";
-                            String gsi_227_3 = "";
-                            String gsi_227_4 = "";
-
                             if(mesg.getFieldIntegerValue(3) != null) { // 227.3 - body battery
-                                gsi_227_3 = mesg.getFieldStringValue(3); }
+                                fields.put("BODY_BATTERY",mesg.getFieldStringValue(3)); }
 
                             if(mesg.getFieldStringValue(2) != null) { // 227.2 - delta
-                                gsi_227_2 = mesg.getFieldStringValue(2); }
+                                fields.put("DELTA",mesg.getFieldStringValue(2)); }
 
                             if(mesg.getFieldStringValue(4) != null) { // 227.4 - ?, always = 1?
-                                gsi_227_4 = mesg.getFieldStringValue(4); }
+                                fields.put("gsi_227_4",mesg.getFieldStringValue(4)); }
 
-                            String[] l = {mesg.getFieldStringValue(0), gsi_227_3,gsi_227_2,gsi_227_4};
-                            array_buffer.put(DateFormatCSV.format(TimeStamp),l);
+                            Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() { { fields.forEach(this::put); } });
+                            fields.clear();
                             EmptyTrack = false;
                         }
                     }
@@ -858,31 +864,26 @@ public class Converter {
                 break;
 
             case MONITOR_HR:     // monitor: HR
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
+                    activity.add(m.getKey() + ";" + m.getValue().get("heart_rate"));
+                }
+                break;
+
             case MONITOR_SPO2:     // monitor: SpO2
-                for(Map.Entry<String,String> m: short_buffer.entrySet()){
-                    activity.add(m.getKey() + ";" + m.getValue());
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
+                    activity.add(m.getKey() + ";" + m.getValue().get("SPO2"));
                 }
                 break;
 
             case HRV:     // activity: HRV (R-R)
-                for(Map.Entry<String,String[]> m: array_buffer.entrySet()){
-                    StringBuilder line = new StringBuilder(m.getKey());
-                    String[] l = m.getValue();
-                    for(String s:l){
-                        line.append(",").append(s);
-                    }
-                    activity.add(line.toString());
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
+                    activity.add(m.getKey() + "," + m.getValue().get("Time") + "," + m.getValue().get("RR") + "," + m.getValue().get("HR"));
                 }
                 break;
 
             case MONITOR_GSI:     // monitor: Garmin Stress Index
-                for(Map.Entry<String,String[]> m: array_buffer.entrySet()){
-                    StringBuilder line = new StringBuilder(m.getKey());
-                    String[] l = m.getValue();
-                    for(String s:l){
-                        line.append(";").append(s);
-                    }
-                    activity.add(line.toString());
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
+                    activity.add(m.getKey() + ";" + m.getValue().get("GSI") + ";" + m.getValue().get("BODY_BATTERY") + ";" + m.getValue().get("DELTA") + ";" + m.getValue().get("gsi_227_4"));
                 }
                 break;
         }
