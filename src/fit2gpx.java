@@ -94,9 +94,7 @@ public class fit2gpx extends Component {
             }
             if ( arg.startsWith("--iso-date=")) {
                 String[] isodate = arg.split("=", 2);
-                if(isodate[1].equals("no") || isodate[1].equals("n")) {
-                    converter.setUseISOdate(false);
-                } else converter.setUseISOdate(true);
+                converter.setUseISOdate(!isodate[1].equals("no") && !isodate[1].equals("n"));
             }
             if ( arg.startsWith("--db-connect=")) {
                 String[] connect = arg.split("=", 2);
@@ -113,7 +111,10 @@ public class fit2gpx extends Component {
             DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
             DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
 
-            DataBase.connctDB(database,db_connect,db_prefix);
+            if (!DataBase.connctDB(database,db_connect,db_prefix)) {
+                System.out.println("Database can't open!");
+                System.exit(13);
+            }
         }
 
         if(!DialogMode) {
