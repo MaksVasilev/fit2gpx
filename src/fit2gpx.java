@@ -80,7 +80,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
             if ( arg.equals("--db-sqlite") || arg.equals("-dbs") ) { database = Database.SQLITE; }
             if ( arg.equals("--db-pgsql") || arg.equals("-dbp") ) { database = Database.POSTGRESQL; }
-            if ( arg.equals("--full-dump")) { converter.setMode(Mode.DUMP);  }
+            if ( arg.equals("--full-dump")) { converter.setMode(Mode.DUMP); }
             if ( arg.equals("-x") ) { xDebug = true; }
             if ( !arg.startsWith("-") ) {
                 FileList.add(arg);

@@ -22,13 +22,12 @@ public class DB {
 
     public DB(Mode mode) {
         setMode(mode);
-
     }
 
-    public boolean connctDB(Database database, String db_connect, String db_prefix) {
-        setDBtype(database);
-        setDBconnect(db_connect);
-        setDBprefix(db_prefix);
+    public boolean connctDB(Database dbase, String db_conn, String db_pref) {
+        setDBtype(dbase);
+        setDBconnect(db_conn);
+        setDBprefix(db_pref);
 
         switch (DBASE) {
             case SQLITE:
@@ -37,14 +36,16 @@ public class DB {
             if (fileCheck.FileCanWrite(db_connect)) {
                 try {
                     CONN = DriverManager.getConnection("jdbc:sqlite:" + fileCheck.FullPath(db_connect));
-                    return true;
+                    if(CONN != null) {  return true;
+                    } else return false;
                 } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
             } else if(create_policy == DB_Create_Policy.CREATE_IF_NOT_FOUND) {
                 try {
                     CONN = DriverManager.getConnection("jdbc:sqlite:" + db_connect);
-                    return createTables(CONN);
+                    if(CONN != null) {  return createTables();
+                    } else return false;
                 } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
@@ -71,9 +72,11 @@ public class DB {
         }
     }
 
-    private boolean createTables(Connection conn) {
-        if(conn == null) { return false; }
+    private boolean createTables() {
+        return createMonitorSchema();
+    }
 
+        private boolean createMonitorSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS persons ( name VARCHAR PRIMARY KEY UNIQUE ); INSERT INTO persons ( name ) VALUES ( '" + db_prefix + "' );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HR_monitor ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL);\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_SPO2_monitor ( date DATETIME NOT NULL, SPO2 INTEGER NOT NULL);\n";
@@ -98,8 +101,7 @@ public class DB {
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(GSI) as GSI, count(GSI) as count FROM " + db_prefix + "_GSI_monitor GROUP BY 1 ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(GSI) AS GSI, count(GSI) as count FROM " + db_prefix + "_GSI_monitor GROUP BY 1 ORDER BY 1;\n";
 
-        return executeSQL(conn,sql);
-
+        return executeSQL(CONN,sql);
     }
 
     public void setFields(String[] fields) { this.fields = fields; }
