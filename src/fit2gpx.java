@@ -51,7 +51,6 @@ public class fit2gpx extends Component {
             } catch (Exception ignored2) { }
         }
 
-        File[] MultipleFilesList;
         ArrayList<String> FileList = new ArrayList<>();
         boolean DialogMode = true;
         boolean StatisticEnable = false;
@@ -112,52 +111,23 @@ public class fit2gpx extends Component {
             DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
 
             if (!DataBase.connctDB(database,db_connect,db_prefix)) {
-                System.out.println("Database can't open!");
+                if(xDebug) { System.out.println("Database can't open!"); }
                 System.exit(13);
             }
         }
 
-        if(!DialogMode) {
-            if (FileList.isEmpty()) {
-                Help.error_no_file();
-                System.exit(204);
-            }
+        if(DialogMode) {
 
-            if(xDebug) { System.out.println("Files: " + FileList.size()); }
-            if(FileList.size() < 2) { converter.setMergeOut(false); }
-            if(xDebug) { System.out.println("Merge: " + converter.getMergeOut()); }
-
-            converter.setFirstElement(true);    // for format header
-
-            for (String f : FileList) {
-                if(xDebug) { System.out.println("file: " + f); }
-
-                converter.setInputFITfileName(f);    // file to work
-                converterResult.add(converter.run(), converter.getInputFITfileName());      // run and get result
-            }
-            if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
-
-            if(converterResult.getGoodFilesCount() != 0) {
-                converter.writeEndfile();    // write tail of file
-            }
-
-            if(StatisticEnable) {
-                System.out.println(converterResult.getSummaryByString());
-            }
-        }
-
-        if(DialogMode || FileList.isEmpty()) {
-
-            UIManager.put("FileChooser.cancelButtonText",tr.getString("Cancel"));
-            UIManager.put("FileChooser.cancelButtonToolTipText",tr.getString("CancelTip"));
-            UIManager.put("FileChooser.fileNameLabelText",tr.getString("FileName"));
-            UIManager.put("FileChooser.filesOfTypeLabelText",tr.getString("FileType"));
-            UIManager.put("FileChooser.lookInLabelText",tr.getString("Dir"));
+            UIManager.put("FileChooser.cancelButtonText", tr.getString("Cancel"));
+            UIManager.put("FileChooser.cancelButtonToolTipText", tr.getString("CancelTip"));
+            UIManager.put("FileChooser.fileNameLabelText", tr.getString("FileName"));
+            UIManager.put("FileChooser.filesOfTypeLabelText", tr.getString("FileType"));
+            UIManager.put("FileChooser.lookInLabelText", tr.getString("Dir"));
 
             JFileChooser chooser = new JFileChooser();
             chooser.setLocale(Locale.getDefault());
             chooser.setApproveButtonText(tr.getString("Open"));
-            chooser.setPreferredSize(new Dimension(1200,600));
+            chooser.setPreferredSize(new Dimension(1200, 600));
             chooser.setApproveButtonToolTipText(tr.getString("OpenTip"));
             chooser.setMultiSelectionEnabled(true);
 
@@ -203,9 +173,42 @@ public class fit2gpx extends Component {
             int returnVal = chooser.showOpenDialog(chooser.getParent());
             if (returnVal == JFileChooser.APPROVE_OPTION) {
 
-                MultipleFilesList = chooser.getSelectedFiles();
+                for (File file : chooser.getSelectedFiles()) {
+                    FileList.add(file.getAbsoluteFile().getAbsolutePath());
+                }
 
-                if(xDebug) { System.out.println("Files: " + MultipleFilesList.length); }
+            }
+        }
+
+        if (FileList.isEmpty()) {
+            Help.error_no_file();
+            System.exit(204);
+        }
+
+        if(xDebug) { System.out.println("Files: " + FileList.size()); }
+        if(FileList.size() < 2) { converter.setMergeOut(false); }
+        if(xDebug) { System.out.println("Merge: " + converter.getMergeOut()); }
+
+        converter.setFirstElement(true);                                                // for format header
+
+        for (String f : FileList) {
+            if(xDebug) { System.out.println("file: " + f); }
+
+            converter.setInputFITfileName(f);                                           // file to work
+            converterResult.add(converter.run(), converter.getInputFITfileName());      // run and get result
+        }
+
+        if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
+
+        if(converterResult.getGoodFilesCount() != 0) {
+            converter.writeEndfile();    // write tail of file
+        }
+
+        if(StatisticEnable) {
+            System.out.println(converterResult.getSummaryByString());
+        }
+
+   /*             if(xDebug) { System.out.println("Files: " + MultipleFilesList.length); }
                 if(MultipleFilesList.length < 2) { converter.setMergeOut(false); }
                 if(xDebug) { System.out.println("Merge: " + converter.getMergeOut()); }
 
@@ -228,10 +231,8 @@ public class fit2gpx extends Component {
                 System.exit(204);
             }
 
-            if(StatisticEnable) {
-                System.out.println(converterResult.getSummaryByString());
-            }
-
+    */
+            if(DialogMode) {
             int MessageType = JOptionPane.INFORMATION_MESSAGE;
             if(converterResult.getEmptyFilesCount() > 0) {MessageType = JOptionPane.WARNING_MESSAGE;}
             if(converterResult.getBadFilesCount() > 0) {MessageType = JOptionPane.ERROR_MESSAGE;}
@@ -239,5 +240,4 @@ public class fit2gpx extends Component {
             JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), converterResult.getSummaryByString(), tr.getString("ConvResult"), MessageType);
         }
     }
-
 }
