@@ -140,7 +140,7 @@ public class DB {
                 break;
             case CSV_HR:
                 table = db_prefix + "_activities_HR_only";
-                fields = new String[]{"date","heart_rate","Duration"};
+                fields = new String[]{"date","heart_rate","duration"};
                 break;
             default:
                 return 81;
@@ -165,33 +165,27 @@ public class DB {
                 sql.append(",'").append(mapEntry.getValue().get(field)).append("'");
             }
             sql.append(");");
-            System.out.println(sql.toString());
-
             executeSQL(CONN, sql.toString());
         }
         Transaction(CONN, Status.COMMIT);
         return 0;
     }
 
- /*   private boolean chechUniq(String table, ) {
-        return true;        // TODO
-    }
-*/
     private boolean createMonitorSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS persons ( name VARCHAR PRIMARY KEY UNIQUE ); INSERT INTO persons ( name ) VALUES ( '" + db_prefix + "' );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HR_monitor ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_SPO2_monitor ( date DATETIME NOT NULL, SPO2 INTEGER NOT NULL, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_GSI_monitor ( date DATETIME NOT NULL, GSI INTEGER NOT NULL, BODY_BATTERY INTEGER, DELTA INTEGER, UNIQUE(date) );\n";
-        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, Duration TIME, UNIQUE(date) );\n";
+        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, duration TIME, UNIQUE(date) );\n";
 
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_HR_monitor_date_idx ON " + db_prefix + "_HR_monitor (datetime(date) ASC);\n";
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_SPO2_monitor_date_idx ON " + db_prefix + "_SPO2_monitor (datetime(date) ASC);\n";
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_GSI_monitor_date_idx ON " + db_prefix + "_GSI_monitor (datetime(date) ASC);\n";
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_activities_HR_only_date_idx ON " + db_prefix + "_activities_HR_only (datetime(date) ASC);\n";
-        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_activities_HR_only_duration_idx ON " + db_prefix + "_activities_HR_only (time(Duration) ASC);\n";
+        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_activities_HR_only_duration_idx ON " + db_prefix + "_activities_HR_only (time(duration) ASC);\n";
 
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity AS SELECT strftime('%Y-%m-%dT%H:%M:00', date) AS date, avg(heart_rate) AS heart_rate  FROM " + db_prefix + "_activities_HR_only GROUP BY 1 ORDER BY 1;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity_profile AS SELECT strftime('%H:%M:%S', Duration) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_activities_HR_only GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity_profile AS SELECT strftime('%H:%M:%S', duration) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_activities_HR_only GROUP BY 1 ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_full AS SELECT date, heart_rate FROM ( SELECT date, heart_rate FROM " + db_prefix + "_HR_monitor WHERE date NOT IN ( SELECT date FROM " + db_prefix + "_HR_activity ) UNION SELECT date, heart_rate FROM " + db_prefix + "_HR_activity ) ORDER BY date ASC;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full GROUP BY 1  ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(heart_rate) AS heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full GROUP BY 1 ORDER BY 1;\n";

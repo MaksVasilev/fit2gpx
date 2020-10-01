@@ -211,7 +211,7 @@ public class fit2gpx extends Component {
                 if(xDebug) { System.out.println("Try to push data to database"); }
                 DataBase.setBuffer(converter.getBuffer());
                 DataBase.setFields(converter.getFields());
-                DataBase.push();
+                result = DataBase.push();
             }
             converterResult.add(result, converter.getInputFITfileName());      // run and get result
         }
