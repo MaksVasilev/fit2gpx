@@ -100,21 +100,31 @@ public class fit2gpx extends Component {
                 db_connect = connect[1];
             }
             if ( arg.startsWith("--db-prefix=")) {
-                String[] connect = arg.split("=", 2);
-                db_prefix = connect[1];
+                String[] prefix = arg.split("=", 2);
+                db_prefix = prefix[1];
             }
         }
 
-        if(database != Database.NONE && !db_connect.equals("")) {
-            DB DataBase = new DB(converter.getMODE());
+        if(database != Database.NONE && db_connect.equals("")) {
+            database = Database.NONE;
+        }
+
+        DB DataBase = new DB(converter.getMODE(), xDebug);
+        if(database != Database.NONE) {
+
             DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
             DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
 
             if (!DataBase.connctDB(database,db_connect,db_prefix)) {
                 if(xDebug) { System.out.println("Database can't open!"); }
                 System.exit(13);
+            } else {
+                converter.setOUT(Out.DATABASE);
+                if(xDebug) { System.out.println("Database has been opened: " + database + ": " + db_connect); }
             }
         }
+
+        if(xDebug) System.out.println("Enter mode: " + converter.getMODE());
 
         if(DialogMode) {
 
@@ -134,10 +144,6 @@ public class fit2gpx extends Component {
             FileNameExtensionFilter filter;
 
             switch (converter.getMODE()) {
-                case GPX:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitle"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
-                    break;
                 case CSV:
                     chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleCSV"));
                     filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
@@ -162,9 +168,14 @@ public class fit2gpx extends Component {
                     chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleStress"));
                     filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
                     break;
-                default:
+                case DUMP:
                     chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleDebug"));
                     filter = new FileNameExtensionFilter(tr.getString("OpenEXTdefault"), "FIT", "fit");
+                    break;
+                case GPX:
+                default:
+                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitle"));
+                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
                     break;
             }
 
@@ -195,43 +206,26 @@ public class fit2gpx extends Component {
             if(xDebug) { System.out.println("file: " + f); }
 
             converter.setInputFITfileName(f);                                           // file to work
-            converterResult.add(converter.run(), converter.getInputFITfileName());      // run and get result
+            int result = converter.run();
+            if(result == 0 && database != Database.NONE) {
+                if(xDebug) { System.out.println("Try to push data to database"); }
+                DataBase.setBuffer(converter.getBuffer());
+                DataBase.setFields(converter.getFields());
+                DataBase.push();
+            }
+            converterResult.add(result, converter.getInputFITfileName());      // run and get result
         }
 
         if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
 
         if(converterResult.getGoodFilesCount() != 0) {
-            converter.writeEndfile();    // write tail of file
+            converter.writeEndfile();                                                   // write tail of file
         }
 
         if(StatisticEnable) {
             System.out.println(converterResult.getSummaryByString());
         }
 
-   /*             if(xDebug) { System.out.println("Files: " + MultipleFilesList.length); }
-                if(MultipleFilesList.length < 2) { converter.setMergeOut(false); }
-                if(xDebug) { System.out.println("Merge: " + converter.getMergeOut()); }
-
-                converter.setFirstElement(true);    // for format header
-
-                for (File file : MultipleFilesList) {
-                    if(xDebug) { System.out.println("file: " + file); }
-
-                    converter.setInputFITfileName(file.getAbsoluteFile().getAbsolutePath());    // file to work
-                    converterResult.add(converter.run(), converter.getInputFITfileName());      // run and get result
-                }
-
-                if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
-
-                if(converterResult.getGoodFilesCount() != 0) {
-                    converter.writeEndfile();    // write tail of file
-                }
-
-            } else {
-                System.exit(204);
-            }
-
-    */
             if(DialogMode) {
             int MessageType = JOptionPane.INFORMATION_MESSAGE;
             if(converterResult.getEmptyFilesCount() > 0) {MessageType = JOptionPane.WARNING_MESSAGE;}

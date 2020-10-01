@@ -121,6 +121,7 @@ public class Converter {
     void setOUT(Out out) { this.OUT = out; }
     Out getOUT() { return OUT; }
 
+    public String[] getFields() { return fieldnames_for_out; }
     void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
     void setMergeOut(boolean merge) { MergeOut = merge; }
     boolean getMergeOut() {return MergeOut; }
@@ -147,6 +148,7 @@ public class Converter {
     public TreeMap<String, Map<String,String>> getBuffer() { return Buffer; }
 
     int run() {  // Основной поэтапный цикл работы конвертера
+        converter_clear();           // clean for reuse in loop
 
         if(MODE == Mode.DUMP) { MergeOut = false; }    // don't merge out for debug!
 
@@ -167,12 +169,10 @@ public class Converter {
 
         } else {
 
-            int formatstatus = this.format(0, 0);   // format output to write in file
+            int formatstatus = this.format();   // format output to write in file
             // if(formatstatus !=0) {return formatstatus;}
 
             int writeStatus = this.write();     // write buffer to out
-            converter_clear();           // clean for reuse in loop
-
             return writeStatus;
         }
     }
@@ -779,7 +779,7 @@ public class Converter {
         return 0;
     }
 
-    private int format(int readstatus, int fixstatus) {     // format output from buffer to text
+    private int format() {     // format output from buffer to text
 
         if(EmptyTrack && !SaveIfEmpty) {
             return 100;
