@@ -115,6 +115,7 @@ public class Converter {
     private double thresholdFilterHRV = 35.0;
     private double deltaFilterHRV;
     private boolean useFilterHRV = false;
+    private boolean useFlagHRV = false;
 
     void setMode(Mode m) { this.MODE = m; }
     Mode getMODE() { return MODE; }
@@ -127,6 +128,7 @@ public class Converter {
     boolean getMergeOut() {return MergeOut; }
     void setFirstElement(boolean b) { firstElement = b; }
     void setUseFilterHRV(boolean useFilter) {useFilterHRV = useFilter;}
+    void setUseFlagHRV(boolean useFlag) {useFlagHRV = useFlag;}
     void setFilterHRV(Integer FilterFactor) {
         if(FilterFactor != null &&  FilterFactor > 0 && FilterFactor < 100) {
             thresholdFilterHRV = (double)FilterFactor;
@@ -636,36 +638,31 @@ public class Converter {
                         int index = 0;
 
                         while (mesg.getFieldStringValue("time",index) != null) {
+                            int flag;
 
                             HrvTime += mesg.getFieldDoubleValue("time", index);
                             TimeStamp = new Date( (mesgTimestamp * 1000) + (long)(HrvTime * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                            if(useFilterHRV) {
-                                currentRR = mesg.getFieldDoubleValue("time", index);
+                            currentRR = mesg.getFieldDoubleValue("time", index);
 
-                                if(lastGoodRR == 999.0) {
-                                    lastGoodRR = currentRR;
-                                }
-                                deltaFilterHRV = Math.abs((1.0-(currentRR/lastGoodRR))*100.0);
+                            if(lastGoodRR == 999.0) { lastGoodRR = currentRR; }
+                            deltaFilterHRV = Math.abs((1.0-(currentRR/lastGoodRR))*100.0);
 
-                                if( deltaFilterHRV < thresholdFilterHRV) {
-                                    lastGoodRR = currentRR;
-
-                                    Buffer.put(DateFormatCSVms.format(TimeStamp), new HashMap<>() {                         {
-                                        put("Time", rounds(HrvTime, 3));
-                                        put("RR", String.valueOf(lastGoodRR));
-                                        put("HR", String.valueOf(round(60.0 / lastGoodRR, 3)));
-                                    } });
-                                }
+                            if( deltaFilterHRV < thresholdFilterHRV) {
+                                lastGoodRR = currentRR;
+                                flag = 0;
                             } else {
-                                lastGoodRR = mesg.getFieldDoubleValue("time", index);
-
-                                Buffer.put(DateFormatCSVms.format(TimeStamp), new HashMap<>() {                         {
-                                    put("Time", rounds(HrvTime, 3));
-                                    put("RR", String.valueOf(lastGoodRR));
-                                    put("HR", String.valueOf(round(60.0 / lastGoodRR, 3)));
-                                } });
+                                flag = 1;
                             }
+
+                            int finalFlag = flag;
+                            Buffer.put(DateFormatCSVms.format(TimeStamp), new HashMap<>() {                         {
+                                put("time", rounds(HrvTime, 3));
+                                put("RR", String.valueOf(currentRR));
+                                put("HR", String.valueOf(round(60.0 / currentRR, 3)));
+                                put("filter", String.valueOf(finalFlag));
+                            } });
+
                             index++;
                         }
                         EmptyTrack = false;
@@ -802,7 +799,7 @@ public class Converter {
                     break;
                 case HRV:     // activity: HRV (R-R)
                     activity.clear();
-                    activity.add(0, "Timestamp,Time,RR,HR"); // заголовок IBI файла вариабельности ЧСС
+                    activity.add(0, "Timestamp,time,RR,HR,flag"); // заголовок IBI файла вариабельности ЧСС
                     break;
                 case MONITOR_HR:     // monitor: HR
                 case MONITOR_SPO2:     // monitor: SpO2
@@ -881,9 +878,18 @@ public class Converter {
                 }
                 break;
 
-            case HRV:     // activity: HRV (R-R)
+            case HRV:     // activity: HRV (R-R)    // TODO flag!
                 for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()) {
-                    activity.add(m.getKey() + "," + m.getValue().get("Time") + "," + m.getValue().get("RR") + "," + m.getValue().get("HR"));
+                    boolean flag = (m.getValue().get("filter").equals("0"));
+                    if(useFilterHRV) {
+                        if (flag && !useFlagHRV) {
+                            activity.add(m.getKey() + "," + m.getValue().get("time") + "," + m.getValue().get("RR") + "," + m.getValue().get("HR"));
+                        } else if (useFlagHRV) {
+                            activity.add(m.getKey() + "," + m.getValue().get("time") + "," + m.getValue().get("RR") + "," + m.getValue().get("HR") + ',' + m.getValue().get("filter"));
+                        }
+                    }else {
+                        activity.add(m.getKey() + "," + m.getValue().get("time") + "," + m.getValue().get("RR") + "," + m.getValue().get("HR"));
+                    }
                 }
                 break;
 

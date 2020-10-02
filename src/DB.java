@@ -82,7 +82,7 @@ public class DB {
     }
 
     private boolean checkSchema() {
-        String sql = "SELECT ROWID FROM persons WHERE name=\"" + db_prefix + "\";";
+        String sql = "SELECT ROWID FROM _persons WHERE name=\"" + db_prefix + "\";";
         try (
                 Statement stmt = CONN.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
@@ -113,17 +113,15 @@ public class DB {
         }
     }
 
-    private boolean createTables() {
-        return createMonitorSchema();
-    }
 
     public int push() {
         if (xDebug) System.out.println("[DB:] Push mode: " + MODE + ", Buffer size: " + Buffer.size() + ", prefix: " + db_prefix);
 
         if(Buffer.size() == 0) { return 89; }
 
-        String table = "";
+        String table;
         String[] fields;
+        Integer serial_hrv = 0;
 
         switch (MODE) {
             case MONITOR_HR:
@@ -142,6 +140,11 @@ public class DB {
                 table = db_prefix + "_activities_HR_only";
                 fields = new String[]{"date","heart_rate","duration"};
                 break;
+            case HRV:
+                table = db_prefix + "_HRV";
+                fields = new String[]{"serial","date","time","RR","HR","filter"};
+                serial_hrv = 1;
+                // TODO: select serial
             default:
                 return 81;
         }
@@ -171,9 +174,16 @@ public class DB {
         return 0;
     }
 
+    private boolean createTables() {
+        String sql = "CREATE TABLE IF NOT EXISTS _persons ( name VARCHAR PRIMARY KEY UNIQUE ); INSERT INTO _persons ( name ) VALUES ( '" + db_prefix + "' );\n";
+        sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person VARCHAR, serial INTEGER);\n";
+
+        if(!executeSQL(CONN, sql)) return false;
+        return createMonitorSchema() && createHrvSchema();
+    }
+
     private boolean createMonitorSchema() {
-        String sql = "CREATE TABLE IF NOT EXISTS persons ( name VARCHAR PRIMARY KEY UNIQUE ); INSERT INTO persons ( name ) VALUES ( '" + db_prefix + "' );\n";
-        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HR_monitor ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, UNIQUE(date) );\n";
+        String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HR_monitor ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_SPO2_monitor ( date DATETIME NOT NULL, SPO2 INTEGER NOT NULL, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_GSI_monitor ( date DATETIME NOT NULL, GSI INTEGER NOT NULL, BODY_BATTERY INTEGER, DELTA INTEGER, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, duration TIME, UNIQUE(date) );\n";
@@ -196,7 +206,14 @@ public class DB {
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(GSI) as GSI, count(GSI) as count FROM " + db_prefix + "_GSI_monitor GROUP BY 1 ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(GSI) AS GSI, count(GSI) as count FROM " + db_prefix + "_GSI_monitor GROUP BY 1 ORDER BY 1;\n";
 
-        return executeSQL(CONN,sql);
+        return executeSQL(CONN, sql);
+    }
+
+    private boolean createHrvSchema() {
+        String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HRV ( serial INTEGER NOT NULL, date DATETIME NOT NULL, time INTEGER NOT NULL, RR DOUBLE, HR DOUBLE, filter INTEGER, UNIQUE(serial, date) );\n";
+
+
+        return executeSQL(CONN, sql);
     }
 
     private static void Transaction(Connection conn, Status status) {

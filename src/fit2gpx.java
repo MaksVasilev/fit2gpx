@@ -71,6 +71,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  converter.setMode(Mode.MONITOR_HR);}
             if ( arg.equals("--hrv") || arg.equals("-vr")) {  converter.setMode(Mode.HRV); }
             if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  converter.setMode(Mode.HRV); converter.setUseFilterHRV(true); }
+            if ( arg.equals("--hrv-mark-filter") ) {  converter.setUseFlagHRV(true); }
             if ( arg.equals("--monitor-oxy") || arg.equals("-spo")) { converter.setMode(Mode.MONITOR_SPO2); }
             if ( arg.equals("--monitor-stress") || arg.equals("-si")) { converter.setMode(Mode.MONITOR_GSI); }
             if ( arg.equals("--hr-only") || arg.equals("-hr")) {  converter.setMode(Mode.CSV_HR); converter.setSaveIfEmpty(true); }
