@@ -76,7 +76,7 @@ public class Converter {
     private static final String[] hrv_fields = {"serial","time","RR","HR","filter"};
     private static final String[] monitor_hr_fields = {"heart_rate"};
     private static final String[] monitor_spo2_fields = {"SPO2"};
-    private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA"};
+    private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA","gsi_227_4"};
     private static final String[] hr_only_fields = {"heart_rate","duration"};
 
     public String[] getFields() {
@@ -818,7 +818,7 @@ public class Converter {
                     break;
                 case HRV:     // activity: HRV (R-R)
                     activity.clear();
-                    activity.add(0, "Timestamp,time,RR,HR,flag"); // заголовок IBI файла вариабельности ЧСС
+                    activity.add("Timestamp" + Arrays.toString(hrv_fields).replace("[", "").replace("]", "").trim()); // заголовок IBI файла вариабельности ЧСС
                     break;
                 case MONITOR_HR:     // monitor: HR
                 case MONITOR_SPO2:     // monitor: SpO2
