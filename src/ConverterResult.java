@@ -21,6 +21,7 @@ public class ConverterResult {
         if(result == 66) {BadFiles.add(file + tr.getString("_file_not_found"));}
         if(result == 73) {BadFiles.add(file + tr.getString("_file_save_error"));}
         if(result == 81) {BadFiles.add(file + tr.getString("_file_not_to_db"));}
+        if(result == 82) {BadFiles.add(file + tr.getString("_fields_not_defined"));}
         if(result == 89) {BadFiles.add(file + tr.getString("_file_not_data"));}
         if(result == 199) {BadFiles.add(file + tr.getString("_read_data_from_file_error"));}
     }

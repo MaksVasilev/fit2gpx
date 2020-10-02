@@ -49,7 +49,7 @@ public class Converter {
     final ArrayList<String> activity = new ArrayList<>();
     private final TreeMap<String, Map<String,String>> Buffer = new TreeMap<>(); // buffer for read full info as "key = set of (field = value)" - all data to CSV, GPX
 
-    private static final String[] fieldnames = {"position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
+    private static final String[] fields_for_search = {"position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
             "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
             "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
             "left_right_balance","left_power_phase","right_power_phase","left_power_phase_peak","right_power_phase_peak",       // bike dinamics
@@ -57,13 +57,13 @@ public class Converter {
             "combined_pedal_smoothness","left_pco","right_pco","grit","flow",
             "absolute_pressure"};
 
-    private static final Integer[] fieldindex = {
+    private static final Integer[] fieldindex_for_search = {
             108,    // Respiratory
             90,     // Performance Contition
             61, 66    // ?
     };
 
-    private static final String[] fieldnames_for_out = {"duration","position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
+    private static final String[] activities_fiels = {"duration","position_lat","position_long","gps_accuracy","altitude","enhanced_altitude","speed","enhanced_speed","vertical_speed",
             "vertical_oscillation","stance_time_percent","stance_time","vertical_ratio","stance_time_balance","step_length",    // running dinamics
             "grade","cadence","fractional_cadence","distance","temperature","calories","heart_rate","power","accumulated_power",
             "left_right_balance","left_right_balance_persent","left_power_phase_start","left_power_phase_end","right_power_phase_start",
@@ -72,6 +72,24 @@ public class Converter {
             "combined_pedal_smoothness","left_pco","right_pco","grit","flow","absolute_pressure",
             "respiratory","performance_contition","field_num_61","field_num_66",
             "fixed"};
+
+    private static final String[] hrv_fields = {"serial","time","RR","HR","filter"};
+    private static final String[] monitor_hr_fields = {"heart_rate"};
+    private static final String[] monitor_spo2_fields = {"SPO2"};
+    private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA"};
+    private static final String[] hr_only_fields = {"heart_rate","duration"};
+
+    public String[] getFields() {
+        switch (MODE) {
+            case CSV: case GPX:  return activities_fiels;
+            case CSV_HR: return hr_only_fields;
+            case MONITOR_GSI: return monitor_gsi_fields;
+            case MONITOR_SPO2: return monitor_spo2_fields;
+            case MONITOR_HR: return monitor_hr_fields;
+            case HRV: return hrv_fields;
+            case DUMP: default: return null;
+        }
+    }
 
     private Date TimeStamp = new Date();
     private final SimpleDateFormat nonISODateFormatCSV = new SimpleDateFormat("yyyy.MM.dd' 'HH:mm:ss");  // формат вывода в csv
@@ -122,7 +140,6 @@ public class Converter {
     void setOUT(Out out) { this.OUT = out; }
     Out getOUT() { return OUT; }
 
-    public String[] getFields() { return fieldnames_for_out; }
     public String getHashActivity() { return hashActivity; }
     public String getFileTimeStamp() { return ISODateFormatCSV.format(FileTimeStamp); }
     void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
@@ -542,7 +559,7 @@ public class Converter {
                         fields.put("duration", String.format("%02d:%02d:%02d", (duration_ms / (1000*60*60)) , ((duration_ms / (1000*60)) % 60) , ((duration_ms / 1000) % 60) ));
 
                         // search all known fields (array fieldnames)
-                        for(String field:fieldnames) {
+                        for(String field: fields_for_search) {
                             if(mesg.getFieldStringValue(field) != null) {
                                 String value = mesg.getFieldStringValue(field);
                                 if(field.equals("position_lat") || field.equals("position_long")) {
@@ -565,7 +582,7 @@ public class Converter {
                         }
 
                         // for field without name and unknown fields use list of indexes
-                        for(Integer field:fieldindex) {
+                        for(Integer field: fieldindex_for_search) {
                             if(mesg.getFieldStringValue(field) != null) {
                                 String value = mesg.getFieldStringValue(field);
                                 switch (field) {
@@ -789,7 +806,7 @@ public class Converter {
                 case CSV:     // Table output - CSV format
                     activity.clear();
                     StringBuilder head = new StringBuilder("time");
-                    for (String name : fieldnames_for_out) {
+                    for (String name : activities_fiels) {
                         head.append(";").append(name);
                     }
                     activity.add(head.toString());
@@ -819,7 +836,7 @@ public class Converter {
                     StringBuilder line;
                     line = new StringBuilder(m.getKey());
                     Map<String, String> ff = m.getValue();
-                    for(String s1: fieldnames_for_out) {
+                    for(String s1: activities_fiels) {
                         line.append(";");
                         if(ff.containsKey(s1)) {
                             line.append(ff.get(s1));

@@ -120,9 +120,9 @@ public class DB {
         if (xDebug) System.out.println("[DB:] Push mode: " + MODE + ", Buffer size: " + Buffer.size() + ", prefix: " + db_prefix);
 
         if(Buffer.size() == 0) { return 89; }
+        if(fields == null) { return 82; }
 
         String table;
-        String[] fields;
         Integer serial = 0;
         StringBuilder tags = new StringBuilder();
 
@@ -131,29 +131,12 @@ public class DB {
         }
 
         switch (MODE) {
-            case MONITOR_HR:
-                table = db_prefix + "_HR_monitor";
-                fields = new String[]{"date","heart_rate"};
-                break;
-            case MONITOR_SPO2:
-                table = db_prefix + "_SPO2_monitor";
-                fields = new String[]{"date","SPO2"};
-                break;
-            case MONITOR_GSI:
-                table = db_prefix + "_GSI_monitor";
-                fields = new String[]{"date","GSI","BODY_BATTERY","DELTA"};
-                break;
-            case CSV_HR:
-                table = db_prefix + "_activities_HR_only";
-                fields = new String[]{"date","heart_rate","duration"};
-                break;
-            case HRV:
-                table = db_prefix + "_HRV";
-                fields = new String[]{"date","serial","time","RR","HR","filter"};
-                serial = getSerialHRV(hash,activityDateTime, tags.toString());
-                break;
-            default:
-                return 81;
+            case MONITOR_HR:    table = db_prefix + "_HR_monitor"; break;
+            case MONITOR_SPO2:  table = db_prefix + "_SPO2_monitor"; break;
+            case MONITOR_GSI:   table = db_prefix + "_GSI_monitor"; break;
+            case CSV_HR:        table = db_prefix + "_activities_HR_only"; break;
+            case HRV:           table = db_prefix + "_HRV"; serial = getSerialHRV(hash,activityDateTime, tags.toString()); break;
+            default:            return 81;
         }
 
         Transaction(CONN, Status.BEGIN);
@@ -169,10 +152,9 @@ public class DB {
                     break;
             }
 
-            sql.append(" INTO ").append(table).append("(").append(Arrays.toString(fields).replace("[", "").replace("]", "").trim()).append(") VALUES ('").append(mapEntry.getKey()).append("'");
-            for (int i = 1; i < fields.length; i++) {
-                String field = fields[i];
-                if(field.equals("serial")){
+            sql.append(" INTO ").append(table).append("(date,").append(Arrays.toString(fields).replace("[", "").replace("]", "").trim()).append(") VALUES ('").append(mapEntry.getKey()).append("'");
+            for (String field : fields) {
+                if (field.equals("serial")) {
                     sql.append(",'").append(serial).append("'");
                 } else {
                     sql.append(",'").append(mapEntry.getValue().get(field)).append("'");
@@ -188,7 +170,7 @@ public class DB {
 
     private int getSerialHRV(String hash, String activityDateTime, String tags) {
         String sql = "SELECT ROWID FROM _hrv WHERE hash = '" + hash + "';";
-        if(!tags.equals("")) tags = tags.substring(0, tags.length() - 1);   // remove last separator
+        if(!tags.equals("") && tags.charAt(tags.length() - 1) == ',') tags = tags.substring(0, tags.length() - 1);   // remove last separator
         try {
             Statement stmt = CONN.createStatement();
             ResultSet rs = stmt.executeQuery(sql);

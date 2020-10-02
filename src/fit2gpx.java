@@ -117,9 +117,8 @@ public class fit2gpx extends Component {
             }
         }
 
-        if(database != Database.NONE && db_connect.equals("")) {
-            database = Database.NONE;
-        }
+        if(database == Database.SQLITE && db_connect.equals("")) { db_connect = System.getProperty("user.dir") + System.getProperty("file.separator") + "fit_db.sqlite3"; }     // default db name for SQLite
+        if(database != Database.NONE && db_connect.equals("")) { database = Database.NONE; }
 
         DB DataBase = new DB(converter.getMODE(), xDebug);
         if(database != Database.NONE) {
