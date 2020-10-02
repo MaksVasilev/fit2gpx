@@ -188,6 +188,7 @@ public class DB {
 
     private int getSerialHRV(String hash, String activityDateTime, String tags) {
         String sql = "SELECT ROWID FROM _hrv WHERE hash = '" + hash + "';";
+        if(!tags.equals("")) tags = tags.substring(0, tags.length() - 1);   // remove last separator
         try {
             Statement stmt = CONN.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
@@ -243,6 +244,8 @@ public class DB {
 
     private boolean createHrvSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HRV ( serial INTEGER NOT NULL, date DATETIME NOT NULL, time INTEGER NOT NULL, RR DOUBLE, HR DOUBLE, filter INTEGER, UNIQUE(serial, date) );\n";
+        sql += "CREATE INDEX " + db_prefix + "_HRV_serial_idx ON " + db_prefix + "_HRV (serial);\n";
+        sql += "CREATE INDEX " + db_prefix + "_HRV_date_idx ON " + db_prefix + "_HRV (datetime(date));\n";
         return executeSQL(CONN, sql);
     }
 
