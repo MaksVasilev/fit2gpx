@@ -123,6 +123,8 @@ public class Converter {
     Out getOUT() { return OUT; }
 
     public String[] getFields() { return fieldnames_for_out; }
+    public String getHashActivity() { return hashActivity; }
+    public String getFileTimeStamp() { return ISODateFormatCSV.format(FileTimeStamp); }
     void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
     void setMergeOut(boolean merge) { MergeOut = merge; }
     boolean getMergeOut() {return MergeOut; }

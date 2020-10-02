@@ -5,6 +5,7 @@ import format.Mode;
 import tools.FileCheck;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
@@ -56,7 +57,7 @@ public class DB {
                 try {
                     CONN = DriverManager.getConnection("jdbc:sqlite:" + fileCheck.FullPath(db_connect));
                     if (xDebug) System.out.println("[DB:] Connect exist: " + db_connect + ", prefix: " + db_prefix);
-                    checkSchema();
+                    if(!checkSchema()) return false;
 
                     return CONN != null;
                 } catch (SQLException e) {
@@ -90,6 +91,7 @@ public class DB {
             if (!rs.isBeforeFirst() ) {
                 if(xDebug) System.out.println("[DB:] Prefix not found, create schema");
                 createMonitorSchema();
+                createHrvSchema();
             } else {
                 if(xDebug) System.out.println("[DB:] Prefix exist, ID: " + rs.getInt("ROWID"));
             }
@@ -114,14 +116,19 @@ public class DB {
     }
 
 
-    public int push() {
+    public int push(String hash, String activityDateTime, ArrayList<String> taglist) {
         if (xDebug) System.out.println("[DB:] Push mode: " + MODE + ", Buffer size: " + Buffer.size() + ", prefix: " + db_prefix);
 
         if(Buffer.size() == 0) { return 89; }
 
         String table;
         String[] fields;
-        Integer serial_hrv = 0;
+        Integer serial = 0;
+        StringBuilder tags = new StringBuilder();
+
+        for(String s:taglist) {
+            tags.append(s).append(",");
+        }
 
         switch (MODE) {
             case MONITOR_HR:
@@ -142,9 +149,9 @@ public class DB {
                 break;
             case HRV:
                 table = db_prefix + "_HRV";
-                fields = new String[]{"serial","date","time","RR","HR","filter"};
-                serial_hrv = 1;
-                // TODO: select serial
+                fields = new String[]{"date","serial","time","RR","HR","filter"};
+                serial = getSerialHRV(hash,activityDateTime, tags.toString());
+                break;
             default:
                 return 81;
         }
@@ -165,8 +172,13 @@ public class DB {
             sql.append(" INTO ").append(table).append("(").append(Arrays.toString(fields).replace("[", "").replace("]", "").trim()).append(") VALUES ('").append(mapEntry.getKey()).append("'");
             for (int i = 1; i < fields.length; i++) {
                 String field = fields[i];
-                sql.append(",'").append(mapEntry.getValue().get(field)).append("'");
+                if(field.equals("serial")){
+                    sql.append(",'").append(serial).append("'");
+                } else {
+                    sql.append(",'").append(mapEntry.getValue().get(field)).append("'");
+                }
             }
+
             sql.append(");");
             executeSQL(CONN, sql.toString());
         }
@@ -174,9 +186,29 @@ public class DB {
         return 0;
     }
 
+    private int getSerialHRV(String hash, String activityDateTime, String tags) {
+        String sql = "SELECT ROWID FROM _hrv WHERE hash = '" + hash + "';";
+        try {
+            Statement stmt = CONN.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            if (!rs.isBeforeFirst() ) {
+                sql = "INSERT INTO _hrv(date, person, hash, tags) VALUES('" + activityDateTime + "','" + db_prefix + "','" + hash + "','" + tags + "');";
+                if(executeSQL(CONN, sql)) {
+                    return getSerialHRV(hash, activityDateTime, tags);
+                } else return 0;
+            } else {
+                return rs.getInt("ROWID");
+            }
+        } catch(SQLException e) {
+            System.out.println(e.getMessage());
+            return 0;
+        }
+    }
+
     private boolean createTables() {
         String sql = "CREATE TABLE IF NOT EXISTS _persons ( name VARCHAR PRIMARY KEY UNIQUE ); INSERT INTO _persons ( name ) VALUES ( '" + db_prefix + "' );\n";
-        sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person VARCHAR, serial INTEGER);\n";
+        sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person VARCHAR, hash VARCHAR, tags TEXT, UNIQUE(hash) );\n";
 
         if(!executeSQL(CONN, sql)) return false;
         return createMonitorSchema() && createHrvSchema();
@@ -211,8 +243,6 @@ public class DB {
 
     private boolean createHrvSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HRV ( serial INTEGER NOT NULL, date DATETIME NOT NULL, time INTEGER NOT NULL, RR DOUBLE, HR DOUBLE, filter INTEGER, UNIQUE(serial, date) );\n";
-
-
         return executeSQL(CONN, sql);
     }
 

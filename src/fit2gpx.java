@@ -62,6 +62,7 @@ public class fit2gpx extends Component {
         Database database = Database.NONE;
         String db_connect = "";
         String db_prefix = "";
+        ArrayList<String>  db_tag = new ArrayList<>();
 
         for (String arg:args) {
             if(xDebug) { System.out.println("argument: " + arg); }
@@ -104,6 +105,16 @@ public class fit2gpx extends Component {
                 String[] prefix = arg.split("=", 2);
                 db_prefix = prefix[1];
             }
+            if ( arg.startsWith("--tags=")) {
+                String[] tags = arg.split("=", 2)[1].split(",");
+                for (String t:tags) {
+                    if(!t.equals("")) {
+                        db_tag.add(t);
+                        if (xDebug) System.out.println("DB Tag: " + t);
+                    }
+                }
+
+            }
         }
 
         if(database != Database.NONE && db_connect.equals("")) {
@@ -114,7 +125,7 @@ public class fit2gpx extends Component {
         if(database != Database.NONE) {
 
             DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
-            DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
+            DataBase.setAppendPolicy(DB_Append_Policy.APPEND_NEW_NO_REPLACE);
 
             if (!DataBase.connctDB(database,db_connect,db_prefix)) {
                 if(xDebug) { System.out.println("Database can't open!"); }
@@ -212,7 +223,7 @@ public class fit2gpx extends Component {
                 if(xDebug) { System.out.println("Try to push data to database"); }
                 DataBase.setBuffer(converter.getBuffer());
                 DataBase.setFields(converter.getFields());
-                result = DataBase.push();
+                result = DataBase.push(converter.getHashActivity(), converter.getFileTimeStamp(), db_tag);
             }
             converterResult.add(result, converter.getInputFITfileName());      // run and get result
         }
