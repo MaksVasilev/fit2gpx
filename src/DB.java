@@ -90,6 +90,7 @@ public class DB {
 
             if (!rs.isBeforeFirst() ) {
                 if(xDebug) System.out.println("[DB:] Prefix not found, create schema");
+                insertPerson(db_prefix);
                 createMonitorSchema();
                 createHrvSchema();
             } else {
@@ -189,8 +190,13 @@ public class DB {
         }
     }
 
+    private boolean insertPerson(String person) {
+        String sql = "INSERT INTO _persons ( name ) VALUES ( '" + person + "' );\n";
+        return executeSQL(CONN, sql);
+    }
+
     private boolean createTables() {
-        String sql = "CREATE TABLE IF NOT EXISTS _persons ( name VARCHAR PRIMARY KEY UNIQUE ); INSERT INTO _persons ( name ) VALUES ( '" + db_prefix + "' );\n";
+        String sql = "CREATE TABLE IF NOT EXISTS _persons ( name VARCHAR PRIMARY KEY UNIQUE );\n";
         sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person VARCHAR, hash VARCHAR, tags TEXT, UNIQUE(hash) );\n";
 
         if(!executeSQL(CONN, sql)) return false;
@@ -200,7 +206,7 @@ public class DB {
     private boolean createMonitorSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HR_monitor ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_SPO2_monitor ( date DATETIME NOT NULL, SPO2 INTEGER NOT NULL, UNIQUE(date) );\n";
-        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_GSI_monitor ( date DATETIME NOT NULL, GSI INTEGER NOT NULL, BODY_BATTERY INTEGER, DELTA INTEGER, UNIQUE(date) );\n";
+        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_GSI_monitor ( date DATETIME NOT NULL, GSI INTEGER NOT NULL, BODY_BATTERY INTEGER, DELTA INTEGER, gsi_227_4 INTEGER, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, duration TIME, UNIQUE(date) );\n";
 
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_HR_monitor_date_idx ON " + db_prefix + "_HR_monitor (datetime(date) ASC);\n";
@@ -226,8 +232,8 @@ public class DB {
 
     private boolean createHrvSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HRV ( serial INTEGER NOT NULL, date DATETIME NOT NULL, time INTEGER NOT NULL, RR DOUBLE, HR DOUBLE, filter INTEGER, UNIQUE(serial, date) );\n";
-        sql += "CREATE INDEX " + db_prefix + "_HRV_serial_idx ON " + db_prefix + "_HRV (serial);\n";
-        sql += "CREATE INDEX " + db_prefix + "_HRV_date_idx ON " + db_prefix + "_HRV (datetime(date));\n";
+        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_HRV_serial_idx ON " + db_prefix + "_HRV (serial);\n";
+        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_HRV_date_idx ON " + db_prefix + "_HRV (datetime(date));\n";
         return executeSQL(CONN, sql);
     }
 

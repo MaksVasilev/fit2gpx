@@ -150,7 +150,7 @@ The minimum Java version is 11.0
 
 RU: https://github.com/MaksVasilev/fit2gpx/blob/master/Examples_EN.md
 
-#Actual release:
+# Actual release:
 
 https://github.com/MaksVasilev/fit2gpx/releases/latest
 
