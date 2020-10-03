@@ -65,7 +65,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 # Примеры использования:
 
-RU: https://github.com/MaksVasilev/fit2gpx/Exampes_RU.md
+RU: https://github.com/MaksVasilev/fit2gpx/blob/master/Examples_RU.md
 
 # Текущий релиз:
 
@@ -148,7 +148,7 @@ The minimum Java version is 11.0
 
 # Examples of usage:
 
-RU: https://github.com/MaksVasilev/fit2gpx/Exampes_RU.md
+RU: https://github.com/MaksVasilev/fit2gpx/blob/master/Examples_RU.md
 
 #Actual release:
 
