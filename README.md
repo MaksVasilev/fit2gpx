@@ -1,6 +1,6 @@
 # fit2gpx
 
-Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Версия 0.1.5
+Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Версия 0.1.8
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -63,10 +63,16 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Минимальная версия Java - 11.0
 
+# Примеры использования:
+
+RU: https://github.com/MaksVasilev/fit2gpx/Exampes_RU.md
+
 # Текущий релиз:
+
 https://github.com/MaksVasilev/fit2gpx/releases/latest
 
 # текущая бинарная сборка (возможно не стабильная):
+
 https://github.com/MaksVasilev/fit2gpx/raw/master/out/jar/fit2gpx.jar
 
 # Возможности добавленные после релиза 0.1.5
@@ -78,7 +84,7 @@ https://github.com/MaksVasilev/fit2gpx/raw/master/out/jar/fit2gpx.jar
 
 # English
 
-Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Version 0.1.5
+Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Version 0.1.8
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
 
@@ -140,11 +146,16 @@ Dump all the headers of the file (debug mode):
       
 The minimum Java version is 11.0
 
+# Examples of usage:
+
+RU: https://github.com/MaksVasilev/fit2gpx/Exampes_RU.md
 
 #Actual release:
+
 https://github.com/MaksVasilev/fit2gpx/releases/latest
 
 # Last binary (possible unstable):
+
 https://github.com/MaksVasilev/fit2gpx/raw/master/out/jar/fit2gpx.jar
 
 # Features after 0.1.5 release
