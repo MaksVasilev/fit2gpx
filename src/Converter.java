@@ -130,7 +130,7 @@ public class Converter {
 
     private double lastGoodRR = 999.0;
     private double currentRR;
-    private double thresholdFilterHRV = 35.0;
+    private double thresholdFilterHRV = 30.0;
     private double deltaFilterHRV;
     private boolean useFilterHRV = false;
     private boolean useFlagHRV = false;

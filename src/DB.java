@@ -176,7 +176,7 @@ public class DB {
             ResultSet rs = stmt.executeQuery(sql);
 
             if (!rs.isBeforeFirst() ) {
-                sql = "INSERT INTO _hrv(date, person, hash, tags) VALUES('" + activityDateTime + "','" + db_prefix + "','" + hash + "','" + tags + "');";
+                sql = "INSERT OR REPLACE INTO _hrv(date, person, hash, tags) VALUES('" + activityDateTime + "','" + db_prefix + "','" + hash + "','" + tags + "');";
                 if(executeSQL(CONN, sql)) {
                     return getSerialHRV(hash, activityDateTime, tags);
                 } else return 0;

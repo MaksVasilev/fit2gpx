@@ -32,7 +32,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.7";
+    static final String _version_ = "0.1.8";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
 
@@ -217,14 +217,14 @@ public class fit2gpx extends Component {
             if(xDebug) { System.out.println("file: " + f); }
 
             converter.setInputFITfileName(f);                                           // file to work
-            int result = converter.run();
+            int result = converter.run();                                               // run
             if(result == 0 && database != Database.NONE) {
                 if(xDebug) { System.out.println("Try to push data to database"); }
                 DataBase.setBuffer(converter.getBuffer());
                 DataBase.setFields(converter.getFields());
                 result = DataBase.push(converter.getHashActivity(), converter.getFileTimeStamp(), db_tag);
             }
-            converterResult.add(result, converter.getInputFITfileName());      // run and get result
+            converterResult.add(result, converter.getInputFITfileName());      // print result
         }
 
         if(xDebug) {System.out.println("Good files: " + converterResult.getGoodFilesCount()); }
