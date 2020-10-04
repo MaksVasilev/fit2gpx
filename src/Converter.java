@@ -97,7 +97,7 @@ public class Converter {
     private final SimpleDateFormat ISODateFormatCSV = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");  // формат вывода в csv ISO/ГОСТ
     private final SimpleDateFormat ISODateFormatCSVms = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");  // формат вывода в csv с милисекундами ISO/ГОСТ
     private final SimpleDateFormat DateFormatGPX = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат вывода в gpx
-    private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
+    // private final SimpleDateFormat NewFileTimeFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");  // формат даты начала, если надо сместить
     private SimpleDateFormat DateFormatCSV = ISODateFormatCSV;
     private SimpleDateFormat DateFormatCSVms = ISODateFormatCSVms;
 
@@ -123,7 +123,7 @@ public class Converter {
     private boolean StartTimeFlag = false;
     private String DeviceCreator = "";
 
-    private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
+    private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах // TODO
 
     private Mode MODE = Mode.GPX;
 
@@ -139,16 +139,16 @@ public class Converter {
     void setMode(Mode m) { this.MODE = m; }
     Mode getMODE() { return MODE; }
     void setOUT(Out out) { this.OUT = out; }
-    Out getOUT() { return OUT; }
+//    Out getOUT() { return OUT; }
 
     public String getHashActivity() { return hashActivity; }
     public String getFileTimeStamp() { return ISODateFormatCSV.format(FileTimeStamp); }
-    void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
+    void setSaveIfEmpty() {SaveIfEmpty = true;}
     void setMergeOut(boolean merge) { MergeOut = merge; }
     boolean getMergeOut() {return MergeOut; }
-    void setFirstElement(boolean b) { firstElement = b; OutputFileNameMerged = ""; }
-    void setUseFilterHRV(boolean useFilter) {useFilterHRV = useFilter;}
-    void setUseFlagHRV(boolean useFlag) {useFlagHRV = useFlag;}
+    void setFirstElement() { firstElement = true; OutputFileNameMerged = ""; }
+    void setUseFilterHRV() {useFilterHRV = true;}
+    void setUseFlagHRV() {useFlagHRV = true;}
     void setFilterHRV(Integer FilterFactor) {
         if(FilterFactor != null &&  FilterFactor > 0 && FilterFactor < 100) {
             thresholdFilterHRV = (double)FilterFactor;
@@ -190,12 +190,8 @@ public class Converter {
             return fixstatus;
 
         } else {
-
-            int formatstatus = this.format();   // format output to write in file
-            // if(formatstatus !=0) {return formatstatus;}
-
-            int writeStatus = this.write();     // write buffer to out
-            return writeStatus;
+            this.format();   // format output to write in file
+            return this.write();
         }
     }
 
@@ -796,10 +792,10 @@ public class Converter {
         return 0;
     }
 
-    private int format() {     // format output from buffer to text
+    private void format() {     // format output from buffer to text
 
         if(EmptyTrack && !SaveIfEmpty) {
-            return 100;
+            return;
         }
 
         if(firstElement) {
@@ -919,10 +915,9 @@ public class Converter {
                 }
                 break;
         }
-        return 0;
     }
 
-    int writeEndfile() {
+    void writeEndfile() {
         final ArrayList<String> tail = new ArrayList<>();
         if (MODE == Mode.GPX) {
             tail.add(out_gpx_tail2);
@@ -931,7 +926,7 @@ public class Converter {
         if(tail.size() > 0) {
             try {
                 File OutputFile = new File(OutputFileName);
-                if (!OutputFile.exists()) {return 73;}
+                if (!OutputFile.exists()) {return;}
 
                 try { // пытаемся записать в файл
                     BufferedWriter OutWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(OutputFile, true), StandardCharsets.UTF_8));
@@ -949,7 +944,6 @@ public class Converter {
                 //System.exit(73);
             }
         }
-        return 0;
     }
 
     private int write() {   // Try to write output file // Чукча-писатель

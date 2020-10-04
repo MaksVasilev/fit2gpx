@@ -74,17 +74,17 @@ public class fit2gpx extends Component {
             if ( arg.equals("--help") || arg.equals("-h")) { Help.usage(); }
             if ( arg.equals("--statistic") || arg.equals("-s")) {  StatisticEnable = true; }
             if ( arg.equals("--gpx") || arg.equals("-g")) {  addWorkMODE(Mode.GPX); }
-            if ( arg.equals("--csv") || arg.equals("-c")) {  addWorkMODE(Mode.CSV); converter.setSaveIfEmpty(true); }
-            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  addWorkMODE(Mode.CSV_HR); converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--csv") || arg.equals("-c")) {  addWorkMODE(Mode.CSV); converter.setSaveIfEmpty(); }
+            if ( arg.equals("--hr-only") || arg.equals("-hr")) {  addWorkMODE(Mode.CSV_HR); converter.setSaveIfEmpty(); }
             if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); converter.setOUT(Out.MERGED_FILES); }
             if ( arg.equals("--hrv") || arg.equals("-vr")) {  addWorkMODE(Mode.HRV); }
-            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  addWorkMODE(Mode.HRV); converter.setUseFilterHRV(true); }
-            if ( arg.equals("--hrv-mark-filter") ) {  converter.setUseFlagHRV(true); }
+            if ( arg.equals("--hrv-filter") || arg.equals("-vf")) {  addWorkMODE(Mode.HRV); converter.setUseFilterHRV(); }
+            if ( arg.equals("--hrv-mark-filter") ) {  converter.setUseFlagHRV(); }
             if ( arg.equals("--monitor-hr") || arg.equals("-mh")) {  addWorkMODE(Mode.MONITOR_HR);}
             if ( arg.equals("--monitor-oxy") || arg.equals("-mo")) { addWorkMODE(Mode.MONITOR_SPO2); }
             if ( arg.equals("--monitor-stress") || arg.equals("-ms")) { addWorkMODE(Mode.MONITOR_GSI); }
             if ( arg.equals("--monitor-all") || arg.equals("-ma")) { addWorkMODE(Mode.MONITOR_HR); addWorkMODE(Mode.MONITOR_SPO2); addWorkMODE(Mode.MONITOR_GSI); }
-            if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(true); }
+            if ( arg.equals("--save-empty") || arg.equals("-se") ) { converter.setSaveIfEmpty(); }
             if ( arg.equals("--db-sqlite") || arg.equals("-dbs") ) { database = Database.SQLITE; }
             if ( arg.equals("--db-pgsql") || arg.equals("-dbp") ) { database = Database.POSTGRESQL; }
             if ( arg.equals("--full-dump")) { addWorkMODE(Mode.DUMP); }
@@ -239,7 +239,7 @@ public class fit2gpx extends Component {
             System.out.println("Merge: " + converter.getMergeOut());
         }
 
-        String SummaryString = "";
+        StringBuilder SummaryString = new StringBuilder();
 
         for (Mode mode : WorkMODE) {        // loop for modes
 
@@ -248,7 +248,7 @@ public class fit2gpx extends Component {
 
             if (xDebug) System.out.println("Enter mode: " + converter.getMODE());
 
-            converter.setFirstElement(true);                                                // for format header
+            converter.setFirstElement();                                                // for format header
 
             for (String f : FileList) {     // loop for files
                 if (xDebug) {
@@ -274,8 +274,8 @@ public class fit2gpx extends Component {
 
             if (converterResult.getGoodFilesCount() != 0) { converter.writeEndfile(); }                                                  // write tail of file
 
-            SummaryString += "\n" + mode + "\n";
-            SummaryString += converterResult.getSummaryShort();
+            SummaryString.append("\n").append(mode).append("\n");
+            SummaryString.append(converterResult.getSummaryShort());
 
             if(StatisticEnable) {
                 System.out.println("\n" + mode + "\n");
@@ -290,7 +290,7 @@ public class fit2gpx extends Component {
             if(converterResult.getEmptyFilesCount() > 0) {MessageType = JOptionPane.WARNING_MESSAGE;}
             if(converterResult.getBadFilesCount() > 0) {MessageType = JOptionPane.ERROR_MESSAGE;}
 
-            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), SummaryString, tr.getString("ConvResult"), MessageType);
+            JOptionPane.showMessageDialog(JOptionPane.getRootFrame(), SummaryString.toString(), tr.getString("ConvResult"), MessageType);
         }
     }
 

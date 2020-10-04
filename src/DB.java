@@ -17,7 +17,7 @@ public class DB {
     private Database DBASE = Database.SQLITE;
     private DB_Create_Policy create_policy = DB_Create_Policy.CREATE_IF_NOT_FOUND;
     private DB_Append_Policy append_policy = DB_Append_Policy.APPEND_NEW_NO_REPLACE;
-    private String hash;
+    private String activityhash;
     private String db_connect;
     private String db_prefix;
     private Connection CONN;
@@ -27,7 +27,7 @@ public class DB {
     private void setDebug(boolean b) {xDebug = b; }
     private void setDBtype(Database dbase) { this.DBASE = dbase; }
     private void setDBconnect(String db) { this.db_connect = db; }
-    private void setHash(String hash) { this.hash = hash; }
+    private void setHash(String hash) { this.activityhash = hash; }
     private void setDBprefix(String prefix) {
         if(prefix.equals("")) {
             this.db_prefix = "_no_person";
@@ -145,7 +145,7 @@ public class DB {
             case MONITOR_SPO2:  table = db_prefix + "_SPO2_monitor"; break;
             case MONITOR_GSI:   table = db_prefix + "_GSI_monitor"; break;
             case CSV_HR:        table = db_prefix + "_activities_HR_only"; break;
-            case HRV:           table = db_prefix + "_HRV"; serial = getSerialHRV(hash,activityDateTime, tags.toString()); break;
+            case HRV:           table = db_prefix + "_HRV"; serial = getSerialHRV(activityhash,activityDateTime, tags.toString()); break;
             default:            return 81;
         }
 
@@ -266,6 +266,6 @@ public class DB {
         }
     }
 
-    private enum Status {BEGIN, COMMIT, ABORT};
+    private enum Status {BEGIN, COMMIT, ABORT}
 
 }
