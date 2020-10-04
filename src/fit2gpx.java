@@ -66,6 +66,7 @@ public class fit2gpx extends Component {
         String db_connect = "";
         String db_prefix = "";
         ArrayList<String> db_tag = new ArrayList<>();
+        boolean use_exist_db_schema = false;
 
         for (String arg:args) {
             if(xDebug) { System.out.println("argument: " + arg); }
@@ -110,6 +111,11 @@ public class fit2gpx extends Component {
                 String[] prefix = arg.split("=", 2);
                 db_prefix = prefix[1];
             }
+            if (arg.startsWith("--person=")) {
+                String[] person = arg.split("=", 2);
+                use_exist_db_schema = true;
+                db_prefix = person[1];
+            }
             if (arg.startsWith("--tags=")) {
                 String[] tags = arg.split("=", 2)[1].split(",");
                 for (String t : tags) {
@@ -125,26 +131,22 @@ public class fit2gpx extends Component {
         if (database == Database.SQLITE && db_connect.equals("")) {
             db_connect = System.getProperty("user.dir") + System.getProperty("file.separator") + "fit_db.sqlite3";
         }     // default db name for SQLite
-        if (database != Database.NONE && db_connect.equals("")) {
-            database = Database.NONE;
-        }
+        if (database != Database.NONE && db_connect.equals("")) { database = Database.NONE; }
 
         DB DataBase = new DB(xDebug);
+
         if (database != Database.NONE) {
 
             DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
             DataBase.setAppendPolicy(DB_Append_Policy.APPEND_NEW_NO_REPLACE);
+            if(use_exist_db_schema) {DataBase.useOnlyExistSchema(true);}
 
-            if (!DataBase.connctDB(database, db_connect, db_prefix)) {
-                if (xDebug) {
-                    System.out.println("Database can't open!");
-                }
+            if (!DataBase.connectDB(database, db_connect, db_prefix)) {
+                if (xDebug) { System.out.println("Database can't open!"); }
                 System.exit(13);
             } else {
                 converter.setOUT(Out.DATABASE);
-                if (xDebug) {
-                    System.out.println("Database has been opened: " + database + ": " + db_connect);
-                }
+                if (xDebug) { System.out.println("Database has been opened: " + database + ": " + db_connect); }
             }
         }
 

@@ -5,12 +5,12 @@ import format.Mode;
 import tools.FileCheck;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 public class DB {
+
+    static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
+
     private TreeMap<String, Map<String,String>> Buffer = new TreeMap<>();
     private String[] fields;
     private Mode MODE = Mode.UNKNOWN;
@@ -22,6 +22,7 @@ public class DB {
     private String db_prefix;
     private Connection CONN;
     private boolean xDebug = false;
+    private boolean use_only_exist_schema = false;
 
     private void setDebug(boolean b) {xDebug = b; }
     private void setDBtype(Database dbase) { this.DBASE = dbase; }
@@ -33,6 +34,7 @@ public class DB {
         } else this.db_prefix = prefix;
     }
 
+    public void useOnlyExistSchema(boolean b) { use_only_exist_schema = b; }
     public void setMode(Mode m) { this.MODE = m; }
     public void setFields(String[] fields) { this.fields = fields; }
     public void setCreatePolicy(DB_Create_Policy policy) { create_policy = policy; }
@@ -43,7 +45,7 @@ public class DB {
         setDebug(debug);
     }
 
-    public boolean connctDB(Database dbase, String db_conn, String db_pref) {
+    public boolean connectDB(Database dbase, String db_conn, String db_pref) {
         setDBtype(dbase);
         setDBconnect(db_conn);
         setDBprefix(db_pref);
@@ -62,7 +64,7 @@ public class DB {
                 } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
-            } else if(create_policy == DB_Create_Policy.CREATE_IF_NOT_FOUND) {
+            } else if(create_policy == DB_Create_Policy.CREATE_IF_NOT_FOUND && !use_only_exist_schema) {
                 try {
                     CONN = DriverManager.getConnection("jdbc:sqlite:" + db_connect);
                     if (xDebug) System.out.println("[DB:] Connect new (created): " + db_connect + ", prefix: " + db_prefix);
@@ -71,6 +73,9 @@ public class DB {
                 } catch (SQLException e) {
                     System.out.println(e.getMessage());
                 }
+            } else if(use_only_exist_schema) {
+                System.out.println(tr.getString("DB_error_no_db") + db_connect + ", " + db_prefix);
+                System.exit(13);
             }
             break;
             case POSTGRESQL:
@@ -88,6 +93,10 @@ public class DB {
                 ResultSet rs = stmt.executeQuery(sql)) {
 
             if (!rs.isBeforeFirst() ) {
+                if(use_only_exist_schema) {
+                    System.out.println(tr.getString("DB_error_no_schema") + db_prefix);
+                    System.exit(13);
+                }
                 if(xDebug) System.out.println("[DB:] Prefix not found, create schema");
                 if(!insertPerson(db_prefix)) return false;
                 return (createMonitorSchema() && createHrvSchema());

@@ -43,12 +43,15 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
         --db-sqlite             | -dbs  сохранять результат не в файл, а в базу данных SQLite
                 --db-connect=база       строка подключения к базе данных. Для SQLite "база" - путь к файлу
                         базы данных, если не указан, то по умолчанию "fit_db.sqlite3" в директории запуска программы
-                --db-prefix=префикс     префикс имён таблиц/схемы для сохранения в базе измерений нескольких человек,
-                         если не задан, по умолчанию в SQLite данные будут сохраняться в таблицы с префиксом "_no_person"
+                --db-prefix=префикс     префикс имён таблиц/схемы для сохранения в базе измерений нескольких человек.
+                        Если не задан, по умолчанию в SQLite данные будут сохраняться в таблицы с префиксом "_no_person"
+                        Если указан не существующий профиль, он автоматически добавиться в базу со всеми таблицами
+                --person=префикс        аналогично --db-prefix=, но запрещает создание новой базы и добавление нового
+                        профиля если таких не существует. При указании не существующего профиля программа завершается с ошибкой.
                 --tags=                 тэги для файла или группы файлов, при сохранении в базу, для поиска и обработки
 
         --save-empty            | -se   сохранять файлы без координат (пустые треки)
-        --full-dump                     сделать полный дамп записей файла в тестовый файл 
+        --full-dump                     сделать полный дамп записей файла в тестовый файл
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без указания файлов для конвертации
 запускается диалоговое окно выбора файлов для конвертации. Если при запуске в качестве аргумента передать имя файла, то
@@ -129,8 +132,11 @@ options:
         --db-sqlite             | -dbs  save the result to a SQLite database instead of a file
                 --db-connect=base       the connection string to the database. For SQLite, "base" is the path to the database
                         file, if omitted, the default is "fit_db.sqlite3" in the program launch directory
-                --db-prefix=prefix      prefix names of the tables/schema to store in the database the dimensions of a few people,
-                        if omitted, by default, data in SQLite will be saved in tables with the prefix "_no_person"
+                --db-prefix=prefix      prefix names of the tables/schema to store in the database the dimensions of a few people.
+                        If omitted, by default, data in SQLite will be saved in tables with the prefix "_no_person"
+                        If a non-existent profile is specified, it is automatically added to the database with all tables
+                --person=prefix         alias of --db-prefix=, but it prohibits creating a new database and adding a new profile
+                        if there are no such profiles. If you specify a nonexistent profile, the program fails with an error.
                 --tags=                 tags for a file or group of files, when saving to the database, for search and processing
 
         --save-empty            | -se   save files without coordinates (empty tracks)
