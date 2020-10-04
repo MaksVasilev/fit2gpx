@@ -25,6 +25,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -128,6 +129,9 @@ public class fit2gpx extends Component {
             }
         }
 
+        if(WorkMODE.size() ==0) addWorkMODE(Mode.GPX);
+        if(xDebug) System.out.println("Work mode list: " + Arrays.toString(WorkMODE.toArray()));
+
         if (database == Database.SQLITE && db_connect.equals("")) {
             db_connect = System.getProperty("user.dir") + System.getProperty("file.separator") + "fit_db.sqlite3";
         }     // default db name for SQLite
@@ -167,40 +171,45 @@ public class fit2gpx extends Component {
 
             FileNameExtensionFilter filter;
 
-            switch (WorkMODE.get(0)) {
-                case CSV:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleCSV"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
-                    break;
-                case CSV_HR:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleHR"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
-                    break;
-                case HRV:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleHRV"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
-                    break;
-                case MONITOR_HR:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleM"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
-                    break;
-                case MONITOR_SPO2:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleOxy"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
-                    break;
-                case MONITOR_GSI:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleStress"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
-                    break;
-                case DUMP:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleDebug"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTdefault"), "FIT", "fit");
-                    break;
-                case GPX:
-                default:
-                    chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitle"));
-                    filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
-                    break;
+            if(WorkMODE.size() == 1) {
+                switch (WorkMODE.get(0)) {
+                    case CSV:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleCSV"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                        break;
+                    case CSV_HR:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleHR"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                        break;
+                    case HRV:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleHRV"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                        break;
+                    case MONITOR_HR:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleM"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                        break;
+                    case MONITOR_SPO2:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleOxy"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                        break;
+                    case MONITOR_GSI:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleStress"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTmon"), "FIT", "fit");
+                        break;
+                    case DUMP:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleDebug"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTdefault"), "FIT", "fit");
+                        break;
+                    case GPX:
+                    default:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitle"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                        break;
+                }
+            } else {
+                chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitle_multy"));
+                filter = new FileNameExtensionFilter(tr.getString("OpenEXTdefault"), "FIT", "fit");
             }
 
             chooser.setFileFilter(filter);
