@@ -1,3 +1,12 @@
+/*
+Copyright © 2015-2020 by Maks Vasilev
+
+created 7.02.2015
+http://velo100.ru/garmin-fit-to-gpx
+https://github.com/MaksVasilev/fit2gpx
+
+*/
+
 import format.DB_Append_Policy;
 import format.DB_Create_Policy;
 import format.Database;
@@ -87,27 +96,18 @@ public class DB {
     }
 
     private boolean checkSchema() {
-        String sql = "SELECT ROWID FROM _persons WHERE name=\"" + db_prefix + "\";";
-        try (
-                Statement stmt = CONN.createStatement();
-                ResultSet rs = stmt.executeQuery(sql)) {
-
-            if (!rs.isBeforeFirst() ) {
-                if(use_only_exist_schema) {
-                    System.out.println(tr.getString("DB_error_no_schema") + db_prefix);
-                    System.exit(13);
-                }
-                if(xDebug) System.out.println("[DB:] Prefix not found, create schema");
-                if(!insertPerson(db_prefix)) return false;
-                return (createMonitorSchema() && createHrvSchema());
-            } else {
-                if(xDebug) System.out.println("[DB:] Prefix exist, ID: " + rs.getInt("ROWID"));
+        int person_id = getPersonID( db_prefix );
+        if(person_id < 1) {
+            if(use_only_exist_schema) {
+                System.out.println(tr.getString("DB_error_no_schema") + db_prefix);
+                System.exit(13);
             }
-
+            if(xDebug) System.out.println("[DB:] Prefix not found, try to create schema");
+            if(!insertPerson(db_prefix)) return false;
+            return (createMonitorSchema() && createHrvSchema());
+        } else {
+            if(xDebug) System.out.println("[DB:] Prefix exist, ID: " + person_id);
             return true;
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            return false;
         }
     }
 
@@ -133,62 +133,111 @@ public class DB {
         if(fields == null) { return 82; }
 
         String table;
-        Integer serial = 0;
         StringBuilder tags = new StringBuilder();
 
         for(String s:taglist) {
             tags.append(s).append(",");
         }
 
+        Integer serial = 0;
+
         switch (MODE) {
-            case MONITOR_HR:    table = db_prefix + "_HR_monitor"; break;
-            case MONITOR_SPO2:  table = db_prefix + "_SPO2_monitor"; break;
-            case MONITOR_GSI:   table = db_prefix + "_GSI_monitor"; break;
+            case MONITOR_HR:
+            case MONITOR_GSI:
+            case MONITOR_SPO2:  table = db_prefix + "_monitor"; break;
             case CSV_HR:        table = db_prefix + "_activities_HR_only"; break;
-            case HRV:           table = db_prefix + "_HRV"; serial = getSerialHRV(activityhash,activityDateTime, tags.toString()); break;
+            case HRV:           table = db_prefix + "_HRV"; serial = getSerial(SerialType.HRV, activityhash, activityDateTime, tags.toString()); break;
+            case GPX: case CSV: table = db_prefix + "_activities"; serial = getSerial(SerialType.ACTIVITY, activityhash, activityDateTime, tags.toString()); break;
             default:            return 81;
         }
 
         Transaction(CONN, Status.BEGIN);
         for(Map.Entry<String, Map<String,String>> mapEntry:Buffer.entrySet()) {
             StringBuilder sql = new StringBuilder("INSERT");
-            switch (append_policy) {
-                case REPLACE_ALL:
-                    sql.append(" OR REPLACE");
-                    break;
-                case APPEND_NEW_NO_REPLACE:
-                default:
-                    sql.append(" OR IGNORE");
-                    break;
-            }
 
-            sql.append(" INTO ").append(table).append("(date,").append(Arrays.toString(fields).replace("[", "").replace("]", "").trim()).append(") VALUES ('").append(mapEntry.getKey()).append("'");
+            ArrayList<String> field_names = new ArrayList<>();
+            ArrayList<String> field_values = new ArrayList<>();
             for (String field : fields) {
-                if (field.equals("serial")) {
-                    sql.append(",'").append(serial).append("'");
-                } else {
-                    sql.append(",'").append(mapEntry.getValue().get(field)).append("'");
+                if(field.equals("serial")) {
+                    field_names.add("serial");
+                    field_values.add(String.valueOf(serial));
+                }
+                if (mapEntry.getValue().get(field) != null && !mapEntry.getValue().get(field).equals("")) {
+                    field_names.add(field);
+                    field_values.add(mapEntry.getValue().get(field));
                 }
             }
 
-            sql.append(");");
-            executeSQL(CONN, sql.toString());
+            sql.append(" INTO ").append(table).append("(date,").append(ListToString(field_names)).append(") VALUES ('");
+            sql.append(mapEntry.getKey()).append("','");
+            sql.append(ListToValuesString(field_values)).append("')");
+            sql.append(" ON CONFLICT (date) DO ");
+
+            String SQL = "";
+            switch (append_policy) {
+                case REPLACE_ALL:
+                    sql.append("UPDATE SET ");
+                    for(int i = 0; i< field_names.size();i++) {
+                        sql.append(field_names.get(i)).append(" = '").append(field_values.get(i)).append("',");
+                    }
+                    SQL = sql.toString();
+                    SQL = removeLastSeparator(SQL);
+                    break;
+                case APPEND_NEW_NO_REPLACE:
+                default:
+                    sql.append("NOTHING");
+                    SQL = sql.toString();
+                    break;
+            }
+            SQL += ";";
+
+            // INSERT INTO Maks_monitor (date, GSI) VALUES ("2020-10-04T16:39:00", 15) ON CONFLICT (date) DO UPDATE SET GSI = EXCLUDED.GSI;
+
+//            System.out.println(SQL);
+            if(!executeSQL(CONN, SQL)) {
+                Transaction(CONN, Status.ABORT);
+                return 83;
+            };
         }
         Transaction(CONN, Status.COMMIT);
         return 0;
     }
 
-    private int getSerialHRV(String hash, String activityDateTime, String tags) {
-        String sql = "SELECT ROWID FROM _hrv WHERE hash = '" + hash + "';";
-        if(!tags.equals("") && tags.charAt(tags.length() - 1) == ',') tags = tags.substring(0, tags.length() - 1);   // remove last separator
+    private String removeLastSeparator(String s) {
+        if(s.equals("")) return "";
+        if(s.charAt(s.length() - 1) == ',') s = s.substring(0, s.length() - 1);
+        return s;
+    }
+
+    private String ListToString(ArrayList<String> list) {
+        if(list.size() > 0) return Arrays.toString(list.toArray()).replace("[", "").replace("]", "").replace(" ","").trim();
+        else return "";
+    }
+
+    private String ListToValuesString(ArrayList<String> list) {
+        if(list.size() > 0) return Arrays.toString(list.toArray()).replace("[", "").replace("]", "").replace(",","','").replace(" ","").trim();
+        else return "";
+    }
+
+    private enum SerialType { HRV, ACTIVITY }
+
+    private int getSerial(SerialType type, String hash, String activityDateTime, String tags) {
+        String serial_table = "";
+        switch (type) {
+            case HRV: serial_table = "_hrv"; break;
+            case ACTIVITY: serial_table = "_activity"; break;
+        }
+
+        String sql = "SELECT ROWID FROM " + serial_table + " WHERE hash = '" + hash + "';";
+        tags = removeLastSeparator(tags);   // remove last separator
         try {
             Statement stmt = CONN.createStatement();
             ResultSet rs = stmt.executeQuery(sql);
 
             if (!rs.isBeforeFirst() ) {
-                sql = "INSERT OR REPLACE INTO _hrv(date, person, hash, tags) VALUES('" + activityDateTime + "','" + db_prefix + "','" + hash + "','" + tags + "');";
+                sql = "INSERT OR REPLACE INTO " + serial_table + "(date, person_id, hash, tags) VALUES('" + activityDateTime + "','" + getPersonID(db_prefix) + "','" + hash + "','" + tags + "');";
                 if(executeSQL(CONN, sql)) {
-                    return getSerialHRV(hash, activityDateTime, tags);
+                    return getSerial(type, hash, activityDateTime, tags);
                 } else return 0;
             } else {
                 return rs.getInt("ROWID");
@@ -199,6 +248,23 @@ public class DB {
         }
     }
 
+    private int getPersonID(String person) {
+        String sql = "SELECT ROWID FROM _persons WHERE name = '" + person + "';";
+        try {
+            Statement stmt = CONN.createStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+
+            if (!rs.isBeforeFirst() ) {
+                return 0;
+            } else {
+                return rs.getInt("ROWID");
+            }
+            } catch(SQLException e) {
+                System.out.println(e.getMessage());
+                return 0;
+            }
+    }
+
     private boolean insertPerson(String person) {
         String sql = "INSERT INTO _persons ( name ) VALUES ( '" + person + "' );\n";
         if(xDebug) System.out.println("[DB:] Add new person: " + person);
@@ -207,35 +273,32 @@ public class DB {
 
     private boolean createTables() {
         String sql = "CREATE TABLE IF NOT EXISTS _persons ( name VARCHAR PRIMARY KEY UNIQUE );\n";
-        sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person VARCHAR, hash VARCHAR, tags TEXT, UNIQUE(hash) );\n";
+        sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person_id INTEGER, hash VARCHAR, tags TEXT, UNIQUE(hash) );\n";
+        sql += "CREATE TABLE IF NOT EXISTS _activity (date DATETIME, person_id INTEGER, hash VARCHAR, tags TEXT, UNIQUE(hash) );\n";
 
         if(!executeSQL(CONN, sql)) return false;
         return checkSchema();
     }
 
     private boolean createMonitorSchema() {
-        String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_HR_monitor ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, UNIQUE(date) );\n";
-        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_SPO2_monitor ( date DATETIME NOT NULL, SPO2 INTEGER NOT NULL, UNIQUE(date) );\n";
-        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_GSI_monitor ( date DATETIME NOT NULL, GSI INTEGER NOT NULL, BODY_BATTERY INTEGER, DELTA INTEGER, gsi_227_4 INTEGER, UNIQUE(date) );\n";
+        String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_monitor ( date DATETIME NOT NULL, heart_rate INTEGER, SPO2 INTEGER, GSI INTEGER, BODY_BATTERY INTEGER, DELTA INTEGER, gsi_227_4 INTEGER, UNIQUE(date) );\n";
         sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, duration TIME, UNIQUE(date) );\n";
 
-        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_HR_monitor_date_idx ON " + db_prefix + "_HR_monitor (datetime(date) ASC);\n";
-        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_SPO2_monitor_date_idx ON " + db_prefix + "_SPO2_monitor (datetime(date) ASC);\n";
-        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_GSI_monitor_date_idx ON " + db_prefix + "_GSI_monitor (datetime(date) ASC);\n";
+        sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_monitor_date_idx ON " + db_prefix + "_monitor (datetime(date) ASC);\n";
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_activities_HR_only_date_idx ON " + db_prefix + "_activities_HR_only (datetime(date) ASC);\n";
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_activities_HR_only_duration_idx ON " + db_prefix + "_activities_HR_only (time(duration) ASC);\n";
 
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity AS SELECT strftime('%Y-%m-%dT%H:%M:00', date) AS date, avg(heart_rate) AS heart_rate  FROM " + db_prefix + "_activities_HR_only GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity AS SELECT strftime('%Y-%m-%dT%H:%M:00', date) AS date, avg(heart_rate) AS heart_rate  FROM " + db_prefix + "_activities_HR_only WHERE heart_rate NOT NULL GROUP BY 1 ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity_profile AS SELECT strftime('%H:%M:%S', duration) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_activities_HR_only GROUP BY 1 ORDER BY 1;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_full AS SELECT date, heart_rate FROM ( SELECT date, heart_rate FROM " + db_prefix + "_HR_monitor WHERE date NOT IN ( SELECT date FROM " + db_prefix + "_HR_activity ) UNION SELECT date, heart_rate FROM " + db_prefix + "_HR_activity ) ORDER BY date ASC;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_full AS SELECT date, heart_rate FROM ( SELECT date, heart_rate FROM " + db_prefix + "_monitor WHERE heart_rate NOT NULL AND date NOT IN ( SELECT date FROM " + db_prefix + "_HR_activity WHERE heart_rate NOT NULL) UNION SELECT date, heart_rate FROM " + db_prefix + "_HR_activity ) ORDER BY date ASC;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full GROUP BY 1  ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(heart_rate) AS heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full GROUP BY 1 ORDER BY 1;\n";
 
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_SPO2_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(SPO2) as SPO2, count(SPO2) as count FROM " + db_prefix + "_SPO2_monitor GROUP BY 1 ORDER BY 1;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_SPO2_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(SPO2) AS SPO2, count(SPO2) as count FROM " + db_prefix + "_SpO2_monitor GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_SPO2_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(SPO2) as SPO2, count(SPO2) as count FROM " + db_prefix + "_monitor WHERE SPO2 NOT NULL GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_SPO2_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(SPO2) AS SPO2, count(SPO2) as count FROM " + db_prefix + "_monitor WHERE SPO2 NOT NULL GROUP BY 1 ORDER BY 1;\n";
 
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(GSI) as GSI, count(GSI) as count FROM " + db_prefix + "_GSI_monitor GROUP BY 1 ORDER BY 1;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(GSI) AS GSI, count(GSI) as count FROM " + db_prefix + "_GSI_monitor GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(GSI) as GSI, count(GSI) as count FROM " + db_prefix + "_monitor WHERE GSI NOT NULL GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_GSI_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(GSI) AS GSI, count(GSI) as count FROM " + db_prefix + "_monitor WHERE GSI NOT NULL GROUP BY 1 ORDER BY 1;\n";
 
         return executeSQL(CONN, sql);
     }

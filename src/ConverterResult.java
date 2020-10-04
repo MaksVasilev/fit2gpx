@@ -1,3 +1,12 @@
+/*
+Copyright © 2015-2020 by Maks Vasilev
+
+created 7.02.2015
+http://velo100.ru/garmin-fit-to-gpx
+https://github.com/MaksVasilev/fit2gpx
+
+*/
+
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -22,6 +31,7 @@ public class ConverterResult {
         if(result == 73) {BadFiles.add(file + tr.getString("_file_save_error"));}
         if(result == 81) {BadFiles.add(file + tr.getString("_file_not_to_db"));}
         if(result == 82) {BadFiles.add(file + tr.getString("_fields_not_defined"));}
+        if(result == 83) {BadFiles.add(file + tr.getString("_insert_error"));}
         if(result == 89) {BadFiles.add(file + tr.getString("_file_not_data"));}
         if(result == 199) {BadFiles.add(file + tr.getString("_read_data_from_file_error"));}
     }

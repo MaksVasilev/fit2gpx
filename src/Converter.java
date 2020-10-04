@@ -1,3 +1,12 @@
+/*
+Copyright © 2015-2020 by Maks Vasilev
+
+created 7.02.2015
+http://velo100.ru/garmin-fit-to-gpx
+https://github.com/MaksVasilev/fit2gpx
+
+*/
+
 import com.garmin.fit.*;
 import com.garmin.fit.plugins.HrToRecordMesgBroadcastPlugin;
 import format.*;

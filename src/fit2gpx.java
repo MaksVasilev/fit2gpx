@@ -8,6 +8,7 @@ https://github.com/MaksVasilev/fit2gpx
 exit code:
 
 0 - ok
+13 - database error
 64 - help or invalid usage
 65 - file invalid
 66 - file not found
@@ -142,7 +143,7 @@ public class fit2gpx extends Component {
         if (database != Database.NONE) {
 
             DataBase.setCreatePolicy(DB_Create_Policy.CREATE_IF_NOT_FOUND);
-            DataBase.setAppendPolicy(DB_Append_Policy.APPEND_NEW_NO_REPLACE);
+            DataBase.setAppendPolicy(DB_Append_Policy.REPLACE_ALL);
             if(use_exist_db_schema) {DataBase.useOnlyExistSchema(true);}
 
             if (!DataBase.connectDB(database, db_connect, db_prefix)) {
