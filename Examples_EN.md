@@ -81,6 +81,14 @@ _result:_ СSV table file: **XXXX.fit.monitor-HR.csv**
 
 The same is true for all monitoring parameters.
 
+### FIT to CSV with all monitoring data, merge into files by measurement type
+
+    java -jar fit2gpx.jar --merge --monitor-all XXXX.fit YYYY.fit ZZZZ.fit
+    
+_result:_ **3** CSV files: **XXXX.fit.merged.monitor-HR.csv, XXXX.fit.merged.SpO2.csv ,XXXX.fit.merged.GSI.csv**
+
+(if the necessary data is not in the source files, then there will be fewer files)
+
 ## FIT to file with recording intervals (R-R) for analyzing heart rate variability (HRV)
 
 To save information about the R-R interval, R-R interval recording must be enabled on your device!

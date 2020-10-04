@@ -26,7 +26,6 @@ public class DB {
     private void setDebug(boolean b) {xDebug = b; }
     private void setDBtype(Database dbase) { this.DBASE = dbase; }
     private void setDBconnect(String db) { this.db_connect = db; }
-    private void setMode(Mode m) { this.MODE = m; }
     private void setHash(String hash) { this.hash = hash; }
     private void setDBprefix(String prefix) {
         if(prefix.equals("")) {
@@ -34,13 +33,13 @@ public class DB {
         } else this.db_prefix = prefix;
     }
 
+    public void setMode(Mode m) { this.MODE = m; }
     public void setFields(String[] fields) { this.fields = fields; }
     public void setCreatePolicy(DB_Create_Policy policy) { create_policy = policy; }
     public void setAppendPolicy(DB_Append_Policy policy) { append_policy = policy; }
     public void setBuffer(TreeMap<String, Map<String,String>> fb) { this.Buffer = fb; }
 
-    public DB(Mode mode, boolean debug) {
-        setMode(mode);
+    public DB(boolean debug) {
         setDebug(debug);
     }
 
@@ -90,9 +89,8 @@ public class DB {
 
             if (!rs.isBeforeFirst() ) {
                 if(xDebug) System.out.println("[DB:] Prefix not found, create schema");
-                insertPerson(db_prefix);
-                createMonitorSchema();
-                createHrvSchema();
+                if(!insertPerson(db_prefix)) return false;
+                return (createMonitorSchema() && createHrvSchema());
             } else {
                 if(xDebug) System.out.println("[DB:] Prefix exist, ID: " + rs.getInt("ROWID"));
             }
@@ -118,6 +116,8 @@ public class DB {
 
 
     public int push(String hash, String activityDateTime, ArrayList<String> taglist) {
+        setHash(hash);
+
         if (xDebug) System.out.println("[DB:] Push mode: " + MODE + ", Buffer size: " + Buffer.size() + ", prefix: " + db_prefix);
 
         if(Buffer.size() == 0) { return 89; }
@@ -192,6 +192,7 @@ public class DB {
 
     private boolean insertPerson(String person) {
         String sql = "INSERT INTO _persons ( name ) VALUES ( '" + person + "' );\n";
+        if(xDebug) System.out.println("[DB:] Add new person: " + person);
         return executeSQL(CONN, sql);
     }
 
@@ -200,7 +201,7 @@ public class DB {
         sql += "CREATE TABLE IF NOT EXISTS _hrv (date DATETIME, person VARCHAR, hash VARCHAR, tags TEXT, UNIQUE(hash) );\n";
 
         if(!executeSQL(CONN, sql)) return false;
-        return createMonitorSchema() && createHrvSchema();
+        return checkSchema();
     }
 
     private boolean createMonitorSchema() {

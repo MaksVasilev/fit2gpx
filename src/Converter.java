@@ -126,6 +126,7 @@ public class Converter {
     private long timeOffset = 0L;   // смещение времени, для коррекции треков, в секундах
 
     private Mode MODE = Mode.GPX;
+
     private Out OUT = Out.SINGLE_FILE;
 
     private double lastGoodRR = 999.0;
@@ -145,7 +146,7 @@ public class Converter {
     void setSaveIfEmpty(boolean saveIfEmpty) {SaveIfEmpty = saveIfEmpty;}
     void setMergeOut(boolean merge) { MergeOut = merge; }
     boolean getMergeOut() {return MergeOut; }
-    void setFirstElement(boolean b) { firstElement = b; }
+    void setFirstElement(boolean b) { firstElement = b; OutputFileNameMerged = ""; }
     void setUseFilterHRV(boolean useFilter) {useFilterHRV = useFilter;}
     void setUseFlagHRV(boolean useFlag) {useFlagHRV = useFlag;}
     void setFilterHRV(Integer FilterFactor) {
