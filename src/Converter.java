@@ -235,6 +235,10 @@ public class Converter {
 
                     Map<String,String> row1 = m.getValue();
 
+                    if(row1.containsKey("heart_rate") && (row1.get("heart_rate").equals("0"))) {    // generic: zero value of heart rate
+                        row1.remove("heart_rate");
+                    }
+
                     // use altitude only if it present and enhanced_altitude not (#13)              // generic: alt -> enh_alt if it not present
                     if (row1.get("altitude") != null && row1.get("enhanced_altitude") == null) {
                         row1.put("enhanced_altitude", row1.get("altitude"));
@@ -641,10 +645,16 @@ public class Converter {
 
                         if (mesg.getFieldStringValue("timestamp_16") != null && mesg.getFieldStringValue("heart_rate") != null) {
 
-                            TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
+                            if(mesg.getFieldIntegerValue("heart_rate") != 0) {
+                                TimeStamp = new Date((mesgTimestamp * 1000) + DateTime.OFFSET + (timeOffset * 1000));
 
-                            Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() { { put("heart_rate", mesg.getFieldStringValue("heart_rate")); } });
-                            EmptyTrack = false;
+                                Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() {
+                                    {
+                                        put("heart_rate", mesg.getFieldStringValue("heart_rate"));
+                                    }
+                                });
+                                EmptyTrack = false;
+                            }
                         }
                     }
                     break;

@@ -290,7 +290,7 @@ public class DB {
 
     private boolean createMonitorSchema() {
         String sql = "CREATE TABLE IF NOT EXISTS " + db_prefix + "_monitor ( date DATETIME NOT NULL, heart_rate INTEGER, SPO2 INTEGER, GSI INTEGER, BODY_BATTERY INTEGER, DELTA INTEGER, gsi_227_4 INTEGER, UNIQUE(date) );\n";
-        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL, duration TIME, UNIQUE(date) );\n";
+        sql += "CREATE TABLE IF NOT EXISTS " + db_prefix + "_activities_HR_only ( date DATETIME NOT NULL, heart_rate INTEGER NOT NULL ON CONFLICT IGNORE, duration TIME, UNIQUE(date) );\n";
 
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_monitor_date_idx ON " + db_prefix + "_monitor (datetime(date) ASC);\n";
         sql += "CREATE INDEX IF NOT EXISTS " + db_prefix + "_activities_HR_only_date_idx ON " + db_prefix + "_activities_HR_only (datetime(date) ASC);\n";
@@ -298,9 +298,9 @@ public class DB {
 
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity AS SELECT strftime('%Y-%m-%dT%H:%M:00', date) AS date, avg(heart_rate) AS heart_rate  FROM " + db_prefix + "_activities_HR_only WHERE heart_rate NOT NULL GROUP BY 1 ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_activity_profile AS SELECT strftime('%H:%M:%S', duration) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_activities_HR_only GROUP BY 1 ORDER BY 1;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_full AS SELECT date, heart_rate FROM ( SELECT date, heart_rate FROM " + db_prefix + "_monitor WHERE heart_rate NOT NULL AND date NOT IN ( SELECT date FROM " + db_prefix + "_HR_activity WHERE heart_rate NOT NULL) UNION SELECT date, heart_rate FROM " + db_prefix + "_HR_activity ) ORDER BY date ASC;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full GROUP BY 1  ORDER BY 1;\n";
-        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(heart_rate) AS heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full GROUP BY 1 ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_full AS SELECT date, heart_rate FROM ( SELECT date, heart_rate FROM " + db_prefix + "_monitor WHERE heart_rate NOT NULL AND date NOT IN ( SELECT date FROM " + db_prefix + "_HR_activity WHERE heart_rate NOT NULL) UNION SELECT date, heart_rate FROM " + db_prefix + "_HR_activity ) WHERE heart_rate NOT NULL ORDER BY date ASC;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(heart_rate) as heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full WHERE heart_rate NOT NULL GROUP BY 1  ORDER BY 1;\n";
+        sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_HR_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(heart_rate) AS heart_rate, count(heart_rate) as count FROM " + db_prefix + "_HR_full WHERE heart_rate NOT NULL GROUP BY 1 ORDER BY 1;\n";
 
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_SPO2_day_profile AS SELECT strftime('%H:%M', date) AS time, avg(SPO2) as SPO2, count(SPO2) as count FROM " + db_prefix + "_monitor WHERE SPO2 NOT NULL GROUP BY 1 ORDER BY 1;\n";
         sql += "CREATE VIEW IF NOT EXISTS " + db_prefix + "_SPO2_by_day AS SELECT strftime('%Y-%m-%d', date) AS date, avg(SPO2) AS SPO2, count(SPO2) as count FROM " + db_prefix + "_monitor WHERE SPO2 NOT NULL GROUP BY 1 ORDER BY 1;\n";
