@@ -185,7 +185,7 @@ public class DB {
                     sql.append(" DO UPDATE SET ");
                     for(int i = 0; i< field_names.size();i++) {
                         if(!(field_names.get(i).equals("serial") && MODE == Mode.HRV)) {
-                            sql.append(field_names.get(i)).append(" = '").append(field_values.get(i)).append("',");
+                            sql.append(" ").append(field_names.get(i)).append(" = EXCLUDED.").append(field_names.get(i)).append(",");
                         }
                     }
                     SQL = sql.toString();
