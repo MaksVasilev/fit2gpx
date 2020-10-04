@@ -171,21 +171,29 @@ public class DB {
             sql.append(" INTO ").append(table).append("(date,").append(ListToString(field_names)).append(") VALUES ('");
             sql.append(mapEntry.getKey()).append("','");
             sql.append(ListToValuesString(field_values)).append("')");
-            sql.append(" ON CONFLICT (date) DO ");
+            sql.append(" ON CONFLICT ");
+
+            if (MODE == Mode.HRV) {
+                sql.append("(date,serial)");
+            } else {
+                sql.append("(date)");
+            }
 
             String SQL = "";
             switch (append_policy) {
                 case REPLACE_ALL:
-                    sql.append("UPDATE SET ");
+                    sql.append(" DO UPDATE SET ");
                     for(int i = 0; i< field_names.size();i++) {
-                        sql.append(field_names.get(i)).append(" = '").append(field_values.get(i)).append("',");
+                        if(!(field_names.get(i).equals("serial") && MODE == Mode.HRV)) {
+                            sql.append(field_names.get(i)).append(" = '").append(field_values.get(i)).append("',");
+                        }
                     }
                     SQL = sql.toString();
                     SQL = removeLastSeparator(SQL);
                     break;
                 case APPEND_NEW_NO_REPLACE:
                 default:
-                    sql.append("NOTHING");
+                    sql.append(" DO NOTHING");
                     SQL = sql.toString();
                     break;
             }
