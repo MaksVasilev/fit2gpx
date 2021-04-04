@@ -179,13 +179,13 @@ public class DB {
                 sql.append("(date)");
             }
 
-            String SQL = "";
+            String SQL;
             switch (append_policy) {
                 case REPLACE_ALL:
                     sql.append(" DO UPDATE SET ");
-                    for(int i = 0; i< field_names.size();i++) {
-                        if(!(field_names.get(i).equals("serial") && MODE == Mode.HRV)) {
-                            sql.append(" ").append(field_names.get(i)).append(" = EXCLUDED.").append(field_names.get(i)).append(",");
+                    for (String field_name : field_names) {
+                        if (!(field_name.equals("serial") && MODE == Mode.HRV)) {
+                            sql.append(" ").append(field_name).append(" = EXCLUDED.").append(field_name).append(",");
                         }
                     }
                     SQL = sql.toString();
@@ -205,7 +205,7 @@ public class DB {
             if(!executeSQL(CONN, SQL)) {
                 Transaction(CONN, Status.ABORT);
                 return 83;
-            };
+            }
         }
         Transaction(CONN, Status.COMMIT);
         return 0;
