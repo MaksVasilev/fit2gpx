@@ -817,7 +817,7 @@ public class Converter {
             return;
         }
 
-        if(firstElement) {
+        if(firstElement || !MergeOut) {
             switch (MODE) {                                // format header of file
                 case CSV:     // Table output - CSV format
                     activity.clear();

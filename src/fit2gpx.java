@@ -1,5 +1,5 @@
 /*
-Copyright © 2015-2020 by Maks Vasilev
+Copyright © 2015-2021 by Maks Vasilev
 
 created 7.02.2015
 http://velo100.ru/garmin-fit-to-gpx
@@ -34,7 +34,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.10";
+    static final String _version_ = "0.1.11";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
     static ArrayList<Mode> WorkMODE = new ArrayList<>();
@@ -249,15 +249,15 @@ public class fit2gpx extends Component {
 
             if (xDebug) System.out.println("Enter mode: " + converter.getMODE());
 
-            converter.setFirstElement();                                                // for format header
+            converter.setFirstElement();                                                        // for format header
 
             for (String f : FileList) {     // loop for files
                 if (xDebug) {
                     System.out.println("file: " + f);
                 }
 
-                converter.setInputFITfileName(f);                                           // file to work
-                int result = converter.run();                                               // run
+                converter.setInputFITfileName(f);                                               // file to work
+                int result = converter.run();                                                   // run
                 if (result == 0 && database != Database.NONE) {
                     if (xDebug) {
                         System.out.println("Try to push data to database");
@@ -266,14 +266,20 @@ public class fit2gpx extends Component {
                     DataBase.setFields(converter.getFields());
                     result = DataBase.push(converter.getHashActivity(), converter.getFileTimeStamp(), db_tag);
                 }
-                converterResult.add(result, converter.getInputFITfileName());      // print result
+                converterResult.add(result, converter.getInputFITfileName());                   // print result
+
+                if (!converter.getMergeOut() && converterResult.getGoodFilesCount() != 0) {     // write tail of file
+                    converter.writeEndfile();                                                   // for non-nerged files
+                }
             }
 
             if (xDebug) {
                 System.out.println("Good files: " + converterResult.getGoodFilesCount());
             }
 
-            if (converterResult.getGoodFilesCount() != 0) { converter.writeEndfile(); }                                                  // write tail of file
+            if (converter.getMergeOut() && converterResult.getGoodFilesCount() != 0) {          // write tail of file
+                converter.writeEndfile();                                                       // for merged file
+            }
 
             SummaryString.append("\n").append(mode).append("\n");
             SummaryString.append(converterResult.getSummaryShort());
@@ -296,5 +302,4 @@ public class fit2gpx extends Component {
     }
 
     private static void addWorkMODE(Mode mode) { if(!WorkMODE.contains(mode)) WorkMODE.add(mode); }
-
 }
