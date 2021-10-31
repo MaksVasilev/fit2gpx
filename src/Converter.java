@@ -79,7 +79,7 @@ public class Converter {
             "right_power_phase_end","left_power_phase_peak_start","left_power_phase_peak_end","right_power_phase_peak_start","right_power_phase_peak_end",
             "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness",
             "combined_pedal_smoothness","left_pco","right_pco","grit","flow","absolute_pressure",
-            "respiratory","performance_contition","field_num_61","field_num_66",
+            "respiratory","performance_contition","field_num_61","field_num_66", // "ciq_dose_rate",
             "fixed"};
 
     private static final String[] hrv_fields = {"serial","time","RR","HR","filter"};
@@ -87,6 +87,8 @@ public class Converter {
     private static final String[] monitor_spo2_fields = {"SPO2"};
     private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA","gsi_227_4"};
     private static final String[] hr_only_fields = {"heart_rate","duration"};
+
+    private static HashMap<String, String> connect_iq_fields = new HashMap<>(); // field name, units
 
     public String[] getFields() {
         switch (MODE) {
@@ -609,6 +611,11 @@ public class Converter {
                             }
                         }
 
+                        for(DeveloperField field:mesg.getDeveloperFields()) {
+                            connect_iq_fields.put("ciq_" + field.getName(), field.getUnits());
+                            fields.put("ciq_" + field.getName(),field.getStringValue());
+                        }
+
                         String RecordedDate = DateFormatCSV.format(TimeStamp);
 
                         // if records with this time already present, then merge existing key=value to current set
@@ -626,7 +633,7 @@ public class Converter {
                             {
                                 // GPXtime - need to use in GPX output only, not sensitive to --iso-date=y/n !
                                 put("GPXtime",DateFormatGPX.format(TimeStamp));
-                                fields.forEach(this::put);
+                                this.putAll(fields);
                             }
                         });
                     }
@@ -768,6 +775,20 @@ public class Converter {
                         }
                         line.append("]\n");
                     }
+
+                    for(DeveloperField field:mesg.getDeveloperFields()) {
+                        line.append("\tField num (CIQ): ").append(field.getNum()).append("\tName: \"").append(field.getName()).append("\"\tUnits: (").append(field.getUnits()).append(")\t");
+
+                        int index = 0;
+                        line.append("[");
+                        while (field.getStringValue(index) != null) {
+                            if(index > 0) { line.append("|"); }
+                            line.append(field.getStringValue(index));
+                            index++;
+                        }
+                        line.append("]\n");
+                    }
+
                     EmptyTrack = false;
                     activity.add(line.toString());
                     break;
@@ -811,6 +832,10 @@ public class Converter {
         return 0;
     }
 
+    private void get_connect_iq_fields(){ // TODO
+
+    }
+
     private void format() {     // format output from buffer to text
 
         if(EmptyTrack && !SaveIfEmpty) {
@@ -825,6 +850,11 @@ public class Converter {
                     for (String name : activities_fiels) {
                         head.append(";").append(name);
                     }
+
+                    for(Map.Entry<String, String> ciq: connect_iq_fields.entrySet()) {         // Connect IQ developer fields
+                        head.append(";").append(ciq.getKey());
+                    }
+
                     activity.add(head.toString());
                     break;
                 case GPX:     // Standart Garmin point exchange format GPX
@@ -852,12 +882,20 @@ public class Converter {
                     StringBuilder line;
                     line = new StringBuilder(m.getKey());
                     Map<String, String> ff = m.getValue();
-                    for(String s1: activities_fiels) {
+                    for(String s1: activities_fiels) {      // predefined fields
                         line.append(";");
                         if(ff.containsKey(s1)) {
                             line.append(ff.get(s1));
                         }
                     }
+
+                    for(Map.Entry<String, String> ciq: connect_iq_fields.entrySet()) {         // Connect IQ developer fields
+                        line.append(";");
+                        if(ff.containsKey(ciq.getKey())) {
+                            line.append(ff.get(ciq.getKey()));
+                        }
+                    }
+
                     activity.add(line.toString());
                 }
                 break;
