@@ -193,8 +193,8 @@ public class Converter {
         int readStatus = this.read();       // read file to buffer
         if(readStatus !=0) {return readStatus;}
 
-        int fixstatus = this.fix();         // try to fix data in non corrupted file
-        if(fixstatus !=0) {return fixstatus;}
+         int fixstatus = this.fix();         // try to fix data in non corrupted file
+         if(fixstatus !=0) {return fixstatus;}
 
         if(OUT == Out.DATABASE) {
 
@@ -289,14 +289,21 @@ public class Converter {
                         }
                     }
 
+               /*     if(last_dist.equals(prev_dist) && speed != 0.0) {
+                        row1.put("speed",String.valueOf(0.0));
+                        row1.put("enhanced_speed",String.valueOf(0.0));
+                        row1.put("fixed",append(row1.get("fixed"),"speed-to-zero,"));
+                        speed = 0.0;
+                    }
+*/
                     prev_date = date;
 
                     if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {        // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
                         last_lat = row1.get("position_lat");
                         last_lon = row1.get("position_long");
-
                         EmptyTrack = false;
-                    } else if (!last_lat.equals("") && !last_lon.equals("") && speed == 0.0 && (last_dist.equals(prev_dist))) {  // fix (01) only if distance not incremended
+
+                    } else if (!last_lat.equals("") && !last_lon.equals("") && (last_dist.equals(prev_dist))) {  // fix (01) only if distance not incremended
                         row1.put("position_lat", last_lat);
                         row1.put("position_long", last_lon);
                         row1.put("fixed",append(row1.get("fixed"),"Bryton-hole-coord,"));
@@ -352,7 +359,7 @@ public class Converter {
                                 row3.put("altitude",ele);
                                 row3.put("fixed",append(row3.get("fixed"),"Bryton-start-ele,"));
 
-                                Buffer.put(map03b_i.getKey(), new HashMap<>() { { row3.forEach(this::put); } });   // write change to buffer
+                                Buffer.put(map03b_i.getKey(), new HashMap<>() { { this.putAll(row3); } });   // write change to buffer
                                 row3.clear();
                             } else {
                                 break;
@@ -376,13 +383,15 @@ public class Converter {
                     String start;
                     String end;
 
-                    if(row0.get("position_lat") != null && row0.get("position_long") != null && row0.get("distance") != null) {
-                        last_lat_d = checkD(row0.get("position_lat"));
-                        last_lon_d = checkD(row0.get("position_long"));
-                        last_dist = checkD(row0.get("distance"));
+                    if(row0.get("position_lat") != null && row0.get("position_long") != null) {
+                        if(row0.get("distance") != null) {
+                            last_lat_d = checkD(row0.get("position_lat"));
+                            last_lon_d = checkD(row0.get("position_long"));
+                            last_dist = checkD(row0.get("distance"));
+                        }
                     }
 
-                    if(row0.get("position_lat") == null && row0.get("position_long") == null) {     // Search for first entry fith empty coordinates
+                    if(row0.get("position_lat") == null && row0.get("position_long") == null) {     // Search for first entry with empty coordinates
                         start = m.getKey();
 
                         ArrayList<Double> dist_steps = new ArrayList<>();
@@ -394,6 +403,8 @@ public class Converter {
                                     Double d = Double.parseDouble(row00.get("distance"));
                                     dist_steps.add(d - last_dist);
                                 } catch (Exception ignore) { }
+                            } else {
+                                dist_steps.add(0.0);
                             }
 
                             if(row00.get("distance") != null) {
@@ -419,8 +430,11 @@ public class Converter {
                                     row_insert.put("position_lat", String.valueOf(step_lat));
                                     row_insert.put("position_long", String.valueOf(step_lon));
                                     row_insert.put("fixed",append(row_insert.get("fixed"),"Swim-no-coord,"));
+                                    if(row_insert.get("distance") == null) {
+                                        row_insert.put("distance", String.valueOf(last_dist));
+                                    }
 
-                                    Buffer.put(insert.getKey(), new HashMap<>() { { row_insert.forEach(this::put); } });   // write change to buffer
+                                    Buffer.put(insert.getKey(), new HashMap<>() { { this.putAll(row_insert); } });   // write change to buffer
                                     row_insert.clear();
                                     st++;
                                 }
