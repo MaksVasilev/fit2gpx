@@ -14,8 +14,11 @@ import format.*;
 import java.io.*;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.TimeZone;
 
@@ -79,7 +82,7 @@ public class Converter {
             "right_power_phase_end","left_power_phase_peak_start","left_power_phase_peak_end","right_power_phase_peak_start","right_power_phase_peak_end",
             "left_torque_effectiveness","right_torque_effectiveness","left_pedal_smoothness","right_pedal_smoothness",
             "combined_pedal_smoothness","left_pco","right_pco","grit","flow","absolute_pressure",
-            "respiratory","performance_contition","field_num_61","field_num_66", // "ciq_dose_rate",
+            "respiratory","performance_contition","field_num_61","field_num_66",
             "fixed"};
 
     private static final String[] hrv_fields = {"serial","time","RR","HR","filter"};
@@ -87,12 +90,15 @@ public class Converter {
     private static final String[] monitor_spo2_fields = {"SPO2"};
     private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA","gsi_227_4"};
     private static final String[] hr_only_fields = {"heart_rate","duration"};
+    private static final String[] atom_fast_fields = {"ciq_dose_rate","position_lat","position_long","gps_accuracy", "ciq_marker_type", "ciq_SE"}; // TODO
+    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle, 1-marker)","SE (1 σ)[%]"};
 
-    private static HashMap<String, String> connect_iq_fields = new HashMap<>(); // field name, units
+    private static final HashMap<String, String> connect_iq_fields = new HashMap<>(); // field name, units
 
     public String[] getFields() {
         switch (MODE) {
             case CSV: case GPX:  return activities_fiels;
+            case ATOMFAST_CSV: return atom_fast_fields;
             case CSV_HR: return hr_only_fields;
             case MONITOR_GSI: return monitor_gsi_fields;
             case MONITOR_SPO2: return monitor_spo2_fields;
@@ -220,6 +226,7 @@ public class Converter {
 
         switch (MODE) {
             case CSV: // Table output - CSV format
+            case ATOMFAST_CSV: // Atom Fast track
             case GPX: // Standart Garmin point exchange format GPX
 
                 String last_lat = "";
@@ -565,6 +572,7 @@ public class Converter {
                 case CSV: // Table output - CSV format
                 case GPX: // Standart Garmin point exchange format GPX
                 case CSV_HR: // Table output - Only HR and Time from actyvites
+                case ATOMFAST_CSV:
 
                     if (mesg.getFieldStringValue("timestamp") != null && mesg.getName().equals("record")) {
 
@@ -860,6 +868,14 @@ public class Converter {
 
                     activity.add(head.toString());
                     break;
+                case ATOMFAST_CSV:
+                    activity.clear();
+                    head = new StringBuilder("unix timestamp");
+                    for (String name : atom_fast_head) {
+                        head.append(";").append(name);
+                    }
+                    activity.add(head.toString());
+                    break;
                 case GPX:     // Standart Garmin point exchange format GPX
                     activity.clear();
                     activity.add(out_gpx_head.replace("{creator}", DeviceCreator));
@@ -896,6 +912,38 @@ public class Converter {
                         line.append(";");
                         if(ff.containsKey(ciq.getKey())) {
                             line.append(ff.get(ciq.getKey()));
+                        }
+                    }
+
+                    activity.add(line.toString());
+                }
+                break;
+
+            case ATOMFAST_CSV:
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()){
+                    StringBuilder line;
+                    Date date = new Date();
+                    try {
+                         date = df.parse(m.getValue().get("GPXtime"));
+                    } catch (ParseException ignored) {}
+                    long ts = date.getTime() / 1000;
+
+                    line = new StringBuilder(String.valueOf(ts));
+                    Map<String, String> ff = m.getValue();
+                    for(String s1: atom_fast_fields) {      // predefined fields for atomfast
+                        line.append(";");
+                        if(ff.containsKey(s1)) {
+                            if(s1.equals("ciq_dose_rate") && !connect_iq_fields.get("ciq_dose_rate").equals("microsieverts")) {
+                                line.append( Double.parseDouble(ff.get(s1)) / 100.0);   // if units Roentgen, convert it to Sieverts
+                            } else {
+                                line.append(ff.get(s1));
+                            }
+                        } else {
+                            switch (s1) {
+                                case "ciq_marker_type": line.append(2); break;
+                                case "ciq_SE": line.append("not provided"); break;
+                            }
                         }
                     }
 
@@ -1027,6 +1075,9 @@ public class Converter {
             switch (MODE) {
                 case CSV:
                     OutputFileName = InputFITfileName + m + ".csv";
+                    break;
+                case ATOMFAST_CSV:
+                    OutputFileName = InputFITfileName + m + ".atomfast.csv";
                     break;
                 case GPX:
                     OutputFileName = InputFITfileName + m + ".gpx";

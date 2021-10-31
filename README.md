@@ -1,30 +1,31 @@
 # fit2gpx
 
-Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Версия 0.1.9
+Конвертер файлов Garmin .FIT в GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Версия 0.1.19
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
-
 FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Информация по использованию:
 
-        java -jar fit2gpx.jar --help
+    java -jar fit2gpx.jar --help
 
 Консольный режим:
 
-        java -jar fit2gpx.jar [параметры] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]
+    java -jar fit2gpx.jar [параметры] <файл Garmin .FIT> [[<файл Garmin .FIT>] …]
 
 Графический диалоговый режим:
 
-        java -jar fit2gpx.jar [параметры]
+    java -jar fit2gpx.jar [параметры]
 
 параметры:
 
-        --statistic             | -s    вывод итоговой статистики в консоль
-        --gpx                   | -g    Режим по умолчанию. Выходной файл: трек в формате GPX
-        --csv                   | -c    выходной файл будет в формате CSV
-        --merge                 | -m    объединить все выходные файлы в один
-                 Внимание! в объединённом файле данные могут быть не в хронологическом порядке! (см. issue #21)
+    --statistic             | -s    вывод итоговой статистики в консоль
+    --gpx                   | -g    Режим по умолчанию. Выходной файл: трек в формате GPX
+    --csv                   | -c    выходной файл будет в формате CSV
+    --atomfast              | -f    выходной файл будет в формате трека Atom Fast CSV
+    --merge                 | -m    объединить все выходные файлы в один
+
+Внимание! в объединённом файле данные могут быть не в хронологическом порядке! (см. issue #21)
 
         --iso-date=[yes|y|no|n] использовать для CSV формата дату в формате ГОСТ ИСО 8601-2001 (ISO 8601) (по умолчанию 'yes')
         --hr-only               | -hr   выходной файл будет в формате CSV, содержимое: только ЧСС и время
@@ -51,7 +52,7 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
                 --tags=                 тэги для файла или группы файлов, при сохранении в базу, для поиска и обработки
 
         --save-empty            | -se   сохранять файлы без координат (пустые треки)
-        --full-dump                     сделать полный дамп записей файла в тестовый файл
+        --full-dump                     сделать полный дамп записей файла в тестовый файл  
 
 Конвертер имеет два режима работы: консольный и графический. При запуске без указания файлов для конвертации
 запускается диалоговое окно выбора файлов для конвертации. Если при запуске в качестве аргумента передать имя файла, то
@@ -63,7 +64,8 @@ FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Дамп всех заголовков файла (отладочный режим):
 
-        java -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>
+    java -cp fit2gpx.jar DebugDecode <файл Garmin .FIT>
+
 
 Минимальная версия Java - 11.0
 
@@ -89,31 +91,30 @@ https://github.com/MaksVasilev/fit2gpx/raw/master/out/jar/fit2gpx.jar
 
 # English
 
-Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Version 0.1.9
+Converter Garmin .FIT files to GPX, CVS, HR, HRV, SpO2, Stress, SQLite. Version 0.1.19
 
 © Maks Vasilev, 2015-2020, http://velo100.ru/garmin-fit-to-gpx
-
 FIT Software Development Kit (SDK), http://www.thisisant.com
 
 Usage:
-
-        java -jar fit2gpx.jar --help
+java -jar fit2gpx.jar --help
 
 Console mode:
 
-        java -jar fit2gpx.jar [options] <file Garmin .FIT> [[<file Garmin .FIT>] …]
+    java -jar fit2gpx.jar [options] <file Garmin .FIT> [[<file Garmin .FIT>] …]
 
 Graphic dialog mode:
-
-        java -jar fit2gpx.jar [options]
+    
+    java -jar fit2gpx.jar [options]
 
 options:
 
-        --statistic             | -s    output of final statistics to the console
-        --gpx                   | -g    Default mode. Output file: GPX track
-        --csv                   | -c    the output file will be in CSV format
-        --merge                 | -m    merge all output files in one file
-                 Attention! the data in the merged file may not be in chronological order! (see issue #21)
+    --statistic             | -s    output of final statistics to the console
+    --gpx                   | -g    Default mode. Output file: GPX track
+    --csv                   | -c    the output file will be in CSV format
+    --atomfast              | -f    the output file will be in format Atom Fast CSV
+    --merge                 | -m    merge all output files in one file
+    Attention! the data in the merged file may not be in chronological order! (see issue #21)
 
         --iso-date=[yes|y|no|n] use for CSV date in GOST ISO 8601 format (by default 'yes')
         --hr-only               | -hr   the output file will be in CSV format, content: heart rate and time only
@@ -140,7 +141,7 @@ options:
                 --tags=                 tags for a file or group of files, when saving to the database, for search and processing
 
         --save-empty            | -se   save files without coordinates (empty tracks)
-        --full-dump             create full text dump of all messages 
+        --full-dump             create full text dump of all messages  
 
 The Converter has two modes of operation: console and graphic. When running without files in parameters, a dialog box opens
 for selecting the file to convert. If you use the file name as an argument at startup, the conversion occurs without launching dialog boxes.

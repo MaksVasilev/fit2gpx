@@ -34,7 +34,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.18";
+    static final String _version_ = "0.1.19";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
     static ArrayList<Mode> WorkMODE = new ArrayList<>();
@@ -76,6 +76,7 @@ public class fit2gpx extends Component {
             if ( arg.equals("--statistic") || arg.equals("-s")) {  StatisticEnable = true; }
             if ( arg.equals("--gpx") || arg.equals("-g")) {  addWorkMODE(Mode.GPX); }
             if ( arg.equals("--csv") || arg.equals("-c")) {  addWorkMODE(Mode.CSV); converter.setSaveIfEmpty(); }
+            if ( arg.equals("--atomfast") || arg.equals("-f")) {  addWorkMODE(Mode.ATOMFAST_CSV); }
             if ( arg.equals("--hr-only") || arg.equals("-hr")) {  addWorkMODE(Mode.CSV_HR); converter.setSaveIfEmpty(); }
             if ( arg.equals("--merge") || arg.equals("-m")) { converter.setMergeOut(true); converter.setOUT(Out.MERGED_FILES); }
             if ( arg.equals("--hrv") || arg.equals("-vr")) {  addWorkMODE(Mode.HRV); }
@@ -176,6 +177,10 @@ public class fit2gpx extends Component {
                 switch (WorkMODE.get(0)) {
                     case CSV:
                         chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleCSV"));
+                        filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
+                        break;
+                    case ATOMFAST_CSV:
+                        chooser.setDialogTitle(_version_ + " | " + tr.getString("OpenTitleATOM"));
                         filter = new FileNameExtensionFilter(tr.getString("OpenEXTact"), "FIT", "fit");
                         break;
                     case CSV_HR:
