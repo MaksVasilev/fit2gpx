@@ -193,8 +193,8 @@ public class Converter {
         int readStatus = this.read();       // read file to buffer
         if(readStatus !=0) {return readStatus;}
 
-         int fixstatus = this.fix();         // try to fix data in non corrupted file
-         if(fixstatus !=0) {return fixstatus;}
+        int fixstatus = this.fix();         // try to fix data in non corrupted file
+        if(fixstatus !=0) {return fixstatus;}
 
         if(OUT == Out.DATABASE) {
 
@@ -289,13 +289,6 @@ public class Converter {
                         }
                     }
 
-               /*     if(last_dist.equals(prev_dist) && speed != 0.0) {
-                        row1.put("speed",String.valueOf(0.0));
-                        row1.put("enhanced_speed",String.valueOf(0.0));
-                        row1.put("fixed",append(row1.get("fixed"),"speed-to-zero,"));
-                        speed = 0.0;
-                    }
-*/
                     prev_date = date;
 
                     if (row1.containsKey("position_lat") && row1.containsKey("position_long")) {        // Fix 01-Bryton-hole-ele/Bryton-hole-coord - Bryton hole fix
@@ -319,7 +312,7 @@ public class Converter {
                         row1.put("fixed",append(row1.get("fixed"),"Bryton-hole-ele,"));
                     }
 
-                    Buffer.put(m.getKey(), new HashMap<>() { { row1.forEach(this::put); } });   // write change to buffer
+                    Buffer.put(m.getKey(), new HashMap<>() { { this.putAll(row1); } });   // write change to buffer
                     row1.clear();
                 }                                                                            // End 01-Bryton-hole-ele/Bryton-hole-coord
 
@@ -336,7 +329,7 @@ public class Converter {
                                 row2.put("position_lat",lat);
                                 row2.put("position_long",lon);
                                 row2.put("fixed",append(row2.get("fixed"),"Bryton-start-coord,"));
-                                Buffer.put(map02b_i.getKey(), new HashMap<>() { { row2.forEach(this::put); } });   // write change to buffer
+                                Buffer.put(map02b_i.getKey(), new HashMap<>() { { this.putAll(row2); } });   // write change to buffer
                                 row2.clear();
                             } else {
                                 break;
@@ -560,7 +553,7 @@ public class Converter {
             SimpleDateFormat hashDate = new SimpleDateFormat("yyyyMMddHHmmss");
             hashDate.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-            String hashString = (String.valueOf(__manufacturer) + String.valueOf(__product) + hashDate.format(FileTimeStamp) + String.valueOf(SerialNumber));
+            String hashString = (__manufacturer + String.valueOf(__product) + hashDate.format(FileTimeStamp) + SerialNumber);
             hashActivity = SHA1(hashString);
 
         };
@@ -765,7 +758,7 @@ public class Converter {
                             if(mesg.getFieldStringValue(4) != null) { // 227.4 - ?, always = 1?
                                 fields.put("gsi_227_4",mesg.getFieldStringValue(4)); }
 
-                            Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() { { fields.forEach(this::put); } });
+                            Buffer.put(DateFormatCSV.format(TimeStamp), new HashMap<>() { { this.putAll(fields); } });
                             fields.clear();
                             EmptyTrack = false;
                         }
@@ -844,10 +837,6 @@ public class Converter {
             throw new RuntimeException(e);
         }
         return 0;
-    }
-
-    private void get_connect_iq_fields(){ // TODO
-
     }
 
     private void format() {     // format output from buffer to text
@@ -1067,7 +1056,6 @@ public class Converter {
         if(MergeOut) {              // TODO определить стратегию формирования имени выходного файла
             if (OutputFileNameMerged.equals("")) {
                 OutputFileNameMerged = OutputFileName;
-                append = false;
             } else {
                 OutputFileName = OutputFileNameMerged;
                 append = true;
