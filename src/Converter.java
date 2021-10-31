@@ -941,7 +941,7 @@ public class Converter {
                             }
                         } else {
                             switch (s1) {
-                                case "ciq_marker_type": line.append(2); break;
+                                case "ciq_marker_type": line.append(2); break;  // always export point as "marker"
                                 case "ciq_SE": line.append("not provided"); break;
                             }
                         }
