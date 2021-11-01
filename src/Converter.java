@@ -974,6 +974,15 @@ public class Converter {
                             if(m.getValue().get("cadence") != null) {activity.add("      <gpxtpx:cad>{cadence}</gpxtpx:cad>".replace("{cadence}",m.getValue().get("cadence")));}
                             if(m.getValue().get("enhanced_speed") != null) {activity.add("      <gpxtpx:speed>{enhanced_speed}</gpxtpx:speed>".replace("{enhanced_speed}",m.getValue().get("enhanced_speed")));}
                             if(m.getValue().get("distance") != null) {activity.add("      <gpxtpx:course>{distance}</gpxtpx:course>".replace("{distance}",m.getValue().get("distance")));}
+                            if(m.getValue().get("ciq_dose_rate") != null) {
+                                String dr;
+                                if(connect_iq_fields.get("ciq_dose_rate").equals("microsieverts")) {
+                                    dr = m.getValue().get("ciq_dose_rate");
+                                } else  {
+                                    dr = String.valueOf(Double.parseDouble(m.getValue().get("ciq_dose_rate")) / 100.0);
+                                }
+                                activity.add("      <gpxtpx:dose_rate>{ciq_dose_rate}</gpxtpx:dose_rate>".replace("{ciq_dose_rate}",dr));
+                            }
                             activity.add("     </gpxtpx:TrackPointExtension>"); }
                         activity.add("    </extensions>"); }
                     activity.add("   </trkpt>");
