@@ -943,6 +943,7 @@ public class Converter {
                             switch (s1) {
                                 case "ciq_marker_type": line.append(2); break;  // always export point as "marker"
                                 case "ciq_SE": line.append("not provided"); break;
+                                case "gps_accuracy": line.append(2.9999); break;
                             }
                         }
                     }
