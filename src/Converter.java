@@ -244,7 +244,7 @@ public class Converter {
 
                     Map<String,String> row1 = m.getValue();
 
-                    if(row1.containsKey("heart_rate") && (row1.get("heart_rate").equals("0"))) {    // generic: zero value of heart rate
+                    if(row1.containsKey("heart_rate") && "0".equals(row1.get("heart_rate"))) {    // generic: zero value of heart rate
                         row1.remove("heart_rate");
                     }
 
@@ -259,6 +259,13 @@ public class Converter {
                         row1.put("enhanced_speed", row1.get("speed"));
                         row1.put("fixed",append(row1.get("fixed"),"no-enh-speed,"));
                     }
+
+                    // out of range values
+                    if(row1.containsKey("ciq_dose_rate") && Double.parseDouble(row1.get("ciq_dose_rate")) <= 0.0 ) {    // generic: zero or negative value of dose rate
+                        row1.remove("ciq_dose_rate");
+                    }
+
+
 
                     // fix BRYTON hole in data: lat/lon (#1)
                     double speed;
@@ -921,6 +928,7 @@ public class Converter {
 
             case ATOMFAST_CSV:
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                double prev_doserate = 0.0;
                 for(Map.Entry<String, Map<String, String>> m: Buffer.entrySet()){
                     StringBuilder line;
                     Date date = new Date();
@@ -929,26 +937,39 @@ public class Converter {
                     } catch (ParseException ignored) {}
                     long ts = date.getTime() / 1000;
 
-                    line = new StringBuilder(String.valueOf(ts));
                     Map<String, String> ff = m.getValue();
-                    for(String s1: atom_fast_fields) {      // predefined fields for atomfast
-                        line.append(";");
-                        if(ff.containsKey(s1)) {
-                            if(s1.equals("ciq_dose_rate") && !connect_iq_fields.get("ciq_dose_rate").equals("microsieverts")) {
-                                line.append( Double.parseDouble(ff.get(s1)) / 100.0);   // if units Roentgen, convert it to Sieverts
+
+                    // not write if doserate and coordinates not present
+                    // and if doserate not changed
+                    if( (ff.get("ciq_dose_rate") != null && ff.get("position_lat") != null && ff.get("position_long") != null) && Double.parseDouble(ff.get("ciq_dose_rate")) != prev_doserate) {
+                        prev_doserate = Double.parseDouble(ff.get("ciq_dose_rate"));
+                        line = new StringBuilder(String.valueOf(ts));
+
+                        for (String s1 : atom_fast_fields) {      // predefined fields for atomfast
+                            line.append(";");
+                            if (ff.containsKey(s1)) {
+                                if (s1.equals("ciq_dose_rate") && !connect_iq_fields.get("ciq_dose_rate").equals("microsieverts")) {
+                                    line.append(Double.parseDouble(ff.get(s1)) / 100.0);   // if units Roentgen, convert it to Sieverts
+                                } else {
+                                    line.append(ff.get(s1));
+                                }
                             } else {
-                                line.append(ff.get(s1));
-                            }
-                        } else {
-                            switch (s1) {
-                                case "ciq_marker_type": line.append(2); break;  // always export point as "marker"
-                                case "ciq_SE": line.append("not provided"); break;
-                                case "gps_accuracy": line.append(2.9999); break;
+                                switch (s1) {
+                                    case "ciq_marker_type":
+                                        line.append(2);
+                                        break;  // always export point as "marker"
+                                    case "ciq_SE":
+                                        line.append("not provided");
+                                        break;
+                                    case "gps_accuracy":
+                                        line.append(2.9999);
+                                        break;
+                                }
                             }
                         }
+                        activity.add(line.toString());
                     }
 
-                    activity.add(line.toString());
                 }
                 break;
 
