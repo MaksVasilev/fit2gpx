@@ -25,6 +25,7 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -34,10 +35,11 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.20";
+    static final String _version_ = "0.1.22";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
     static ArrayList<Mode> WorkMODE = new ArrayList<>();
+    static String execName = "";
     
     public static void main(String[] args) {
 
@@ -131,7 +133,26 @@ public class fit2gpx extends Component {
             }
         }
 
-        if(WorkMODE.size() ==0) addWorkMODE(Mode.GPX);
+        try {
+            execName = (new File(fit2gpx.class
+                    .getProtectionDomain()
+                    .getCodeSource().getLocation()
+                    .toURI()).getName()).replace(".jar", "");
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        if(xDebug) System.out.println("Executable file name: " + execName);
+
+        if(WorkMODE.isEmpty()) {
+            switch (execName) {
+                case "fit2csv" -> {addWorkMODE(Mode.CSV); converter.setSaveIfEmpty();}
+                case "fit2atomfast" -> addWorkMODE(Mode.ATOMFAST_CSV);
+                case "fit2hrv" -> addWorkMODE(Mode.HRV);
+                default -> addWorkMODE(Mode.GPX);
+            }
+
+        }
         if(xDebug) System.out.println("Work mode list: " + Arrays.toString(WorkMODE.toArray()));
 
         if (database == Database.SQLITE && db_connect.equals("")) {
