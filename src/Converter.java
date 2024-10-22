@@ -90,8 +90,9 @@ public class Converter {
     private static final String[] monitor_spo2_fields = {"SPO2"};
     private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA","gsi_227_4"};
     private static final String[] hr_only_fields = {"heart_rate","duration"};
-    private static final String[] atom_fast_fields = {"ciq_dose_rate","position_lat","position_long","gps_accuracy", "ciq_marker_type", "ciq_SE"}; // TODO
-    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle, 1-marker)","SE (1 σ)[%]"};
+    private static final String[] atom_fast_fields = {"ciq_dose_rate","position_lat","position_long","enhanced_altitude","enhanced_speed","ciq_cps","ciq_cp2s","gps_accuracy", "ciq_marker_type", "ciq_SE"}; // TODO
+//    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle, 1-marker)","SE (1 σ)[%]" }; // format AtomFast CSVv1
+    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","wgs84_alt (m.)","speed (m/s)","cps","cp_2s","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle"," 1-marker)","SE (1 σ)[%]" }; // format AtomFast CSVv2
 
     private static final HashMap<String, String> connect_iq_fields = new HashMap<>(); // field name, units
 
@@ -955,15 +956,9 @@ public class Converter {
                                 }
                             } else {
                                 switch (s1) {
-                                    case "ciq_marker_type":
-                                        line.append(2);
-                                        break;  // always export point as "marker"
-                                    case "ciq_SE":
-                                        line.append("not provided");
-                                        break;
-                                    case "gps_accuracy":
-                                        line.append(2.9999);
-                                        break;
+                                    case "ciq_marker_type" -> line.append(2);
+                                    case "ciq_SE" -> line.append("not provided");
+                                    case "gps_accuracy" -> line.append(2.9999);
                                 }
                             }
                         }
