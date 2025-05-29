@@ -37,7 +37,7 @@ public class FitReader {
     private static class Parser{
 
         private String FITFileName;             // полное имя файла для чтения
-        private FileInputStream InputStream;    // поток для тения файла
+        private FileInputStream InputStream;    // поток для чтения файла
         private boolean TimestampToData = false;
 
         private Date TimeStamp = new Date();
@@ -47,14 +47,14 @@ public class FitReader {
 
         void setFITFileName(String fitFileName) {
             FITFileName = fitFileName;
-            this.chechFITFile();
+            this.checkFITFile();
         }
 
         void setTimestampToData(boolean timestampToData) {
             TimestampToData = timestampToData;
         }
 
-        void chechFITFile() {
+        void checkFITFile() {
 
             try {
                 InputStream = new FileInputStream(FITFileName);
