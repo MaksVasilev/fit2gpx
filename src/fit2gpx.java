@@ -35,7 +35,7 @@ import static javax.swing.UIManager.setLookAndFeel;
 
 public class fit2gpx extends Component {
 
-    static final String _version_ = "0.1.23";
+    static final String _version_ = "0.1.24";
 
     static ResourceBundle tr = ResourceBundle.getBundle("locale/tr", Locale.getDefault());
     static ArrayList<Mode> WorkMODE = new ArrayList<>();

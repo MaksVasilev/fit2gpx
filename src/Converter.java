@@ -90,9 +90,9 @@ public class Converter {
     private static final String[] monitor_spo2_fields = {"SPO2"};
     private static final String[] monitor_gsi_fields = {"GSI","BODY_BATTERY","DELTA","gsi_227_4"};
     private static final String[] hr_only_fields = {"heart_rate","duration"};
-    private static final String[] atom_fast_fields = {"ciq_dose_rate","position_lat","position_long","enhanced_altitude","enhanced_speed","ciq_cps","ciq_cp2s","gps_accuracy", "ciq_marker_type", "ciq_SE"}; // TODO
+    private static final String[] atom_fast_fields = {"ciq_dose_rate","position_lat","position_long","enhanced_altitude","enhanced_speed","ciq_cps","ciq_cp2s","gps_accuracy", "ciq_marker_type", "ciq_search_error"}; // TODO
 //    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle, 1-marker)","SE (1 σ)[%]" }; // format AtomFast CSVv1
-    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","wgs84_alt (m.)","speed (m/s)","cps","cp_2s","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle"," 1-marker)","SE (1 σ)[%]" }; // format AtomFast CSVv2
+    private static final String[] atom_fast_head = {"doserate (uSv/h)","lat","lng","wgs84_alt (m.)","speed (m/s)","cps","cp_2s","horizontal accuracy (radius of 68% confidence [m])","marker type (2-circle, 1-marker)","SE (1 σ)[%]" }; // format AtomFast CSVv2
 
     private static final HashMap<String, String> connect_iq_fields = new HashMap<>(); // field name, units
 
@@ -949,7 +949,7 @@ public class Converter {
                         for (String s1 : atom_fast_fields) {      // predefined fields for atomfast
                             line.append(";");
                             if (ff.containsKey(s1)) {
-                                if (s1.equals("ciq_dose_rate") && !connect_iq_fields.get("ciq_dose_rate").equals("microsieverts")) {
+                                if (s1.equals("ciq_dose_rate") && (!connect_iq_fields.get("ciq_dose_rate").equals("microsieverts") && !connect_iq_fields.get("ciq_dose_rate").equals("uSv/h") ) ) { // TODO Swift: uSv/h, garmin: microsieverts
                                     line.append(Double.parseDouble(ff.get(s1)) / 100.0);   // if units Roentgen, convert it to Sieverts
                                 } else {
                                     line.append(ff.get(s1));
