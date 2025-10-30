@@ -949,8 +949,12 @@ public class Converter {
                         for (String s1 : atom_fast_fields) {      // predefined fields for atomfast
                             line.append(";");
                             if (ff.containsKey(s1)) {
-                                if (s1.equals("ciq_dose_rate") && (!connect_iq_fields.get("ciq_dose_rate").equals("microsieverts") && !connect_iq_fields.get("ciq_dose_rate").equals("uSv/h") ) ) { // TODO Swift: uSv/h, garmin: microsieverts
-                                    line.append(Double.parseDouble(ff.get(s1)) / 100.0);   // if units Roentgen, convert it to Sieverts
+                                if (s1.equals("ciq_dose_rate")) {
+                                    if ((connect_iq_fields.get("ciq_dose_rate").equals("microsieverts") || connect_iq_fields.get("ciq_dose_rate").equals("uSv/h") ) ) { // TODO Swift: uSv/h, garmin: microsieverts
+                                        line.append(ff.get(s1));
+                                    } else {
+                                        line.append(Double.parseDouble(ff.get(s1)) / 100.0);   // if units Roentgen, convert it to Sieverts
+                                    }
                                 } else {
                                     line.append(ff.get(s1));
                                 }
